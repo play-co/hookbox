@@ -1,0 +1,99 @@
+= HookBox Notes =
+
+== HookBox Webhooks ==
+
+Each webhook takes arguments in the form of a querystring encoded post body that should just work with existing form processing infrastructure.
+
+Each webhook returns a JSON list, of the form [ boolean, object ]. The first argument signifies the authorization/success of the operation, and the object contains various options that vary by hook type.
+
+All webhooks will have a "Cookie:" header with a value identical to the browser that caused the request to be initiated. The "context" of the webhook call should therefore contain a session for the originating browser.
+
+
+=== connect ===
+
+Request
+
+    URL: [ROOT]/connect
+
+Request Form:
+    (empty)
+
+Responses:
+    true: Authorize connection
+    false: Deny connection
+
+Response Options
+    name (optional): the Display Name for this connection; it will be used for presence.
+    auto_subscribe (optional): (list) A list of channels to attempt to auto-subscribe the user. Each will generate a subscribe callback.
+    auto_unsubscribe (optional): (list) A list of channels to attempt to auto-unsubscribe the user. Each will generate an unsubscribe callback.
+
+=== create channel ===
+
+Request
+    URL: [ROOT]/create_channel
+    
+Request Form:
+    destination: The channel's URI
+    
+
+Responses:
+    true: Authorize channel creation
+    false: Deny channel creation
+
+Response Options
+    history: (int, default 0) Specifies the amount of history that should be saved on the channel. When a user first subscribes they will be sent this history.
+    set_history: (list, default []) Pre-populates history for the channel
+
+Note: A create channel is issuing when a user subscribes to a non-existent destination. There will usually be a /subscribe callback immediately following a create_channel callback, unless the channel creation is denied.
+
+=== publish ===
+
+Request
+    URL: [ROOT]/publish
+    
+Request Form:
+    destination: The channel's URI
+    payload: The json payload to be published    
+
+Responses:
+    true: Authorize publishing
+    false: Deny publishing
+
+Response Options
+    override_payload (optional): If specified, this payload will be delivered instead of the original payload
+    auto_subscribe (optional): (list) A list of channels to attempt to auto-subscribe the user. Each will generate a subscribe callback.
+    auto_unsubscribe (optional): (list) A list of channels to attempt to auto-unsubscribe the user. Each will generate an unsubscribe callback.
+
+
+=== unsubscribe ===
+
+Request
+    URL: [ROOT]/unsubscribe
+    
+Request Form:
+    destination: The channel's URI
+
+Responses:
+    true: Authorize unsubscribe
+    false: Deny unsubscribe
+
+Response Options
+    auto_subscribe (optional): (list) A list of channels to attempt to auto-subscribe the user. Each will generate a subscribe callback.
+    auto_unsubscribe (optional): (list) A list of channels to attempt to auto-unsubscribe the user. Each will generate an unsubscribe callback.
+
+
+=== disconnect ===
+
+Request
+    URL: [ROOT]/disconnect
+    
+Request Form:
+    channels: (list) The channels the users was in.
+
+Responses:
+    true: Required (Doesn't really do anything)
+    false: Meaningless (but does the same as true.)
+
+Response Options
+    (None)    
+
