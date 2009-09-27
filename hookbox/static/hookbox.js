@@ -68,11 +68,11 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
         return s;   
     }
 
-    this.publish = function(dest, data) {
+    this.publish = function(destination, data) {
         if (this.connected) {
-            this.sendFrame('PUBLISH', JSON.stringify(data));
+            this.sendFrame('PUBLISH', { destination: destination, payload: JSON.stringify(data) });
         } else {
-            this._publishes.push([dest, data]);
+            this._publishes.push([destination, data]);
         }
         
     }
