@@ -1,0 +1,21 @@
+<html>
+ <head>
+  <script src="jsio/jsio.js"></script>
+  <script>
+   jsio.require('hookbox');
+   jsio.require('jsio.logging');
+   jsio.logging.getLogger('hookbox').setLevel(jsio.logging.levels.DEBUG);
+   function go() {
+        c = hookbox.connect('http://localhost:8001/csp');
+        c.subscribe('testing').onFrame = function(frame) {
+            console.log('received frame', frame);
+        };
+        c.publish('testing', [1,2,3]);
+   }
+
+  </script>
+ </head>
+ <body>
+  <h1>Test eventlet csp</h1>
+ </body>
+</html>
