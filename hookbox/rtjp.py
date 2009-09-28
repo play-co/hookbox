@@ -38,7 +38,7 @@ class RTJPConnection(object):
                     self.logger.warn("Invalid frame length for: " + repr(frame))
                     continue
                 if (isinstance(frame[2], unicode)):
-                    frame[2] = str(frame[2])
+                    frame[1] = str(frame[1])
                 if not isinstance(frame[0], int):
                     self.logger.warn("Invalid frame id: " + repr(frame[0]))
                     continue
