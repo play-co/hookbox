@@ -19,7 +19,7 @@ static_types = [
 
 setup(
     name='hookbox',
-    version='0.1a1',
+    version='0.1a2',
     author='Michael Carter',
     author_email='CarterMichael@gmail.com',
     license='MIT License',

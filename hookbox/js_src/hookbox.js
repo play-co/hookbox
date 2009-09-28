@@ -13,21 +13,31 @@ exports.connect = function(url) {
 }
 
 var Subscription = Class(function(supr) {
+    // Public API
+
     this.init = function(destination) {
+        this.destination = destination;
+        this.canceled = false;
     }
 
-    this.onCancel = function() { }
-
-    this.onFrame = function(frame) { }
+    this.onPublish = function(frame) { }
     this.onSetup = function(frame) { }
 
     this.getDestination = function() {
-        return this.channel;
+        return this.destination;
     }
 
     this.cancel = function() {
-
+        if (!this.canceled) {
+            this.canceled = false;
+            this._onCancel();
+        }
     }
+
+
+    // Private API
+    this._onCancel = function() { }
+
 
 })
 
@@ -49,13 +59,13 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
         var s = new Subscription();
         console.log('s is', s);
         var subscribers;
-        s.onCancel = bind(function() {
+        s._onCancel = bind(function() {
             var i = subscribers.indexOf(s);
             subscribers.splice(i, 1);
             if (!subscribers.length) {
                 delete this._subscriptions[dest];
             }
-            delete s.onCancel;
+            delete s._onCancel;
         })
         if (subscribers = this._subscriptions[dest]) {
             subscribers.push(s);
@@ -119,10 +129,12 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
         this.connected = false;
         this.onclose();
     }
+
     // TODO: we need another var besides this.connnected, as that becomes true
     //       only after we get a CONNECTED frame. Maybe our transport is 
     //       connected, but we haven't gotten the frame yet. For now, no one
     //       should be calling this anyway until they get an onclose.
+
     this.reconnect = function() {
         jsioConnect(this, this.url);
     }

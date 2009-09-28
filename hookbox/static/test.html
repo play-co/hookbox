@@ -1,13 +1,13 @@
 <html>
  <head>
-  <script src="output.js"></script>
+  <script src="hookbox.js"></script>
   <script>
-//   hookbox.require('jsio.logging');
    hookbox.logging.getLogger('hookbox').setLevel(hookbox.logging.levels.DEBUG);
-   x = 5 // Good job
+   hookbox.logging.getLogger('RTJPProtocol').setLevel(hookbox.logging.levels.DEBUG);
    function go() {
         c = hookbox.connect('http://localhost:8001/csp');
-        c.subscribe('testing').onFrame = function(frame) {
+        s = c.subscribe('testing');
+        s.onFrame = function(frame) {
             console.log('received frame', frame);
         };
         c.publish('testing', [1,2,3]);
