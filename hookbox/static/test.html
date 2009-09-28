@@ -1,10 +1,10 @@
 <html>
  <head>
-  <script src="jsio/jsio.js"></script>
+  <script src="output.js"></script>
   <script>
-   jsio.require('hookbox');
-   jsio.require('jsio.logging');
-   jsio.logging.getLogger('hookbox').setLevel(jsio.logging.levels.DEBUG);
+//   hookbox.require('jsio.logging');
+   hookbox.logging.getLogger('hookbox').setLevel(hookbox.logging.levels.DEBUG);
+   x = 5 // Good job
    function go() {
         c = hookbox.connect('http://localhost:8001/csp');
         c.subscribe('testing').onFrame = function(frame) {

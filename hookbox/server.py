@@ -2,6 +2,7 @@ import collections
 import logging
 from eventlet.green import httplib
 import os
+import urllib
 from eventlet import wsgi, api
 from csp.eventlet import Listener
 from paste import urlmap
@@ -52,9 +53,10 @@ class HookboxServer(object):
 
         
         
-    def http_request(self, path, cookie_string):
+    def http_request(self, path, cookie_string, form={}):
+        body = urllib.urlencode(form)
         http = httplib.HTTPConnection(self.base_host, self.base_port)
-        http.request('POST', self.base_path + path, headers={ 'Cookie': cookie_string })
+        http.request('POST', self.base_path + path, body=body, headers={ 'Cookie': cookie_string })
         response = http.getresponse()
         if response.status != 200:
             raise ExpectedException("Invalid callback response, status=" + str(response.status))
@@ -70,26 +72,50 @@ class HookboxServer(object):
     def connect(self, conn):
         success, options = self.http_request('/connect', conn.cookie_string)
         if not success:
-            raise ExpectedException("Unauthorized")
+            raise ExpectedException(options.get('error', 'Unauthorized'))
         conn.name = options.get('name', None)
-        for destination in options.get('auto_subscribe', ()):
-            self.subscribe(conn, destination)
-        for destination in options.get('auto_unsubscribe', ()):
-            self.unsubscribe(conn, destination)
-        return True
+        self.maybe_auto_subscribe(conn, options)
     
-    def subscribe(self, conn, destination):
+    
+    def maybe_auto_subscribe(self, conn, options):
+        for destination in options.get('auto_subscribe', ()):
+            self.subscribe(conn, destination, pre_auth=True)
+        for destination in options.get('auto_unsubscribe', ()):
+            self.unsubscribe(conn, destination, pre_auth=True)
+    
+    
+    def subscribe(self, conn, destination, pre_auth=False):
         if conn in self.subscriptions[destination]:
             return
+        if not pre_auth:
+            form = { 'destination': destination }
+            success, options = self.http_request('/subscribe', conn.cookie_string, form)
+            if not success:
+                raise ExpectedException(options.get('error', 'Unauthorized'))
         self.subscriptions[destination].append(conn)
+        self.maybe_auto_subscribe(conn, options)
+        
 
-    def unsubscribe(self, conn, destination):
-        if conn in self.subscriptions.get(destination, ()):
-            self.subscriptions[destination].remove(conn)
+    def unsubscribe(self, conn, destination, pre_auth=False):
+        if conn not in self.subscriptions.get(destination, ()):
+            return
+        if not pre_auth:
+            form = { 'destination': destination }
+            success, options = self.http_request('/unsubscribe', conn.cookie_string, form)
+            if not success:
+                raise ExpectedException(options.get('error', 'Unauthorized'))
+        self.subscriptions[destination].remove(conn)
+        self.maybe_auto_subscribe(conn, options)
         
     def publish(self, conn, destination, payload):
+        form = { 'destination': destination, 'payload': payload }
+        success, options = self.http_request('/publish', conn.cookie_string, form)
+        if not success:
+            raise ExpectedException(options.get('error', 'Unauthorized'))
+        payload = options.get('override_payload', payload)
         for conn in self.subscriptions.get(destination, ()):
             conn.send_frame('PUBLISH', {"destination":destination, "payload":payload})
+        self.maybe_auto_subscribe(conn, options)
         
 def parse_cookies(cookieString):
     output = {}
