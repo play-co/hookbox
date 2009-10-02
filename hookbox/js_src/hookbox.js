@@ -6,8 +6,8 @@ var logger = jsio.logging.getLogger('hookbox');
 
 exports.logging = jsio.logging
 
-exports.connect = function(url) {
-    var p = new HookBoxProtocol();
+exports.connect = function(url, cookieString) {
+    var p = new HookBoxProtocol(url, cookieString);
     jsioConnect(p, 'csp', {url: url})
     return p;
 }
@@ -15,13 +15,15 @@ exports.connect = function(url) {
 var Subscription = Class(function(supr) {
     // Public API
 
-    this.init = function(destination) {
+    this.init = function(destination, errorId) {
         this.destination = destination;
         this.canceled = false;
+        this._errorId = errorId
     }
 
     this.onPublish = function(frame) { }
     this.onSetup = function(frame) { }
+    this.onFailure = function(frame) { }
 
     this.getDestination = function() {
         return this.destination;
@@ -30,6 +32,7 @@ var Subscription = Class(function(supr) {
     this.cancel = function() {
         if (!this.canceled) {
             this.canceled = false;
+            logger.debug('calling this._onCancel()');
             this._onCancel();
         }
     }
@@ -47,59 +50,69 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
     this.onclose = function() { }
     this.onerror = function() { }
 
-    this.init = function(url) {
+    this.init = function(url, cookieString) {
         supr(this, 'init', []);
         this.url = url;
+        this.cookieString = cookieString || document.cookie;
         this.connected = false;
         this._subscriptions = {}
         this._publishes = []
+        this._errors = {}
     }
 
-    this.subscribe = function(dest) {
+    this.subscribe = function(channel_name) {
         var s = new Subscription();
-        console.log('s is', s);
         var subscribers;
-        s._onCancel = bind(function() {
+        s._onCancel = bind(this, function() {
+            logger.debug('in this._onCancel');
             var i = subscribers.indexOf(s);
             subscribers.splice(i, 1);
             if (!subscribers.length) {
-                delete this._subscriptions[dest];
+                // NOTE: Its possible for hookbox to refuse the unsubscribe.
+                //       Then where would we be? I guess its not a common use
+                //       case though. 
+                //       -mcarter 10/2/09
+                delete this._subscriptions[channel_name];
+                delete this._errors[fId];
+                this.sendFrame('UNSUBSCRIBE', {channel_name: channel_name});
             }
             delete s._onCancel;
         })
-        if (subscribers = this._subscriptions[dest]) {
+        if (subscribers = this._subscriptions[channel_name]) {
             subscribers.push(s);
         } else {
             subscribers = [ s ];
-            this._subscriptions[dest] = subscribers;
+            this._subscriptions[channel_name] = subscribers;
             if (this.connected) {
-                this.sendFrame('SUBSCRIBE', {destination: dest});
+                var fId = this.sendFrame('SUBSCRIBE', {channel_name: channel_name});
+                this._errors[fId] = subscribers;
             }
         }
+
         return s;   
     }
 
-    this.publish = function(destination, data) {
+    this.publish = function(channel_name, data) {
         if (this.connected) {
-            this.sendFrame('PUBLISH', { destination: destination, payload: JSON.stringify(data) });
+            this.sendFrame('PUBLISH', { channel_name: channel_name, payload: JSON.stringify(data) });
         } else {
-            this._publishes.push([destination, data]);
+            this._publishes.push([channel_name, data]);
         }
         
     }
 
     this.connectionMade = function() {
         logger.debug('connectionMade');
-        this.sendFrame('CONNECT', { cookie: document.cookie });
+        this.sendFrame('CONNECT', { cookie_string: this.cookieString });
     }
 
     this.frameReceived = function(fId, fName, fArgs) {
-        logger.debug('frameReceived', fId, fName, fArgs);
         switch(fName) {
             case 'CONNECTED':
                 this.connected = true;
                 for (key in this._subscriptions) {
-                    this.sendFrame('SUBSCRIBE', {destination: key});
+                    var fId = this.sendFrame('SUBSCRIBE', {channel_name: key});
+                    this._errors[fId] = this._subscriptions[key];
                 }
                 while (this._publishes.length) {
                     var pub = this._publishes.splice(0, 1)[0];
@@ -121,6 +134,12 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
                 break;
             case 'ERROR':
                 this.onerror(fArgs);
+                if (subs = this._errors[fArgs.reference_id]) {
+                    for (var i = 0, sub; sub=subs[i]; ++i) {
+                        sub.cancel()
+                        sub.onFailure(fArgs.msg);
+                    }
+                }
                 break;
         }
     }
@@ -140,5 +159,3 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
     }
     
 })
-
-

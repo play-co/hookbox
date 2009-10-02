@@ -10,6 +10,9 @@
         s.onFrame = function(frame) {
             console.log('received frame', frame);
         };
+        s.onFailure = function(err) {
+            console.log('ERR subscribing', err);
+        }
         c.publish('testing', [1,2,3]);
    }
 

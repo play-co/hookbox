@@ -8,7 +8,10 @@ from csp.eventlet import Listener
 from paste import urlmap
 import static
 from errors import ExpectedException
-import rtjp
+import channel
+import rest
+import protocol
+from user import User
 try:
     import json
 except:
@@ -18,7 +21,8 @@ from config import config
 class EmptyLogShim(object):
     def write(self, *args, **kwargs):
         return
-    
+
+
 class HookboxServer(object):
   
     def __init__(self, interface, port):
@@ -29,34 +33,45 @@ class HookboxServer(object):
         self.base_host = config['cbhost']
         self.base_port = config['cbport']
         self.base_path = config['cbpath']
-        self.subscriptions = collections.defaultdict(list)
+        self.app = urlmap.URLMap()
+        self.csp = Listener()
+        self.app['/csp'] = self.csp
+        static_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], 'static')
+        self.app['/static'] = static.Cling(static_path)
+        self.app['/rest'] = rest.HookboxRest(self)
         
+        self.channels = {}
+        self.conns_by_cookie = {}
+        self.conns = {}
+         
+         
     def run(self):
+        api.spawn(wsgi.server, api.tcp_listener((self.interface, self.port)), self.app, log=EmptyLogShim())
         api.spawn(self._run)
         
-    def _run(self):
-        app = urlmap.URLMap()
-        csp = Listener()
-        app['/csp'] = csp
-        static_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], 'static')
-        app['/static'] = static.Cling(static_path)
+    def __call__(self, environ, start_response):
+        return self.app(environ, start_response)
         
-        api.spawn(wsgi.server, api.tcp_listener((self.interface, self.port)), app, log=EmptyLogShim())
+    def _run(self):
+        # NOTE: You probably want to call this method directly if you're trying
+        #       To use some other wsgi server than eventlet.wsgi
         while True:
             try:
-                sock, addr_info = csp.accept()
-                conn = HookboxConn(self, sock)
+                sock, addr_info = self.csp.accept()
+                conn = protocol.HookboxConn(self, sock)
             except:
                 raise
                 break
         print "HookboxServer Stopped"
-
         
         
-    def http_request(self, path, cookie_string, form={}):
+    def http_request(self, path, cookie_string=None, form={}):
         body = urllib.urlencode(form)
         http = httplib.HTTPConnection(self.base_host, self.base_port)
-        http.request('POST', self.base_path + path, body=body, headers={ 'Cookie': cookie_string })
+        headers = {}
+        if cookie_string:
+            headers['Cookie'] = cookie_string
+        http.request('POST', self.base_path + path, body=body, headers=headers)
         response = http.getresponse()
         if response.status != 200:
             raise ExpectedException("Invalid callback response, status=" + str(response.status))
@@ -70,133 +85,47 @@ class HookboxServer(object):
         return output
     
     def connect(self, conn):
-        success, options = self.http_request('/connect', conn.cookie_string)
+        form = { 'conn_id': conn.id }
+        success, options = self.http_request('/connect', conn.get_cookie(), form)
         if not success:
             raise ExpectedException(options.get('error', 'Unauthorized'))
-        conn.name = options.get('name', None)
-        self.maybe_auto_subscribe(conn, options)
-    
-    
+        if 'name' not in options:
+            raise ExpectedException('Unauthorized (missing name parameter in server response)')
+        user = User(self, options['name'])
+        user.add_connection(conn)
+        self.maybe_auto_subscribe(user, options)
+        
+    def create_channel(self, conn, channel_name, **options):
+        if channel_name in self.channels:
+            raise ExpectedException("Channel already exists")
+        cookie_string = conn and conn.get_cookie() or None
+        form = {
+            'channel_name': channel_name,
+        }
+        success, options = self.http_request('/create_channel', cookie_string, form)
+        if not success:
+            raise ExpectedException(options.get('error', 'Unauthorized'))
+        
+        self.channels[channel_name] = channel.Channel(self, channel_name, **options)
+        
+        
+        
+    def destroy_channel(self, channel_name, **options):
+        if channel_name not in channels:
+            return None
+        channel = self.channels[channel_name]
+        del self.channels[channel_name]
+        channel.destroy()
+        
+    def get_channel(self, conn, channel_name):
+        if channel_name not in self.channels:
+            self.create_channel(conn, channel_name)
+        return self.channels[channel_name]
+        
     def maybe_auto_subscribe(self, conn, options):
         for destination in options.get('auto_subscribe', ()):
-            self.subscribe(conn, destination, pre_auth=True)
+            channel = self.get_channel(channel_name)
+            channel.subscribe(conn, needs_auth=False)
         for destination in options.get('auto_unsubscribe', ()):
-            self.unsubscribe(conn, destination, pre_auth=True)
-    
-    
-    def subscribe(self, conn, destination, pre_auth=False):
-        if conn in self.subscriptions[destination]:
-            return
-        if not pre_auth:
-            form = { 'destination': destination }
-            success, options = self.http_request('/subscribe', conn.cookie_string, form)
-            if not success:
-                raise ExpectedException(options.get('error', 'Unauthorized'))
-        self.subscriptions[destination].append(conn)
-        self.maybe_auto_subscribe(conn, options)
-        
-
-    def unsubscribe(self, conn, destination, pre_auth=False):
-        if conn not in self.subscriptions.get(destination, ()):
-            return
-        if not pre_auth:
-            form = { 'destination': destination }
-            success, options = self.http_request('/unsubscribe', conn.cookie_string, form)
-            if not success:
-                raise ExpectedException(options.get('error', 'Unauthorized'))
-        self.subscriptions[destination].remove(conn)
-        self.maybe_auto_subscribe(conn, options)
-        
-    def publish(self, conn, destination, payload):
-        form = { 'destination': destination, 'payload': payload }
-        success, options = self.http_request('/publish', conn.cookie_string, form)
-        if not success:
-            raise ExpectedException(options.get('error', 'Unauthorized'))
-        payload = options.get('override_payload', payload)
-        for conn in self.subscriptions.get(destination, ()):
-            conn.send_frame('PUBLISH', {"destination":destination, "payload":payload})
-        self.maybe_auto_subscribe(conn, options)
-        
-def parse_cookies(cookieString):
-    output = {}
-    for m in cookieString.split('; '):
-        try:
-            k,v = m.split('=', 1)
-            output[k] = v
-        except:
-            continue
-    return output
-        
-        
-        
-class HookboxConn(rtjp.RTJPConnection):
-    logger = logging.getLogger('RTJPConnection')
-    
-    def __init__(self, server, sock):
-        rtjp.RTJPConnection.__init__(self, sock)
-        self.server = server
-        self.state = 'initial'
-        self.cookies = None
-        self.cookie_string = None
-        api.spawn(self._run)
-        
-    def _close(self):
-        if self.state == 'connected':
-            self.server.closed(self)
-        
-    def _run(self):
-        while True:
-            try:
-                fid, fname, fargs= self.recv_frame()
-            except:
-                self.logger.warn("Error reading frame", exc_info=True)
-                continue
-            f = getattr(self, 'frame_' + fname, None)
-            if f:
-                try:
-                        f(fid, fargs)
-                except ExpectedException, e:
-                    self.send_error(fid, e)
-                except Exception, e:
-                    self.logger.warn("Unexpected error: %s", e, exc_info=True)
-                    self.send_error(fid, e)
-            else:
-                self._default_frame(fid, fname, fargs)                
-            
-    def _default_frame(fid, fname, fargs):
-        pass                
-            
-    def frame_CONNECT(self, fid, fargs):
-        if self.state != 'initial':
-            return self.send_error(fid, "Already logged in")
-        self.cookies = parse_cookies(fargs['cookie'])
-        self.cookie_string = fargs['cookie']
-        self.server.connect(self)
-        self.state = 'connected'
-        self.send_frame('CONNECTED')
-    
-    def frame_SUBSCRIBE(self, fid, fargs):
-        if self.state != 'connected':
-            return self.send_error(fid, "Not connected")
-        if 'destination' not in fargs:
-            return self.send_error(fid, "destination required")
-        self.server.subscribe(self, fargs['destination'])
-            
-    def frame_UNSUBSCRIBE(self, fid, fargs):
-        if self.state != 'connected':
-            return self.send_error(fid, "Not connected")
-        if 'destination' not in fargs:
-            return self.send_error(fid, "destination required")
-        self.server.unsubscribe(self, fargs['destination'])
-            
-            
-    def frame_PUBLISH(self, fid, fargs):
-        if self.state != 'connected':
-            return self.send_error(fid, "Not connected")
-        if 'destination' not in fargs:
-            return self.send_error(fid, "destination required")
-        if 'payload' not in fargs:
-            return self.send_error(fid, "payload required")
-        self.server.publish(self, fargs['destination'], fargs['payload'])
-        
-    
+            channel = self.get_channel(channel_name)
+            channel.unsubscribe(conn, needs_auth=False)

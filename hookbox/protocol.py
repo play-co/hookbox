@@ -1,89 +1,95 @@
-from twisted.internet import protocol, defer
-from twisted.web.client import getPage
 import logging
+import uuid
+from eventlet import api
+from config import config
+from errors import ExpectedException
 import rtjp
-import urllib
-import cgi
 
-try:
-    import json
-except:
-    import simplejson as json
-
-class HookBoxServer(protocol.Factory):
-    protocol = HookBoxProtocol
+class HookboxConn(rtjp.RTJPConnection):
+    logger = logging.getLogger('RTJPConnection')
     
-    def __init__(self, remote_base):
-        self.remote_base
-    
-    def makeRequest(self, location, cookies, **form):
-        url = self.remote_base + '/connect'
-        body = urllib.urlencode(form)
-        return getPage(url, method='POST', postdata=body, cookies=cookies)
-    
-    
-    def connect(self, conn):
-        def success(response):
-            
-        d = makeRequest('/connect', conn.cookies)
-        d.addCallback(self.responseSuccess, 'login').addErback(self.responseErr, 'login')
-        
-            
-getPage(url, method='POST', postdata=encode(headers))
-
-
-
-
-
-class HookBoxProtocol(rtjp.RTJPProtocol):
-    logger = logging.getLogger('HookBoxProtocol')
-  
-    def __init__(self):
-        rtjp.RTJPProtocol.__init__(self)
-        self.cookies = {}
-        self.id = None
-    def connectionMade(self, data):
+    def __init__(self, server, sock):
+        rtjp.RTJPConnection.__init__(self, sock)
+        self.server = server
         self.state = 'initial'
+        self.cookies = None
+        self.cookie_string = None
+        self.cookie_id = None
+        self.id = str(uuid.uuid4()).replace('-', '')
+        api.spawn(self._run)
+        
+    def get_cookie(self):
+        return self.cookie_string
+        
+    def get_id(self):
+        return self.id
     
-    def frameReceived(self, fId, fName, fArgs):
-        if fName == 'CONNECT':
-            if self.state != 'initial':
-                return self.sendError(fId, "Already logged in")
-            for m in fArgs['cookies'].split('; '):
+    def get_cookie_id(self):
+        return self.cookie_id
+    
+    def _close(self):
+        if self.state == 'connected':
+            self.server.closed(self)
+        
+    def _run(self):
+        while True:
+            try:
+                fid, fname, fargs= self.recv_frame()
+            except:
+                self.logger.warn("Error reading frame", exc_info=True)
+                continue
+            f = getattr(self, 'frame_' + fname, None)
+            if f:
                 try:
-                    k,v = m.split('=', 1)
-                except:
-                    continue
-                self.cookies[k] = v
-                
-            def _login_success(arg, identifier):
-                self.state = 'connected'
-                self.sendFrame('CONNECTED')
-                
-            def _login_failure(err):
-                self.sendError(fId, err)
+                        f(fid, fargs)
+                except ExpectedException, e:
+                    self.send_error(fid, e)
+                except Exception, e:
+                    self.logger.warn("Unexpected error: %s", e, exc_info=True)
+                    self.send_error(fid, e)
+            else:
+                self._default_frame(fid, fname, fargs)                
             
-    @defer.inlineCallbacks  
-    def frame_CONNECT(self, fId, fArgs):
+    def _default_frame(fid, fname, fargs):
+        pass
+    
+    def frame_CONNECT(self, fid, fargs):
         if self.state != 'initial':
-            self.sendError(fId, "Already logged in")
-            return
-        self.cookies = parse_cookies(fArgs('cookies'))
-        try:
-            self.id = yield self.factory.login(self, fArgs['cookies'])
-        except Exception, e:
-            self.sendError(fId, str(e))
-            return
+            return self.send_error(fid, "Already logged in")
+        if 'cookie_string' not in fargs:
+            raise ExpectedException("Missing cookie_string")
+
+        self.cookie_string = fargs['cookie_string']
+        self.cookies = parse_cookies(fargs['cookie_string'])
+        self.cookie_id = self.cookies.get(config['cookie_identifier'], None)
+        self.server.connect(self)
         self.state = 'connected'
-        self.sendFrame('CONNECTED')
+        self.send_frame('CONNECTED')
     
-    @defer.inlineCallbacks
-    def frame_SUBSCRIBE(self, fId, fArgs):
-        pass
+    def frame_SUBSCRIBE(self, fid, fargs):
+        if self.state != 'connected':
+            return self.send_error(fid, "Not connected")
+        if 'channel_name' not in fargs:
+            return self.send_error(fid, "channel_name required")
+        channel = self.server.get_channel(self, fargs['channel_name'])
+        channel.subscribe(self)
             
-    def connectionLost(self, reason):
-        pass
-    
+    def frame_UNSUBSCRIBE(self, fid, fargs):
+        if self.state != 'connected':
+            return self.send_error(fid, "Not connected")
+        if 'channel_name' not in fargs:
+            return self.send_error(fid, "channel_name required")
+        channel = self.server.get_channel(self, fargs['channel_name'])
+        channel.unsubscribe(self)
+            
+    def frame_PUBLISH(self, fid, fargs):
+        if self.state != 'connected':
+            return self.send_error(fid, "Not connected")
+        if 'channel_name' not in fargs:
+            return self.send_error(fid, "channel_name required")
+        channel = self.server.get_channel(self, fargs['channel_name'])
+        channel.publish(self, fargs.get('payload', 'null'))
+
 def parse_cookies(cookieString):
     output = {}
     for m in cookieString.split('; '):

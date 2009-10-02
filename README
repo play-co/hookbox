@@ -1,5 +1,66 @@
 = HookBox Notes =
 
+Hookbox is a comet server and message queue that tightly integrates with web application frameworks. The goal of Hookbox is to allow your web application (php, django, rails, etc.) to handle all of the logic pertaining to authentication, authorization, logging, message transformation, etc, while still hiding the hard parts of Comet.
+
+== Hookbox HTTP Api ==
+
+=== /publish ===
+
+Request
+
+    URL: [HOOKBOX]/publish
+    
+Request Form:
+    channel_name: The destination to publish the message
+    payload: (default null) The payload for the message
+
+Responses
+    true: It worked
+    false: Some error occurred
+
+=== /channel_info ===
+
+Request
+
+    URL: [HOOKBOX]/publish
+    
+Request Form:
+    channel_name: The destination to publish the message
+    payload: (default null) The payload for the message
+
+Response:
+    true: It worked
+    false: Some error occurred
+
+Response Data
+    channel_name (string): The name of the channel
+    subscribers (list): List of channel subscribers
+    reflective (bool): Does this channel reflect publishes to publisher 
+    history (int): Length of history kept in the channel
+ 
+=== /set_channel_options ===
+
+Request
+
+    URL: [HOOKBOX]/set_channel_options
+    
+Request Form:
+    channel_name: The name of the channel to modify with the given options.
+    reflective: (bool, default=true)
+    history_size: (int, default=0) Determines the size of the history kept per channel. This history is sent to users when they subscribe to a channel.
+    moderated: (bool, default=true) If true, then all events on the channel must be authorized via a callback.
+    moderated_publish: (bool, default=true) If true, publish events must be authorized via a callback.
+    moderated_subscribe: (bool, default=true) If true, subscribe events must be authorized via a callback.
+    moderated_unsubscribe: (bool, default=true) If true, unsubscribe events must be authorized via a callback.
+    presenceful: (bool, default=false) If true, presence lists will be attached to each publish frame. Also, SUBSCRIBED and UNSUBSCRIBED frames will be sent to all channel subscribers when another user subscribes or unsubscribes.
+    anonymous: (bool, default=false) If true, usernames will be omitted from publish frames
+Response:
+    true: It worked
+    false: Some error occurred
+
+Response Data
+    None
+
 == HookBox Webhooks ==
 
 Each webhook takes arguments in the form of a querystring encoded post body that should just work with existing form processing infrastructure.
@@ -97,3 +158,31 @@ Responses:
 Response Options
     (None)    
 
+== Overview ==
+
+A typical session with a Hookbox application might Look like this:
+
+1) User navigates to http://www.example.com/index.html
+    The user is given a login page, which he fills out. 
+2) Browser POSTs to http://www.example.com/login
+    Included in the post body is the username and password
+3) Web application returns Cookie: session_id=abc;
+4) Web application redirects user to http://www.example.com/home
+    The user is now logged into the application and sees the gui
+5) Browser calls hookbox.connect('http://hookbox.example.com')
+6) Browser send a CONNECT frame to hookbox, including { cookie: "session_id=abc"; }
+7) Hookbox makes an HTTP POST to http://www.example.com/hookbox/connect
+    Hookbox includes the header "Cookie: session_id=abc;"
+8) The Web Application responds with a json payload: [ true, {}]
+    This gives authorization for the client to connect
+9) Browser calls hookbox.publish('test.location', ["Hello", "World"]
+
+10) Hookbox makes an HTTP POST to http://www.example.com/hookbox/publish
+    Hookbox includes the header "Cookie: session_id=abc;"
+    Hookbox includes a query string in the POST body with the data
+        payload=["Hello", "World"]
+        channel_name=test.location
+11) The Web app returns the json payload: [true, { } ]
+    This gives authorization for the client to publish the message
+12) Hookbox sends a PUBLISH frame to all clients currently subscribed to the 
+    channel 'test.location'
