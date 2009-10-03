@@ -70,7 +70,7 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
             if (!subscribers.length) {
                 // NOTE: Its possible for hookbox to refuse the unsubscribe.
                 //       Then where would we be? I guess its not a common use
-                //       case though. 
+                //       case though.
                 //       -mcarter 10/2/09
                 delete this._subscriptions[channel_name];
                 delete this._errors[fId];
@@ -89,7 +89,7 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
             }
         }
 
-        return s;   
+        return s;
     }
 
     this.publish = function(channel_name, data) {
@@ -98,7 +98,7 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
         } else {
             this._publishes.push([channel_name, data]);
         }
-        
+
     }
 
     this.connectionMade = function() {
@@ -122,7 +122,7 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
                 break;
             case 'PUBLISH':
                 var subscribers;
-                if (subscribers = this._subscriptions[fArgs.destination]) {
+                if (subscribers = this._subscriptions[fArgs.channel_name]) {
                     for (var i = 0, subscriber; subscriber = subscribers[i]; ++i) {
                         try {
                             subscriber.onFrame(fArgs);
@@ -133,12 +133,13 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
                 }
                 break;
             case 'ERROR':
-                this.onerror(fArgs);
                 if (subs = this._errors[fArgs.reference_id]) {
                     for (var i = 0, sub; sub=subs[i]; ++i) {
                         sub.cancel()
                         sub.onFailure(fArgs.msg);
                     }
+                } else {
+                    this.onerror(fArgs);
                 }
                 break;
         }
@@ -150,12 +151,12 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
     }
 
     // TODO: we need another var besides this.connnected, as that becomes true
-    //       only after we get a CONNECTED frame. Maybe our transport is 
+    //       only after we get a CONNECTED frame. Maybe our transport is
     //       connected, but we haven't gotten the frame yet. For now, no one
     //       should be calling this anyway until they get an onclose.
 
     this.reconnect = function() {
         jsioConnect(this, this.url);
     }
-    
+
 })
