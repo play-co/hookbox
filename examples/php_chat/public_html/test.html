@@ -1,0 +1,36 @@
+<html>
+ <head>
+  <script src="http://localhost:8001/static/hookbox.js"></script>
+  <script>
+   doChat = function() {
+       var el = document.getElementById('chat_input');
+       conn.publish('testing', el.value);
+   };
+   onload = function() {
+       hookbox.logging.getLogger('hookbox').setLevel(hookbox.logging.levels.DEBUG);
+       hookbox.logging.getLogger('RTJPProtocol').setLevel(hookbox.logging.levels.DEBUG);
+
+       conn = hookbox.connect('http://localhost:8001/csp');
+       s = conn.subscribe('testing');
+       s.onFrame = function(frame) {
+           console.log('received frame', frame);
+           var d = document.createElement('div');
+           d.innerHTML = frame.user + ': ' + frame.payload;
+           document.getElementById('history').appendChild(d);
+       };
+      s.onFailure = function(msg) {
+          alert('Error: ' + msg);
+      }
+      conn.onerror = function(frame) { alert("Error: " + frame.msg); }
+   };
+
+  </script>
+ </head>
+ <body>
+  <h1>PHP Hookbox Chat</h1>
+  <div id="history" style="height: 200px; width: 300px; overflow-y: scroll">
+  </div>
+  <input type="text" id="chat_input" /><input type="submit" onClick="doChat();" /><br/>
+
+ </body>
+</html>
