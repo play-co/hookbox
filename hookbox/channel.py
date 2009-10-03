@@ -83,6 +83,7 @@ class Channel(object):
             return
 
         has_initial_data = False
+        initial_data = None
 
         if needs_auth and (self.moderated or self.moderated_subscribe):
             form = { 'destination': self.name }
@@ -91,7 +92,7 @@ class Channel(object):
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             if 'initial_data' in options:
                 has_initial_data = True
-            initial_data = options['initial_data']
+                initial_data = options['initial_data']
             self.server.maybe_auto_subscribe(conn, options)
         if has_initial_data or self.history:
             frame = dict(channel_name=self.name, history=self.history, initial_data=initial_data)
