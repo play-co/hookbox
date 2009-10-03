@@ -16,7 +16,7 @@ try:
     import json
 except:
     import simplejson as json
-    
+
 from config import config
 class EmptyLogShim(object):
     def write(self, *args, **kwargs):
@@ -24,11 +24,11 @@ class EmptyLogShim(object):
 
 
 class HookboxServer(object):
-  
+
     def __init__(self, interface, port):
         self.interface = interface
         self.port = port
-        
+
 #        self.identifer_key = 'abc';
         self.base_host = config['cbhost']
         self.base_port = config['cbport']
@@ -39,19 +39,19 @@ class HookboxServer(object):
         static_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], 'static')
         self.app['/static'] = static.Cling(static_path)
         self.app['/rest'] = rest.HookboxRest(self)
-        
+
         self.channels = {}
         self.conns_by_cookie = {}
         self.conns = {}
-         
-         
+
+
     def run(self):
         api.spawn(wsgi.server, api.tcp_listener((self.interface, self.port)), self.app, log=EmptyLogShim())
         api.spawn(self._run)
-        
+
     def __call__(self, environ, start_response):
         return self.app(environ, start_response)
-        
+
     def _run(self):
         # NOTE: You probably want to call this method directly if you're trying
         #       To use some other wsgi server than eventlet.wsgi
@@ -63,15 +63,15 @@ class HookboxServer(object):
                 raise
                 break
         print "HookboxServer Stopped"
-        
-        
+
+
     def http_request(self, path_name, cookie_string=None, form={}):
         path = self.base_path + '/' + config.get('cb_' + path_name)
         if config['secret']:
             form['secret'] = config['secret']
         body = urllib.urlencode(form)
         http = httplib.HTTPConnection(self.base_host, self.base_port)
-        headers = {}
+        headers = {'content-type': 'application/x-www-form-urlencoded'}
         if cookie_string:
             headers['Cookie'] = cookie_string
         http.request('POST', path, body=body, headers=headers)
@@ -89,7 +89,7 @@ class HookboxServer(object):
             raise ExpectedException("Invalid response (expected json object in response index 1)")
         output[1] = dict([(str(k), v) for (k,v) in output[1].items()])
         return output
-    
+
     def connect(self, conn):
         form = { 'conn_id': conn.id }
         success, options = self.http_request('connect', conn.get_cookie(), form)
@@ -100,7 +100,7 @@ class HookboxServer(object):
         user = User(self, options['name'])
         user.add_connection(conn)
         self.maybe_auto_subscribe(user, options)
-        
+
     def create_channel(self, conn, channel_name, **options):
         if channel_name in self.channels:
             raise ExpectedException("Channel already exists")
@@ -111,23 +111,23 @@ class HookboxServer(object):
         success, options = self.http_request('create_channel', cookie_string, form)
         if not success:
             raise ExpectedException(options.get('error', 'Unauthorized'))
-        
+
         self.channels[channel_name] = channel.Channel(self, channel_name, **options)
-        
-        
-        
+
+
+
     def destroy_channel(self, channel_name, **options):
         if channel_name not in channels:
             return None
         channel = self.channels[channel_name]
         del self.channels[channel_name]
         channel.destroy()
-        
+
     def get_channel(self, conn, channel_name):
         if channel_name not in self.channels:
             self.create_channel(conn, channel_name)
         return self.channels[channel_name]
-        
+
     def maybe_auto_subscribe(self, conn, options):
         for destination in options.get('auto_subscribe', ()):
             channel = self.get_channel(channel_name)
