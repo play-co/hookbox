@@ -15,21 +15,21 @@ parser.add_option("--cbpath", dest="cbpath", default="/hookbox", type="string",
     help="Make http callbacks to base PATH, (default: %default)", metavar="PATH")
 parser.add_option("-c", "--cookie-identifier", dest="cookie_identifier", type="string",
     help="The name of the cookie field used to identify unique sessions.", metavar="COOKIE_IDENTIFIER")
-    
-    
-parser.add_option('--cb-connect', type='cb_connect', type='string', default='connect',
+
+
+parser.add_option('--cb-connect', dest='cb_connect', type='string', default='connect',
     help='relative path for connect webhook callbacks. (default: %default)')
-parser.add_option('--cb-disconnect', type='cb_disconnect', type='string', default='disconnect',
+parser.add_option('--cb-disconnect', dest='cb_disconnect', type='string', default='disconnect',
     help='relative path for disconnect webhook callbacks. (default: %default)')
-parser.add_option('--cb-create_channel', type='cb_create_channel', type='string', default='create_channel',
+parser.add_option('--cb-create_channel', dest='cb_create_channel', type='string', default='create_channel',
     help='name for create_channel webhook callbacks. (default: %default)')
-parser.add_option('--cb-subscribe', type='cb_subscribe', type='string', default='subscribe',
+parser.add_option('--cb-subscribe', dest='cb_subscribe', type='string', default='subscribe',
     help='name for subscribe webhook callbacks. (default: %default)')
-parser.add_option('--cb-unsubscribe', type='cb_unsubscribe', type='string', default='unsubscribe',
+parser.add_option('--cb-unsubscribe', dest='cb_unsubscribe', type='string', default='unsubscribe',
     help='relative path for unsubscribe webhook callbacks. (default: %default)')
-parser.add_option('--cb-publish', type='cb_publish', type='string', default='publish',
+parser.add_option('--cb-publish', dest='cb_publish', type='string', default='publish',
     help='relative path for publish webhook callbacks. (default: %default)')
-    
+
 parser.add_option("-d", "--debug", dest="debug", action="store_true", default=False,
     help="Run in debug mode (recompiles hookbox.js whenever the source changes)")
 (options, args) = parser.parse_args()
