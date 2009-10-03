@@ -9,7 +9,7 @@ Hookbox is a comet server and message queue that tightly integrates with web app
 Request
 
     URL: [HOOKBOX]/publish
-    
+
 Request Form:
     channel_name: The destination to publish the message
     payload: (default null) The payload for the message
@@ -22,8 +22,8 @@ Responses
 
 Request
 
-    URL: [HOOKBOX]/publish
-    
+    URL: [HOOKBOX]/channel_info
+
 Request Form:
     channel_name: The destination to publish the message
     payload: (default null) The payload for the message
@@ -35,15 +35,15 @@ Response:
 Response Data
     channel_name (string): The name of the channel
     subscribers (list): List of channel subscribers
-    reflective (bool): Does this channel reflect publishes to publisher 
+    reflective (bool): Does this channel reflect publishes to publisher
     history (int): Length of history kept in the channel
- 
+
 === /set_channel_options ===
 
 Request
 
     URL: [HOOKBOX]/set_channel_options
-    
+
 Request Form:
     channel_name: The name of the channel to modify with the given options.
     reflective: (bool, default=true)
@@ -92,10 +92,10 @@ Response Options
 
 Request
     URL: [ROOT]/create_channel
-    
+
 Request Form:
     destination: The channel's URI
-    
+
 
 Responses:
     true: Authorize channel creation
@@ -111,10 +111,10 @@ Note: A create channel is issuing when a user subscribes to a non-existent desti
 
 Request
     URL: [ROOT]/publish
-    
+
 Request Form:
     destination: The channel's URI
-    payload: The json payload to be published    
+    payload: The json payload to be published
 
 Responses:
     true: Authorize publishing
@@ -130,7 +130,7 @@ Response Options
 
 Request
     URL: [ROOT]/unsubscribe
-    
+
 Request Form:
     destination: The channel's URI
 
@@ -147,7 +147,7 @@ Response Options
 
 Request
     URL: [ROOT]/disconnect
-    
+
 Request Form:
     channels: (list) The channels the users was in.
 
@@ -156,14 +156,14 @@ Responses:
     false: Meaningless (but does the same as true.)
 
 Response Options
-    (None)    
+    (None)
 
 == Overview ==
 
 A typical session with a Hookbox application might Look like this:
 
 1) User navigates to http://www.example.com/index.html
-    The user is given a login page, which he fills out. 
+    The user is given a login page, which he fills out.
 2) Browser POSTs to http://www.example.com/login
     Included in the post body is the username and password
 3) Web application returns Cookie: session_id=abc;
@@ -184,5 +184,5 @@ A typical session with a Hookbox application might Look like this:
         channel_name=test.location
 11) The Web app returns the json payload: [true, { } ]
     This gives authorization for the client to publish the message
-12) Hookbox sends a PUBLISH frame to all clients currently subscribed to the 
+12) Hookbox sends a PUBLISH frame to all clients currently subscribed to the
     channel 'test.location'
