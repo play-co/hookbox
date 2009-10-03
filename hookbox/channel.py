@@ -9,6 +9,7 @@ except ImportError:
 class Channel(object):
     _options = {
         'reflective': True,
+        'history': [],
         'history_size': 0,
         'moderated': True,
         'moderated_publish': True,
@@ -24,6 +25,7 @@ class Channel(object):
         self.server = server
         self.name = name
         self.subscribers = []
+        # overwrites the default self.history
         self.history = []
 
     def set_history(self, history):
@@ -43,7 +45,8 @@ class Channel(object):
                 raise ValueError("Invalid type for %s (should be %s)" % (key, default.__class__))
         # two loops forces exception *before* any of the options are set.
         for key, val in options.items():
-            setattr(self, key, val)
+            # this should create copies of any dicts or lists that are options
+            setattr(self, key, val.__class__(val))
 
     def publish(self, conn, payload, needs_auth=True, **kwargs):
         try:

@@ -15,7 +15,8 @@ parser.add_option("--cbpath", dest="cbpath", default="/hookbox", type="string",
     help="Make http callbacks to base PATH, (default: %default)", metavar="PATH")
 parser.add_option("-c", "--cookie-identifier", dest="cookie_identifier", type="string",
     help="The name of the cookie field used to identify unique sessions.", metavar="COOKIE_IDENTIFIER")
-
+parser.add_option("-s", "--secret", dest="secret", type="string",
+    help="The SECRET token to pass to all webhook callbacks as form variable \"secret\".", metavar="SECRET")
 
 parser.add_option('--cb-connect', dest='cb_connect', type='string', default='connect',
     help='relative path for connect webhook callbacks. (default: %default)')

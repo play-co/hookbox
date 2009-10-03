@@ -67,6 +67,8 @@ class HookboxServer(object):
         
     def http_request(self, path_name, cookie_string=None, form={}):
         path = self.base_path + '/' + config.get('cb_' + path_name)
+        if config['secret']:
+            form['secret'] = config['secret']
         body = urllib.urlencode(form)
         http = httplib.HTTPConnection(self.base_host, self.base_port)
         headers = {}
