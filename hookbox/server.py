@@ -65,13 +65,14 @@ class HookboxServer(object):
         print "HookboxServer Stopped"
         
         
-    def http_request(self, path, cookie_string=None, form={}):
+    def http_request(self, path_name, cookie_string=None, form={}):
+        path = self.base_path + '/' + config.get('cb_' + path_name)
         body = urllib.urlencode(form)
         http = httplib.HTTPConnection(self.base_host, self.base_port)
         headers = {}
         if cookie_string:
             headers['Cookie'] = cookie_string
-        http.request('POST', self.base_path + path, body=body, headers=headers)
+        http.request('POST', path, body=body, headers=headers)
         response = http.getresponse()
         if response.status != 200:
             raise ExpectedException("Invalid callback response, status=" + str(response.status))
@@ -82,11 +83,14 @@ class HookboxServer(object):
             raise ExpectedException("Invalid json: " + body)
         if not isinstance(output, list) or len(output) != 2:
             raise ExpectedException("Invalid response (expected json list of length 2)")
+        if not isinstance(output[1], dict):
+            raise ExpectedException("Invalid response (expected json object in response index 1)")
+        output[1] = dict([(str(k), v) for (k,v) in output[1].items()])
         return output
     
     def connect(self, conn):
         form = { 'conn_id': conn.id }
-        success, options = self.http_request('/connect', conn.get_cookie(), form)
+        success, options = self.http_request('connect', conn.get_cookie(), form)
         if not success:
             raise ExpectedException(options.get('error', 'Unauthorized'))
         if 'name' not in options:
@@ -102,7 +106,7 @@ class HookboxServer(object):
         form = {
             'channel_name': channel_name,
         }
-        success, options = self.http_request('/create_channel', cookie_string, form)
+        success, options = self.http_request('create_channel', cookie_string, form)
         if not success:
             raise ExpectedException(options.get('error', 'Unauthorized'))
         

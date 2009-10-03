@@ -17,9 +17,15 @@ static_types = [
 #if sys.platform != "win32":
 #    _install_requires.append("Twisted")
 
+_install_requires = ['csp', 'eventlet', 'paste', 'static']
+
+# python <= 2.5
+if sys.version_info[1] <= 5:
+    _install_requires.append('simplejson')
+    
 setup(
     name='hookbox',
-    version='0.1a2',
+    version='0.1a3',
     author='Michael Carter',
     author_email='CarterMichael@gmail.com',
     license='MIT License',
@@ -30,7 +36,7 @@ setup(
             static_types ] or [] for (d, s, f) in os.walk(os.path.join('hookbox', 'static'))
         ]) },
     zip_safe = False,
-    install_requires = ['csp', 'eventlet'],
+    install_requires = _install_requires,
     entry_points = '''    
         [console_scripts]
         hookbox = hookbox.start:main
