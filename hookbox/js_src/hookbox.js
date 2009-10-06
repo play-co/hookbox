@@ -1,7 +1,8 @@
-require('jsio', ['bind', 'Class'])
-require('jsio', {'connect': 'jsioConnect'})
-require('jsio.protocols.rtjp', ['RTJPProtocol'])
-require('jsio.logging');
+jsio('import bind, Class');
+jsio('from jsio import connect as jsioConnect');
+jsio('from jsio.protocols.rtjp import RTJPProtocol');
+jsio('import jsio.logging');
+
 var logger = jsio.logging.getLogger('hookbox');
 
 exports.logging = jsio.logging
