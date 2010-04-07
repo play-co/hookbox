@@ -33,7 +33,7 @@ class HookboxRest(object):
             raise Exception("Missing channel_name")
         payload = form.get('payload', 'null')
         originator = form.get('originator', None)
-        channel = self.server.get_channel(channel_name)
+        channel = self.server.get_channel(None, channel_name)
         channel.publish(self, payload, needs_auth=False, originator=originator)
         start_response('200 Ok', [])
         return json.dumps([True, {}])
@@ -54,7 +54,7 @@ class HookboxRest(object):
         if not channel_name:
             raise Exception("Missing channel_name")
         del form['channel_name']
-        channel = self.server.get_channel(channel_name)
+        channel = self.server.get_channel(None, channel_name)
         channel.update_options(**form)
         start_response('200 Ok', [])
         return json.dumps([True, {}])
