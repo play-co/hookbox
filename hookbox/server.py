@@ -1,19 +1,26 @@
+
+
+
 import collections
 import logging
 from eventlet.green import httplib
 import os
 import urllib
 import eventlet
-import eventlet.wsgi
-#from eventlet import api
-from csp.eventlet import Listener
 from paste import urlmap
 import static
+
+import eventlet.wsgi
+
+from csp.eventlet import Listener
+import rtjp.eventlet
+
 from errors import ExpectedException
 import channel
 import rest
 import protocol
 from user import User
+
 try:
     import json
 except:
@@ -30,7 +37,7 @@ class HookboxServer(object):
     def __init__(self, interface, port):
         self.interface = interface
         self.port = port
-
+        self._rtjp_server = rtjp.eventlet.RTJPServer()
 #        self.identifer_key = 'abc';
         self.base_host = config['cbhost']
         self.base_port = config['cbport']
@@ -49,6 +56,7 @@ class HookboxServer(object):
 
     def run(self):
         eventlet.spawn(eventlet.wsgi.server, eventlet.listen((self.interface, self.port)), self.app, log=EmptyLogShim())
+        self._rtjp_server.listen(sock=self.csp)
         eventlet.spawn(self._run)
 
     def __call__(self, environ, start_response):
@@ -59,8 +67,10 @@ class HookboxServer(object):
         #       To use some other wsgi server than eventlet.wsgi
         while True:
             try:
-                sock, addr_info = self.csp.accept()
-                conn = protocol.HookboxConn(self, sock)
+                print 'wait for rtjp conn'
+                rtjp_conn = self._rtjp_server.accept().wait()
+                print 'GOT ONE'
+                conn = protocol.HookboxConn(self, rtjp_conn)
             except:
                 raise
                 break
@@ -79,7 +89,7 @@ class HookboxServer(object):
         http.request('POST', path, body=body, headers=headers)
         response = http.getresponse()
         if response.status != 200:
-            raise ExpectedException("Invalid callback response, status=" + str(response.status))
+            raise ExpectedException("Invalid callback response, status=%s (%s)" % (response.status, path))
         body = response.read()
         try:
            output = json.loads(body)

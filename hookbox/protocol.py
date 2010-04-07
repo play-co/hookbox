@@ -5,11 +5,11 @@ from config import config
 from errors import ExpectedException
 import rtjp
 
-class HookboxConn(rtjp.RTJPConnection):
+class HookboxConn(object):
     logger = logging.getLogger('RTJPConnection')
     
-    def __init__(self, server, sock):
-        rtjp.RTJPConnection.__init__(self, sock)
+    def __init__(self, server, rtjp_conn):
+        self._rtjp_conn = rtjp_conn
         self.server = server
         self.state = 'initial'
         self.cookies = None
@@ -18,6 +18,12 @@ class HookboxConn(rtjp.RTJPConnection):
         self.id = str(uuid.uuid4()).replace('-', '')
         eventlet.spawn(self._run)
         
+    def send_frame(self, *args, **kw):
+        return self._rtjp_conn.send_frame(*args, **kw)
+
+    def send_error(self, *args, **kw):
+        return self._rtjp_conn.send_error(*args, **kw)
+
     def get_cookie(self):
         return self.cookie_string
         
@@ -32,9 +38,11 @@ class HookboxConn(rtjp.RTJPConnection):
             self.server.closed(self)
         
     def _run(self):
+        print 'new connection!', self.id
         while True:
             try:
-                fid, fname, fargs= self.recv_frame()
+                fid, fname, fargs= self._rtjp_conn.recv_frame().wait()
+                print 'RECV', fid, fname, fargs
             except:
                 self.logger.warn("Error reading frame", exc_info=True)
                 continue
