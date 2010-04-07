@@ -1,6 +1,6 @@
 import logging
 import uuid
-from eventlet import api
+import eventlet
 from config import config
 from errors import ExpectedException
 import rtjp
@@ -16,7 +16,7 @@ class HookboxConn(rtjp.RTJPConnection):
         self.cookie_string = None
         self.cookie_id = None
         self.id = str(uuid.uuid4()).replace('-', '')
-        api.spawn(self._run)
+        eventlet.spawn(self._run)
         
     def get_cookie(self):
         return self.cookie_string

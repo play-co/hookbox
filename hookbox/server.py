@@ -3,7 +3,9 @@ import logging
 from eventlet.green import httplib
 import os
 import urllib
-from eventlet import wsgi, api
+import eventlet
+import eventlet.wsgi
+#from eventlet import api
 from csp.eventlet import Listener
 from paste import urlmap
 import static
@@ -46,8 +48,8 @@ class HookboxServer(object):
 
 
     def run(self):
-        api.spawn(wsgi.server, api.tcp_listener((self.interface, self.port)), self.app, log=EmptyLogShim())
-        api.spawn(self._run)
+        eventlet.spawn(eventlet.wsgi.server, eventlet.listen((self.interface, self.port)), self.app, log=EmptyLogShim())
+        eventlet.spawn(self._run)
 
     def __call__(self, environ, start_response):
         return self.app(environ, start_response)

@@ -1,5 +1,5 @@
 from twisted.internet import protocol
-from eventlet import api, coros
+import eventlet
 import logging
 try:
     import json
@@ -12,9 +12,9 @@ class RTJPConnection(object):
     def __init__(self, sock, delimiter='\r\n'):
         self.frame_id = 0
         self.sock = sock
-        self._frame_channel = coros.Queue()
+        self._frame_channel = eventlet.queue.Queue()
         self.delimiter = delimiter
-        api.spawn(self._read_forever)
+        eventlet.spawn(self._read_forever)
         
     def _read_forever(self):
         buffer = ""

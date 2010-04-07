@@ -1,4 +1,4 @@
-from eventlet import wsgi, api
+import eventlet
 from server import HookboxServer
 import logging
 import os
@@ -28,7 +28,7 @@ def debugloop():
             
     while True:
         try:
-            api.sleep(0.1)
+            eventlet.sleep(0.1)
             recompile = False
             for f in [ 'hookbox.pkg', 'hookbox.js']:
                 modified = os.stat(os.path.join(os.path.dirname(__file__), 'js_src', f))[7]
@@ -47,7 +47,7 @@ def debugloop():
 def mainloop():
     while True:
         try:
-            api.sleep(10)
+            eventlet.sleep(10)
         except KeyboardInterrupt:
             print "Ctr+C pressed; Exiting."
             break
