@@ -1,11 +1,7 @@
-jsio('import bind, Class');
-jsio('from jsio import connect as jsioConnect');
-jsio('from jsio.protocols.rtjp import RTJPProtocol');
-jsio('import jsio.logging');
+jsio('from net import connect as jsioConnect');
+jsio('from net.protocols.rtjp import RTJPProtocol');
 
-var logger = jsio.logging.getLogger('hookbox');
-
-exports.logging = jsio.logging
+exports.logging = logging
 
 exports.connect = function(url, cookieString) {
     var p = new HookBoxProtocol(url, cookieString);
