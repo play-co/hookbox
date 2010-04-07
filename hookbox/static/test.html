@@ -2,8 +2,8 @@
  <head>
   <script src="hookbox.js"></script>
   <script>
-   hookbox.logging.getLogger('hookbox').setLevel(hookbox.logging.levels.DEBUG);
-   hookbox.logging.getLogger('RTJPProtocol').setLevel(hookbox.logging.levels.DEBUG);
+   hookbox.logging.get('hookbox').setLevel(hookbox.logging.DEBUG);
+   hookbox.logging.get('net.protocols.rtjp').setLevel(hookbox.logging.DEBUG);
    function go() {
         c = hookbox.connect('http://localhost:8001/csp');
         s = c.subscribe('testing');

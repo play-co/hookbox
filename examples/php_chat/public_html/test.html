@@ -7,16 +7,18 @@
        conn.publish('testing', el.value);
    };
    onload = function() {
-       hookbox.logging.getLogger('hookbox').setLevel(hookbox.logging.levels.DEBUG);
-       hookbox.logging.getLogger('RTJPProtocol').setLevel(hookbox.logging.levels.DEBUG);
-
+       hookbox.logging.get('hookbox').setLevel(hookbox.logging.DEBUG);
+       hookbox.logging.get('net.protocols.rtjp').setLevel(hookbox.logging.DEBUG);
        conn = hookbox.connect('http://localhost:8001/csp');
        s = conn.subscribe('testing');
        s.onFrame = function(frame) {
            console.log('received frame', frame);
            var d = document.createElement('div');
            d.innerHTML = frame.user + ': ' + frame.payload;
-           document.getElementById('history').appendChild(d);
+           var h = document.getElementById('history');
+           var shouldScroll = (h.scrollTop + h.offsetHeight) == h.scrollHeight;
+           h.appendChild(d);
+           if (shouldScroll) { h.scrollTop = h.scrollHeight; }
        };
       s.onFailure = function(msg) {
           alert('Error: ' + msg);
