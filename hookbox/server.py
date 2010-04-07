@@ -67,9 +67,7 @@ class HookboxServer(object):
         #       To use some other wsgi server than eventlet.wsgi
         while True:
             try:
-                print 'wait for rtjp conn'
                 rtjp_conn = self._rtjp_server.accept().wait()
-                print 'GOT ONE'
                 conn = protocol.HookboxConn(self, rtjp_conn)
             except:
                 raise

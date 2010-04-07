@@ -38,11 +38,9 @@ class HookboxConn(object):
             self.server.closed(self)
         
     def _run(self):
-        print 'new connection!', self.id
         while True:
             try:
                 fid, fname, fargs= self._rtjp_conn.recv_frame().wait()
-                print 'RECV', fid, fname, fargs
             except:
                 self.logger.warn("Error reading frame", exc_info=True)
                 continue
