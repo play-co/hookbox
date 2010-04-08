@@ -7,7 +7,6 @@
        conn.publish('testing', el.value);
    };
    onload = function() {
-			setTimeout(function() {
 				hookbox.logging.get('hookbox').setLevel(hookbox.logging.DEBUG);
 				hookbox.logging.get('net.protocols.rtjp').setLevel(hookbox.logging.DEBUG);
 				conn = hookbox.connect('http://localhost:8001/csp');
@@ -25,7 +24,6 @@
 						alert('Error: ' + msg);
 				}
 				conn.onerror = function(frame) { alert("Error: " + frame.msg); }
-		}, 0);
 	 }
 
   </script>
