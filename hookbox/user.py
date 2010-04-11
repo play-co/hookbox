@@ -12,7 +12,6 @@ class User(object):
     def remove_connection(self, conn):
         self.connections.remove(conn)
         if not self.connections:
-            print 'DISCONNECTED! user', self.name
             
             # each call to user_disconnected might result in an immediate call
             # to self.channel_unsubscribed, thus modifying self.channels and
