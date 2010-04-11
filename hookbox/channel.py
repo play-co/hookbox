@@ -62,13 +62,13 @@ class Channel(object):
             encoded_payload = json.loads(payload)
         except:
             raise ExpectedException("Invalid json for payload")
-
+        payload = encoded_payload
         if needs_auth and (self.moderated or self.moderated_publish):
             form = { 'channel_name': self.name, 'payload': payload }
             success, options = self.server.http_request('publish', user.get_cookie(conn), form)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
-            payload = options.get('override_payload', encoded_payload)
+            payload = options.get('override_payload', payload)
             self.server.maybe_auto_subscribe(user, options)
 
         frame = {"channel_name": self.name, "payload":payload}
