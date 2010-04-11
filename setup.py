@@ -19,7 +19,7 @@ static_types = [
 
 _install_requires = [
     'csp>=0.1alpha8', 
-    'rtjp', 
+    'rtjp>=0.1alpha2', 
     'eventlet', 
     'paste', 
     'static'
@@ -31,7 +31,7 @@ if sys.version_info[1] <= 5:
     
 setup(
     name='hookbox',
-    version='0.1a3',
+    version='0.1a4',
     author='Michael Carter',
     author_email='CarterMichael@gmail.com',
     license='MIT License',
