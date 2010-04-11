@@ -50,7 +50,11 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
     this.init = function(url, cookieString) {
         supr(this, 'init', []);
         this.url = url;
-        this.cookieString = cookieString || document.cookie;
+				try {
+					this.cookieString = cookieString || document.cookie;
+				} catch(e) {
+					this.cookieString = "";
+				}
         this.connected = false;
         this._subscriptions = {}
         this._publishes = []

@@ -17,7 +17,13 @@ static_types = [
 #if sys.platform != "win32":
 #    _install_requires.append("Twisted")
 
-_install_requires = ['csp', 'rtjp', 'eventlet', 'paste', 'static']
+_install_requires = [
+    'csp>=0.1alpha8', 
+    'rtjp', 
+    'eventlet', 
+    'paste', 
+    'static'
+]
 
 # python <= 2.5
 if sys.version_info[1] <= 5:

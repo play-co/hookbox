@@ -3,7 +3,7 @@ import uuid
 import eventlet
 from config import config
 from errors import ExpectedException
-import rtjp
+import rtjp.errors
 
 class HookboxConn(object):
     logger = logging.getLogger('RTJPConnection')
@@ -16,6 +16,7 @@ class HookboxConn(object):
         self.cookie_string = None
         self.cookie_id = None
         self.id = str(uuid.uuid4()).replace('-', '')
+        self.user = None
         eventlet.spawn(self._run)
         
     def send_frame(self, *args, **kw):
@@ -41,6 +42,8 @@ class HookboxConn(object):
         while True:
             try:
                 fid, fname, fargs= self._rtjp_conn.recv_frame().wait()
+            except rtjp.errors.ConnectionLost, e:
+                break
             except:
                 self.logger.warn("Error reading frame", exc_info=True)
                 continue
@@ -54,8 +57,11 @@ class HookboxConn(object):
                     self.logger.warn("Unexpected error: %s", e, exc_info=True)
                     self.send_error(fid, e)
             else:
-                self._default_frame(fid, fname, fargs)                
-            
+                self._default_frame(fid, fname, fargs)
+        # cleanup
+        if self.user:
+            self.user.remove_connection(self)
+        
     def _default_frame(fid, fname, fargs):
         pass
     
@@ -78,7 +84,7 @@ class HookboxConn(object):
         if 'channel_name' not in fargs:
             return self.send_error(fid, "channel_name required")
         channel = self.server.get_channel(self, fargs['channel_name'])
-        channel.subscribe(self)
+        channel.subscribe(self.user)
             
     def frame_UNSUBSCRIBE(self, fid, fargs):
         if self.state != 'connected':
@@ -86,7 +92,7 @@ class HookboxConn(object):
         if 'channel_name' not in fargs:
             return self.send_error(fid, "channel_name required")
         channel = self.server.get_channel(self, fargs['channel_name'])
-        channel.unsubscribe(self)
+        channel.unsubscribe(self.user)
             
     def frame_PUBLISH(self, fid, fargs):
         if self.state != 'connected':
@@ -94,7 +100,7 @@ class HookboxConn(object):
         if 'channel_name' not in fargs:
             return self.send_error(fid, "channel_name required")
         channel = self.server.get_channel(self, fargs['channel_name'])
-        channel.publish(self, fargs.get('payload', 'null'))
+        channel.publish(self.user, fargs.get('payload', 'null'))
 
 def parse_cookies(cookieString):
     output = {}

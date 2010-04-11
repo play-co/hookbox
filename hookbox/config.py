@@ -33,6 +33,11 @@ parser.add_option('--cb-publish', dest='cb_publish', type='string', default='pub
 
 parser.add_option("-d", "--debug", dest="debug", action="store_true", default=False,
     help="Run in debug mode (recompiles hookbox.js whenever the source changes)")
+parser.add_option("-o", "--objgraph", dest="objgraph", type="int", default=0,
+    help="turn on objgraph")
+    
+    
+    
 (options, args) = parser.parse_args()
 for key in dir(options):
     if not key.startswith('_') and key not in ('ensure_value', 'read_file', 'read_module'):

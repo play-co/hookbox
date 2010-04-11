@@ -28,6 +28,15 @@ class Channel(object):
         # overwrites the default self.history
         self.history = []
 
+
+    def user_disconnected(self, user):
+        # TODO: remove this pointless check, it should never happen, right?
+        if user not in self.subscribers:
+            return
+        self.unsubscribe(self, needs_auth=False)
+
+        
+
     def set_history(self, history):
         self.history = history
         self.prune_history()
@@ -48,7 +57,7 @@ class Channel(object):
             # this should create copies of any dicts or lists that are options
             setattr(self, key, val.__class__(val))
 
-    def publish(self, conn, payload, needs_auth=True, **kwargs):
+    def publish(self, user, payload, needs_auth=True, conn=None, **kwargs):
         try:
             encoded_payload = json.loads(payload)
         except:
@@ -56,11 +65,11 @@ class Channel(object):
 
         if needs_auth and (self.moderated or self.moderated_publish):
             form = { 'channel_name': self.name, 'payload': payload }
-            success, options = self.server.http_request('publish', conn.get_cookie(), form)
+            success, options = self.server.http_request('publish', user.get_cookie(conn), form)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             payload = options.get('override_payload', encoded_payload)
-            self.server.maybe_auto_subscribe(conn, options)
+            self.server.maybe_auto_subscribe(user, options)
 
         frame = {"channel_name": self.name, "payload":payload}
 
@@ -68,66 +77,72 @@ class Channel(object):
             if 'originator' in kwargs:
                 frame['user'] = kwargs['originator']
             else:
-                frame['user'] = conn.user.get_name()
+                frame['user'] = user.get_name()
 
-        for user in self.subscribers:
-            if user == conn.user and not self.reflective:
-                continue
-            user.send_frame('PUBLISH', frame)
+        omit = None
+        if not self.reflective:
+            omit = conn
+        for subscriber in self.subscribers:
+            subscriber.send_frame('PUBLISH', frame, omit=omit)
 
         if self.history_size:
             del frame['channel_name']
             self.history.append(frame)
             self.prune_history()
 
-    def subscribe(self, conn, needs_auth=True):
+    def subscribe(self, user, conn=None, needs_auth=True):
 
-        if conn.user in self.subscribers:
+        if user in self.subscribers:
             return
 
         has_initial_data = False
         initial_data = None
-
+        
         if needs_auth and (self.moderated or self.moderated_subscribe):
             form = { 'destination': self.name }
-            success, options = self.server.http_request('subscribe', conn.get_cookie(), form)
+            success, options = self.server.http_request('subscribe', user.get_cookie(conn), form)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             if 'initial_data' in options:
                 has_initial_data = True
                 initial_data = options['initial_data']
-            self.server.maybe_auto_subscribe(conn, options)
+            self.server.maybe_auto_subscribe(user, options)
+            
         if has_initial_data or self.history:
             frame = dict(channel_name=self.name, history=self.history, initial_data=initial_data)
-            conn.send_frame('CHANNEL_INIT', frame)
+            user.send_frame('CHANNEL_INIT', frame)
 
-        self.subscribers.append(conn.user)
+        self.subscribers.append(user)
+        user.channel_subscribed(self)
+        
+        if self.presenceful:
+            frame = {"channel_name": self.name, "user": user.get_name()}
+            omit = None
+            if not self.reflective:
+                omit = conn
+            for subscriber in self.subscribers:
+                subscriber.send_frame('SUBSCRIBED', frame, omit=omit)
 
-        frame = {"channel_name": self.name, "user": conn.user.get_name()}
-        for user in self.subscribers:
-            if user == conn.user and not self.reflective:
-                continue
-            user.send_frame('SUBSCRIBED', frame)
 
-
-    def unsubscribe(self, conn, needs_auth=True):
-        if conn.user not in self.subscribers:
+    def unsubscribe(self, user, conn=None, needs_auth=True):
+        if user not in self.subscribers:
             return
 
         if needs_auth and (self.moderated or self.moderated_unsubscribe):
             form = { 'channel_name': self.name }
-            success, options = self.server.http_request('unsubscribe', conn.get_cookie(), form)
+            success, options = self.server.http_request('unsubscribe', user.get_cookie(conn), form)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
-            self.server.maybe_auto_subscribe(conn, options)
+            self.server.maybe_auto_subscribe(user, options)
 
         if self.presenceful:
-            frame = {"channel_name": self.name, "user": conn.get_name()}
-            for user in self.subscribers:
-                if user == conn.user and not self.reflective:
-                    continue
-                user.send_frame('UNSUBSCRIBED', frame)
+            frame = {"channel_name": self.name, "user": user.get_name()}
+            omit = None
+            if not self.reflective:
+                omit = conn
+            for subscriber in self.subscribers:
+                subscriber.send_frame('UNSUBSCRIBED', frame, omit=omit)
 
-        self.subscribers.remove(conn.user)
-
+        self.subscribers.remove(user)
+        user.channel_subscribed(self)
 

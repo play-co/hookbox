@@ -5,6 +5,7 @@ import collections
 import logging
 from eventlet.green import httplib
 import os
+import sys
 import urllib
 import eventlet
 from paste import urlmap
@@ -55,14 +56,17 @@ class HookboxServer(object):
 
 
     def run(self):
+        print "Listening to hookbox on http://%s:%s" % (self.interface or "0.0.0.0", self.port)
         eventlet.spawn(eventlet.wsgi.server, eventlet.listen((self.interface, self.port)), self.app, log=EmptyLogShim())
+        ev = eventlet.event.Event()
         self._rtjp_server.listen(sock=self.csp)
-        eventlet.spawn(self._run)
+        eventlet.spawn(self._run, ev)
+        return ev
 
     def __call__(self, environ, start_response):
         return self.app(environ, start_response)
 
-    def _run(self):
+    def _run(self, ev):
         # NOTE: You probably want to call this method directly if you're trying
         #       To use some other wsgi server than eventlet.wsgi
         while True:
@@ -70,7 +74,7 @@ class HookboxServer(object):
                 rtjp_conn = self._rtjp_server.accept().wait()
                 conn = protocol.HookboxConn(self, rtjp_conn)
             except:
-                raise
+                ev.send_exception(*sys.exc_info())
                 break
         print "HookboxServer Stopped"
 
@@ -138,10 +142,10 @@ class HookboxServer(object):
             self.create_channel(conn, channel_name)
         return self.channels[channel_name]
 
-    def maybe_auto_subscribe(self, conn, options):
+    def maybe_auto_subscribe(self, user, options):
         for destination in options.get('auto_subscribe', ()):
             channel = self.get_channel(channel_name)
-            channel.subscribe(conn, needs_auth=False)
+            channel.subscribe(user, needs_auth=False)
         for destination in options.get('auto_unsubscribe', ()):
             channel = self.get_channel(channel_name)
-            channel.unsubscribe(conn, needs_auth=False)
+            channel.unsubscribe(user, needs_auth=False)
