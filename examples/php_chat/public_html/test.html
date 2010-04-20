@@ -12,7 +12,6 @@
 				conn = hookbox.connect('http://localhost:8001/csp');
 				s = conn.subscribe('testing');
 				s.onFrame = function(frame) {
-						console.log('received frame', frame);
 						var d = document.createElement('div');
 						d.innerHTML = frame.user + ': ' + frame.payload;
 						var h = document.getElementById('history');

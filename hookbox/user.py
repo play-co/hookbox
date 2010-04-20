@@ -10,16 +10,19 @@ class User(object):
         conn.user = self
         
     def remove_connection(self, conn):
+#        print 'remove conn on user', self.name
         self.connections.remove(conn)
         if not self.connections:
-            
+#            print 'no more connections...'
             # each call to user_disconnected might result in an immediate call
             # to self.channel_unsubscribed, thus modifying self.channels and
             # messing up our loop. So we loop over a copy of self.channels...
             
             for channel in self.channels[:]:
                 channel.user_disconnected(self)
-        
+#            print 'tell server to remove user...'
+            self.server.remove_user(self.name)
+            
     def channel_subscribed(self, channel):
         self.channels.append(channel)
         

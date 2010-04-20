@@ -18,7 +18,7 @@ static_types = [
 #    _install_requires.append("Twisted")
 
 _install_requires = [
-    'csp>=0.1alpha9', 
+    'csp>=0.1alpha10', 
     'rtjp>=0.1alpha2', 
     'eventlet', 
     'paste', 
@@ -31,7 +31,7 @@ if sys.version_info[1] <= 5:
     
 setup(
     name='hookbox',
-    version='0.1a5',
+    version='0.1a6',
     author='Michael Carter',
     author_email='CarterMichael@gmail.com',
     license='MIT License',

@@ -17,6 +17,10 @@ parser.add_option("-c", "--cookie-identifier", dest="cookie_identifier", type="s
     help="The name of the cookie field used to identify unique sessions.", metavar="COOKIE_IDENTIFIER")
 parser.add_option("-s", "--secret", dest="secret", type="string",
     help="The SECRET token to pass to all webhook callbacks as form variable \"secret\".", metavar="SECRET")
+    
+parser.add_option("-r", "--rest-secret", dest="rest_secret", type="string", default=None,
+    help="The SECRET token that must be in present in all rest api calls as the form variable \"secret\".", metavar="SECRET")
+
 
 parser.add_option('--cb-connect', dest='cb_connect', type='string', default='connect',
     help='relative path for connect webhook callbacks. (default: %default)')
@@ -31,11 +35,15 @@ parser.add_option('--cb-unsubscribe', dest='cb_unsubscribe', type='string', defa
 parser.add_option('--cb-publish', dest='cb_publish', type='string', default='publish',
     help='relative path for publish webhook callbacks. (default: %default)')
 
+
+parser.add_option("-a", "--admin-password", dest="admin_password", type="string", default=None,
+    help='password used for admin web access.')
+
+
 parser.add_option("-d", "--debug", dest="debug", action="store_true", default=False,
     help="Run in debug mode (recompiles hookbox.js whenever the source changes)")
 parser.add_option("-o", "--objgraph", dest="objgraph", type="int", default=0,
     help="turn on objgraph")
-    
     
     
 (options, args) = parser.parse_args()

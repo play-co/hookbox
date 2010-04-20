@@ -41,10 +41,14 @@ class HookboxConn(object):
     def _run(self):
         while True:
             try:
+#                print 'read a frame...'
                 fid, fname, fargs= self._rtjp_conn.recv_frame().wait()
+#                print 'got frame', fid, fname, fargs
             except rtjp.errors.ConnectionLost, e:
+#                print 'connection lost'
                 break
             except:
+#                print 'some error..'
                 self.logger.warn("Error reading frame", exc_info=True)
                 continue
             f = getattr(self, 'frame_' + fname, None)
@@ -58,8 +62,10 @@ class HookboxConn(object):
                     self.send_error(fid, e)
             else:
                 self._default_frame(fid, fname, fargs)
+#        print 'all DONE!'
         # cleanup
         if self.user:
+#            print 'go call remove connection'
             self.user.remove_connection(self)
         
     def _default_frame(fid, fname, fargs):

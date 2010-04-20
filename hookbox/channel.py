@@ -84,7 +84,7 @@ class Channel(object):
             omit = conn
         for subscriber in self.subscribers:
             subscriber.send_frame('PUBLISH', frame, omit=omit)
-
+        self.server.admin.channel_event('publish', self.name, frame)
         if self.history_size:
             del frame['channel_name']
             self.history.append(frame)
@@ -115,8 +115,9 @@ class Channel(object):
         self.subscribers.append(user)
         user.channel_subscribed(self)
         
+        frame = {"channel_name": self.name, "user": user.get_name()}
+        self.server.admin.channel_event('subscribe', self.name, frame)
         if self.presenceful:
-            frame = {"channel_name": self.name, "user": user.get_name()}
             omit = None
             if not self.reflective:
                 omit = conn
@@ -135,8 +136,9 @@ class Channel(object):
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             self.server.maybe_auto_subscribe(user, options)
 
+        frame = {"channel_name": self.name, "user": user.get_name()}
+        self.server.admin.channel_event('unsubscribe', self.name, frame)
         if self.presenceful:
-            frame = {"channel_name": self.name, "user": user.get_name()}
             omit = None
             if not self.reflective:
                 omit = conn
@@ -144,5 +146,12 @@ class Channel(object):
                 subscriber.send_frame('UNSUBSCRIBED', frame, omit=omit)
 
         self.subscribers.remove(user)
-        user.channel_subscribed(self)
+        user.channel_unsubscribed(self)
+        
 
+    def serialize(self):
+        return {
+            'name': self.name,
+            'options': dict([ (key, getattr(self, key)) for key in self._options]),
+            'subscribers': [ user.name for user in self.subscribers ]
+        }

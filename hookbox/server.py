@@ -1,6 +1,3 @@
-
-
-
 import collections
 import logging
 from eventlet.green import httplib
@@ -21,6 +18,7 @@ import channel
 import rest
 import protocol
 from user import User
+from admin import HookboxAdminApp
 
 try:
     import json
@@ -49,11 +47,12 @@ class HookboxServer(object):
         static_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], 'static')
         self.app['/static'] = static.Cling(static_path)
         self.app['/rest'] = rest.HookboxRest(self)
-
+        self.admin = HookboxAdminApp(self)
+        self.app['/admin'] = self.admin
         self.channels = {}
         self.conns_by_cookie = {}
         self.conns = {}
-
+        self.users = {}
 
     def run(self):
         print "Listening to hookbox on http://%s:%s" % (self.interface or "0.0.0.0", self.port)
@@ -111,9 +110,18 @@ class HookboxServer(object):
             raise ExpectedException(options.get('error', 'Unauthorized'))
         if 'name' not in options:
             raise ExpectedException('Unauthorized (missing name parameter in server response)')
-        user = User(self, options['name'])
+        user = self.get_user(options['name'])
         user.add_connection(conn)
         self.maybe_auto_subscribe(user, options)
+
+    def get_user(self, name):
+        if name not in self.users:
+            self.users[name] = User(self, name)
+        return self.users[name]
+
+    def remove_user(self, name):
+        if name in self.users:
+            del self.users[name]
 
     def create_channel(self, conn, channel_name, **options):
         if channel_name in self.channels:
@@ -125,9 +133,10 @@ class HookboxServer(object):
         success, options = self.http_request('create_channel', cookie_string, form)
         if not success:
             raise ExpectedException(options.get('error', 'Unauthorized'))
-
         self.channels[channel_name] = channel.Channel(self, channel_name, **options)
-
+        chan = self.channels[channel_name]
+        self.admin.channel_event('create_channel', channel_name, chan.serialize())
+        
 
 
     def destroy_channel(self, channel_name, **options):
@@ -136,6 +145,10 @@ class HookboxServer(object):
         channel = self.channels[channel_name]
         del self.channels[channel_name]
         channel.destroy()
+        self.admin.channel_event('destroy_channel', channel_name, None)
+
+    def exists_channel(self, channel_name):
+        return channel_name in self.channels
 
     def get_channel(self, conn, channel_name):
         if channel_name not in self.channels:
