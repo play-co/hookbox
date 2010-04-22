@@ -90,12 +90,13 @@ class HookboxServer(object):
         http.request('POST', path, body=body, headers=headers)
         response = http.getresponse()
         if response.status != 200:
-            raise ExpectedException("Invalid callback response, status=%s (%s)" % (response.status, path))
+            raise ExpectedException("Invalid callback response, status=%s (%s), body: %s" % (response.status, path, response.read()))
         body = response.read()
         try:
            output = json.loads(body)
         except:
             raise ExpectedException("Invalid json: " + body)
+        #print 'response to', path, 'is:', output
         if not isinstance(output, list) or len(output) != 2:
             raise ExpectedException("Invalid response (expected json list of length 2)")
         if not isinstance(output[1], dict):
@@ -112,13 +113,13 @@ class HookboxServer(object):
             raise ExpectedException('Unauthorized (missing name parameter in server response)')
         user = self.get_user(options['name'])
         user.add_connection(conn)
-        self.maybe_auto_subscribe(user, options)
+        #print 'successfully connected', user.name
+        eventlet.spawn(self.maybe_auto_subscribe, user, options)
 
     def get_user(self, name):
         if name not in self.users:
             self.users[name] = User(self, name)
             self.admin.user_event('connect', { 'name': name })
-
         return self.users[name]
 
     def remove_user(self, name):
@@ -159,9 +160,11 @@ class HookboxServer(object):
         return self.channels[channel_name]
 
     def maybe_auto_subscribe(self, user, options):
+        #print 'maybe autosubscribe....'
         for destination in options.get('auto_subscribe', ()):
-            channel = self.get_channel(channel_name)
+            #print 'subscribing to', destination
+            channel = self.get_channel(None, destination)
             channel.subscribe(user, needs_auth=False)
         for destination in options.get('auto_unsubscribe', ()):
-            channel = self.get_channel(channel_name)
+            channel = self.get_channel(None, destination)
             channel.unsubscribe(user, needs_auth=False)

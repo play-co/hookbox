@@ -46,6 +46,7 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
     this.onopen = function() { }
     this.onclose = function() { }
     this.onerror = function() { }
+    this.onsubscribed = function() { }
 
     this.init = function(url, cookieString) {
         supr(this, 'init', []);
@@ -56,12 +57,15 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 					this.cookieString = "";
 				}
         this.connected = false;
+
         this._subscriptions = {}
+        this._buffered_subs = []
         this._publishes = []
         this._errors = {}
     }
 
     this.subscribe = function(channel_name) {
+/*
         var s = new Subscription();
         var subscribers;
         s._onCancel = bind(this, function() {
@@ -79,6 +83,15 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
             }
             delete s._onCancel;
         })
+*/
+        if (!this.connected) {
+            this._buffered_subs.push(channel_name);
+        }
+        else {
+            var fId = this.sendFrame('SUBSCRIBE', {channel_name: channel_name});
+//            this._errors[fId] = subscribers;
+        }
+/*            
         if (subscribers = this._subscriptions[channel_name]) {
             subscribers.push(s);
         } else {
@@ -91,6 +104,7 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
         }
 
         return s;
+*/
     }
 
     this.publish = function(channel_name, data) {
@@ -111,9 +125,9 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
         switch(fName) {
             case 'CONNECTED':
                 this.connected = true;
-                for (key in this._subscriptions) {
-                    var fId = this.sendFrame('SUBSCRIBE', {channel_name: key});
-                    this._errors[fId] = this._subscriptions[key];
+                while (this._buffered_subs.length) {
+                    var chan = this._buffered_subs.shift();
+                    this.sendFrame('SUBSCRIBE', {channel_name: chan});
                 }
                 while (this._publishes.length) {
                     var pub = this._publishes.splice(0, 1)[0];
@@ -121,6 +135,15 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
                 }
                 this.onopen();
                 break;
+            case 'SUBSCRIBED':
+                var s = new Subscription();
+                s._onCancel = bind(this, function() {
+                    this.sendFrame('UNSUBSCRIBE', {
+                        channel_name: fArgs.channel_name
+                    });
+                });
+                this.onsubscribed(fArgs.channel_name, s);
+                break
             case 'PUBLISH':
                 var subscribers;
                 if (subscribers = this._subscriptions[fArgs.channel_name]) {
