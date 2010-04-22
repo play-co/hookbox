@@ -18,7 +18,7 @@ import channel
 import rest
 import protocol
 from user import User
-from admin import HookboxAdminApp
+from admin.admin import HookboxAdminApp
 
 try:
     import json
@@ -139,13 +139,13 @@ class HookboxServer(object):
         
 
 
-    def destroy_channel(self, channel_name, **options):
-        if channel_name not in channels:
+    def destroy_channel(self, channel_name, needs_auth=True):
+        if channel_name not in self.channels:
             return None
         channel = self.channels[channel_name]
-        del self.channels[channel_name]
-        channel.destroy()
-        self.admin.channel_event('destroy_channel', channel_name, None)
+        if channel.destroy(needs_auth):
+            del self.channels[channel_name]
+            self.admin.channel_event('destroy_channel', channel_name, None)
 
     def exists_channel(self, channel_name):
         return channel_name in self.channels

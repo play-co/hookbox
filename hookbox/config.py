@@ -28,6 +28,8 @@ parser.add_option('--cb-disconnect', dest='cb_disconnect', type='string', defaul
     help='relative path for disconnect webhook callbacks. (default: %default)')
 parser.add_option('--cb-create_channel', dest='cb_create_channel', type='string', default='create_channel',
     help='name for create_channel webhook callbacks. (default: %default)')
+parser.add_option('--cb-destroy_channel', dest='cb_destroy_channel', type='string', default='destroy_channel',
+    help='name for destroy_channel webhook callbacks. (default: %default)')
 parser.add_option('--cb-subscribe', dest='cb_subscribe', type='string', default='subscribe',
     help='name for subscribe webhook callbacks. (default: %default)')
 parser.add_option('--cb-unsubscribe', dest='cb_unsubscribe', type='string', default='unsubscribe',

@@ -33,7 +33,7 @@ class Channel(object):
         # TODO: remove this pointless check, it should never happen, right?
         if user not in self.subscribers:
             return
-        self.unsubscribe(self, needs_auth=False)
+        self.unsubscribe(user, needs_auth=False)
 
         
 
@@ -126,16 +126,17 @@ class Channel(object):
 
 
     def unsubscribe(self, user, conn=None, needs_auth=True):
+        print 'a'
         if user not in self.subscribers:
             return
-
+        print 'b'
         if needs_auth and (self.moderated or self.moderated_unsubscribe):
             form = { 'channel_name': self.name }
             success, options = self.server.http_request('unsubscribe', user.get_cookie(conn), form)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             self.server.maybe_auto_subscribe(user, options)
-
+        print 'c'
         frame = {"channel_name": self.name, "user": user.get_name()}
         self.server.admin.channel_event('unsubscribe', self.name, frame)
         if self.presenceful:
@@ -144,11 +145,23 @@ class Channel(object):
                 omit = conn
             for subscriber in self.subscribers:
                 subscriber.send_frame('UNSUBSCRIBED', frame, omit=omit)
-
+        print 'd'
         self.subscribers.remove(user)
         user.channel_unsubscribed(self)
+        print 'subscribers left', self.subscribers
+        if not self.subscribers:
+            self.server.destroy_channel(self.name)
+    
+    def destroy(self, needs_auth=True):
+        print 'destroy channel....'
+        form = { 'channel_name': self.name }
+        try:
+            success, options = self.server.http_request('destroy_channel', form=form)
+        except ExpectedException:
+            return False
         
-
+        return success
+        
     def serialize(self):
         return {
             'name': self.name,

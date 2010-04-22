@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+
+<head>
+	<link type="text/css" href="lib/jqueryui/css/overcast/jquery-ui-1.8.custom.css" rel="stylesheet"></link>
+	<link type="text/css" href="lib/oocss/content.css" rel="stylesheet"></link>
+	<link type="text/css" href="lib/oocss/libraries.css" rel="stylesheet"></link>
+	<link type="text/css" href="admin.css" rel="stylesheet"></link>
+	<script type="text/javascript" src="lib/jqueryui/js/jquery-1.4.2.min.js"></script>
+	<script type="text/javascript" src="lib/jqueryui/js/jquery-ui-1.8.custom.min.js"></script>
+	<script src="lib/jsio/jsio.js"></script>
+	
+	<script>
+		jsio("import base")
+		jsio("import .admin")
+		jsio("import net")
+		logger = base.logging.get("admin");
+		logger.setLevel(base.logging.DEBUG);
+		base.logging.get("net.protocols.rtjp").setLevel(base.logging.DEBUG);
+		$(function() {
+			gui = new admin.Gui();
+		})
+/*		$(function() {
+			net.connect(p, 'csp', {'url': 'http://localhost:8001/admin/csp'});
+		});
+*/
+	</script>
+</head>
+
+<body>
+	<div id="login">
+		Administrator Password: <input type=text id='password'>
+		<button id="signon">Sign on</button>
+	</div>
+	<div id="app" style="display:none">
+		<div id="side_menu">
+			<a href="#">overview</a>
+			<a href="#">channels</a>
+			<a href="#">users</a>
+			<a href="#">configuration</a>
+		</div>
+		<div id="body">
+			<div id="overview">
+				<h1>Overview</h1>
+				User Count: <span id="overview_num_users"></span><br>
+				Channel Count: <span id="overview_num_channels"></span><br>
+			</div>
+			<div id="channel_list" class="hidden">
+				<h1>Channels</h1>
+				<ul>
+				</ul>
+				<span id="no_channels">(no channels)</span>
+			</div>
+			<div id="user_list" class="hidden">
+			</div>
+			<div id="configuration" class="hidden">
+			</div>			
+			<div id="channel" class="hidden">
+			</div>
+		</div>
+	</div>
+</body>
