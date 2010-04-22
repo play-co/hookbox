@@ -70,7 +70,8 @@ exports.Gui = Class(function() {
 	}
 	
 	this.channel = function(name) {
-		
+		this.current.hide()
+		this.current = new ChannelView(this, name);
 	}
 	this.CONNECTED = function() {
 		this.overview();
@@ -181,11 +182,64 @@ UserList = Class(function() {
 
 
 ChannelView = Class(function() {
-	this.init = function(gui) {
+	
+	this.init = function(gui, name) {
 		this._gui = gui;
+		this._gui.client.sendFrame('SWITCH', { location: 'watch_channel', channel_name: name });
+		this._gui.client.subscribe('CHANNEL_EVENT', this, this.CHANNEL_EVENT);
+		this._subscribers = {}
+		this._history = {}
+		$("#channel_name").html(name);
+		$("#channel").show()
 	}
 
 	this.hide = function() {
 		$("#channel").hide();
+		this._gui.client.unsubscribe('CHANNEL_EVENT', this);
 	}
+	
+	this._addChannel = function(name) {
+		this._elements[name] = $("<li></li>").appendTo($("#channel_list ul"));
+		$("<a href='#'>" + name + "</a>").click(bind(this, this.showChannel, name))
+			.appendTo(this._elements[name])
+		$("#no_channels").hide();
+	}
+	
+	
+	
+	this._addUser = function(name) {
+		this._subscribers[name] = $("<div></div>").appendTo($("#channel_users"))
+		$("<a href='#'>" + name + "</a>").click(bind(this, this.showUser, name))
+			.appendTo(this._subscribers[name]);
+	}
+	
+	this.showUser = function(name) {
+		
+	}
+	this._removeUser = function(name) {
+		this._subscribers[name].remove()
+		delete this._subscribers[name];
+	}
+	
+	this.CHANNEL_EVENT = function(args) {
+		logger.debug('ChannelView CHANNEL_EVENT', args);
+		switch (args.type) {
+			case 'create_channel':
+				for (var i =0, user; user = args.data.subscribers[i]; ++i) {
+					this._addUser(user);
+				}
+				break;
+			case 'destroy_channel':
+				break;
+			case 'publish':
+				break;
+			case 'subscribe':
+				this._addUser(args.data.user);
+				break;
+			case 'unsubscribe':
+				this._removeUser(args.data.user);
+				break;
+		}
+	}
+	
 });
