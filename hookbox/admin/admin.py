@@ -26,6 +26,7 @@ class HookboxAdminApp(object):
         self.conns = []
         self.watched_channels = {}
         self.channel_list_watchers = []
+        self.user_list_watchers = []
         
     def __call__(self, environ, start_response):
         return self._wsgi_app(environ, start_response)
@@ -82,6 +83,23 @@ class HookboxAdminApp(object):
         
     def unwatch_channel_list(self, conn):
         self.channel_list_watchers.remove(conn)
+
+    def user_event(self, event_type, data):
+        if event_type == 'connect':
+            for conn in self.user_list_watchers:
+                conn.send_frame('USER_CONNECT', data)
+        if event_type == 'disconnect':
+            for conn in self.user_list_watchers:
+                conn.send_frame('USER_DISCONNECT', data)
+
+    def watch_user_list(self, conn):
+        self.user_list_watchers.append(conn)
+        conn.send_frame('USER_LIST', { 'users': self.server.users.keys() })
+        
+    def unwatch_user_list(self, conn):
+        self.user_list_watchers.remove(conn)
+
+
 
 class AdminProtocol(object):
     logger = logging.getLogger('AdminProtocol')
@@ -148,6 +166,15 @@ class AdminProtocol(object):
                 eventlet.sleep(1)
         finally:
             self._admin_app.unwatch_channel_list(self)
+
+    def loop_user_list(self, args):
+        self._admin_app.watch_user_list(self)
+        try:
+            while True:
+                eventlet.sleep(1)
+        finally:
+            self._admin_app.unwatch_user_list(self)
+
 
     def send_frame(self, *args, **kw):
         return self._rtjp_conn.send_frame(*args, **kw)

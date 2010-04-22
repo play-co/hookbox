@@ -117,10 +117,13 @@ class HookboxServer(object):
     def get_user(self, name):
         if name not in self.users:
             self.users[name] = User(self, name)
+            self.admin.user_event('connect', { 'name': name })
+
         return self.users[name]
 
     def remove_user(self, name):
         if name in self.users:
+            self.admin.user_event('disconnect', { 'name': name })
             del self.users[name]
 
     def create_channel(self, conn, channel_name, **options):

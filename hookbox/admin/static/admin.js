@@ -99,6 +99,8 @@ ChannelList = Class(function() {
 	this.hide = function() {
 		$("#channel_list").hide();
 		this._gui.client.unsubscribe('CHANNEL_LIST', this);
+		this._gui.client.unsubscribe('CREATE_CHANNEL', this);
+		this._gui.client.unsubscribe('DESTROY_CHANNEL', this);
 	}
 	
 	this.CHANNEL_LIST = function(args) {
@@ -135,47 +137,50 @@ UserList = Class(function() {
 	this.init = function(gui) {
 		this._gui = gui;
 		this._elements = {}
-		$("#channel_list ul").html("")
-		$("#channel_list").show()
-		$("#no_channels").show();
-		this._gui.client.sendFrame('SWITCH', { location: 'channel_list' });
-		this._gui.client.subscribe('CHANNEL_LIST', this, this.CHANNEL_LIST);
-		this._gui.client.subscribe('CREATE_CHANNEL', this, this.CREATE_CHANNEL);
-		this._gui.client.subscribe('DESTROY_CHANNEL', this, this.DESTROY_CHANNEL);
+		$("#user_list ul").html("")
+		$("#user_list").show()
+		$("#no_users").show();
+		this._gui.client.sendFrame('SWITCH', { location: 'user_list' });
+		this._gui.client.subscribe('USER_LIST', this, this.USER_LIST);
+		this._gui.client.subscribe('USER_CONNECT', this, this.USER_CONNECT);
+		this._gui.client.subscribe('USER_DISCONNECT', this, this.USER_DISCONNECT);
 	}
 	this.hide = function() {
-		$("#channel_list").hide();
-		this._gui.client.unsubscribe('CHANNEL_LIST', this);
+		$("#user_list").hide();
+		this._gui.client.unsubscribe('USER_LIST', this);
+		this._gui.client.unsubscribe('USER_CONNECT', this);
+		this._gui.client.unsubscribe('USER_DISCONNECT', this);
 	}
 	
-	this.CHANNEL_LIST = function(args) {
-		logger.debug("channels:", args.channels);
-		for (var i = 0, chan; chan = args.channels[i]; ++i) {
-//			this._addChannel(chan);
+	this.USER_LIST = function(args) {
+		logger.debug("users:", args.users);
+		for (var i = 0, user; user = args.users[i]; ++i) {
+			this._addUser(user);
 		}
 	}
-	this._addChannel = function(name) {
-		logger.debug('_addChannel', name);
-		this._elements[name] = $("<li></li>").appendTo($("#channel_list ul"));
-		$("<a href='#'>" + name + "</a>").click(bind(this, this.showChannel, name))
+	this._addUser= function(name) {
+		logger.debug('_addUser', name);
+		
+		this._elements[name] = $("<li></li>").appendTo($("#user_list ul"));
+		$("<a href='#'>" + name + "</a>").click(bind(this, this.showUser, name))
 			.appendTo(this._elements[name])
-		$("#no_channels").hide();
-		logger.debug('what?');
+		$("#no_users").hide();
 	}
-	this.showChannel = function(name) {
-		logger.debug("show channel", name);
+	this.showUser= function(name) {
+		logger.debug("show user", name);
+		this._gui.user(name);
 	}
-	this.CREATE_CHANNEL= function(args) {
-		logger.debug("create channel:", args);
-		this._addChannel(args.name);
+	this.USER_CONNECT = function(args) {
+		logger.debug("user connect:", args);
+		this._addUser(args.name);
 	}
-	this.DESTROY_CHANNEL = function(args) {
-		logger.debug("destroy channel:", args);
+	this.USER_DISCONNECT = function(args) {
+		logger.debug("user disconnect:", args);
 		this._elements[args.name].remove()
 		delete this._elements[args.name];
 		// show "no channels" message if none are left
 		for (key in this._elements) { return; }
-		$("#no_channels").show();
+		$("#no_users").show();
 	}
 });
 
