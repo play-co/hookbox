@@ -7,15 +7,13 @@
 	<link type="text/css" href="admin.css" rel="stylesheet"></link>
 	<script type="text/javascript" src="lib/jqueryui/js/jquery-1.4.2.min.js"></script>
 	<script type="text/javascript" src="lib/jqueryui/js/jquery-ui-1.8.custom.min.js"></script>
-	<script src="lib/jsio/jsio.js"></script>
-	
+	<!--script src="lib/jsio/jsio.js"></script-->
+	<script src="admin.js"></script>
 	<script>
-		jsio("import base")
-		jsio("import .admin")
-		jsio("import net")
-		logger = base.logging.get("admin");
+/*		logger = base.logging.get("admin");
 		logger.setLevel(base.logging.DEBUG);
 		base.logging.get("net.protocols.rtjp").setLevel(base.logging.DEBUG);
+		*/
 		$(function() {
 			gui = new admin.Gui();
 		})
