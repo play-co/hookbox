@@ -10,18 +10,22 @@
 				hookbox.logging.get('hookbox').setLevel(hookbox.logging.DEBUG);
 				hookbox.logging.get('net.protocols.rtjp').setLevel(hookbox.logging.DEBUG);
 				conn = hookbox.connect('http://localhost:8001/csp');
-				s = conn.subscribe('testing');
-				s.onFrame = function(frame) {
-						var d = document.createElement('div');
-						d.innerHTML = frame.user + ': ' + frame.payload;
-						var h = document.getElementById('history');
-						var shouldScroll = (h.scrollTop + h.offsetHeight) == h.scrollHeight;
-						h.appendChild(d);
-						if (shouldScroll) { h.scrollTop = h.scrollHeight; }
-				};
-				s.onFailure = function(msg) {
-						alert('Error: ' + msg);
+				conn.onsubscribed = function(channel_name, s) {
+					console.log('blah');
+					s.onFrame = function(frame) {
+							console.log('...');
+							var d = document.createElement('div');
+							d.innerHTML = frame.user + ': ' + frame.payload;
+							var h = document.getElementById('history');
+							var shouldScroll = (h.scrollTop + h.offsetHeight) == h.scrollHeight;
+							h.appendChild(d);
+							if (shouldScroll) { h.scrollTop = h.scrollHeight; }
+					};
+					s.onFailure = function(msg) {
+							alert('Error: ' + msg);
+					}
 				}
+				conn.subscribe('testing');
 				conn.onerror = function(frame) { alert("Error: " + frame.msg); }
 	 }
 

@@ -82,6 +82,7 @@ class HookboxServer(object):
         path = self.base_path + '/' + config.get('cb_' + path_name)
         if config['secret']:
             form['secret'] = config['secret']
+        form['action'] = path_name
         body = urllib.urlencode(form)
         http = httplib.HTTPConnection(self.base_host, self.base_port)
         headers = {'content-type': 'application/x-www-form-urlencoded'}
