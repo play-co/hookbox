@@ -55,6 +55,7 @@ exports.Gui = Class(function() {
 		this.client.sendFrame('SWITCH', { location: 'overview' });		
 	}
 	this.channels = function() {
+		
 		if (this.state == "channels") { return; }
 		this.state = "channels";
 		this.current.hide()
@@ -70,7 +71,9 @@ exports.Gui = Class(function() {
 	}
 	
 	this.channel = function(name) {
+		if (this.state == "channel:" + name) { return; }
 		this.current.hide()
+		this.state = "channel:" + name;
 		this.current = new ChannelView(this, name);
 	}
 	this.CONNECTED = function() {
@@ -189,11 +192,13 @@ UserList = Class(function() {
 ChannelView = Class(function() {
 	
 	this.init = function(gui, name) {
+		X = this;
 		this._gui = gui;
 		this._gui.client.sendFrame('SWITCH', { location: 'watch_channel', channel_name: name });
 		this._gui.client.subscribe('CHANNEL_EVENT', this, this.CHANNEL_EVENT);
 		this._subscribers = {}
 		this._history = {}
+		$("#channel_users").html("")
 		$("#channel_name").html(name);
 		$("#channel").show()
 	}
@@ -201,6 +206,7 @@ ChannelView = Class(function() {
 	this.hide = function() {
 		$("#channel").hide();
 		this._gui.client.unsubscribe('CHANNEL_EVENT', this);
+		
 	}
 	
 	this._addChannel = function(name) {
