@@ -71,7 +71,7 @@ class HookboxServer(object):
         while True:
             try:
                 rtjp_conn = self._rtjp_server.accept().wait()
-                conn = protocol.HookboxConn(self, rtjp_conn)
+                conn = protocol.HookboxConn(self, rtjp_conn, self.config)
             except:
                 ev.send_exception(*sys.exc_info())
                 break

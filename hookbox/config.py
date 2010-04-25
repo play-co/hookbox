@@ -115,7 +115,7 @@ class HookboxConfig(object):
     
     # define the defaults here
     defaults = DefaultObject()
-    defaults._interface = '127.0.0.1'
+    defaults._interface = '0.0.0.0'
     defaults._port = 8001
     defaults._cbport = 80
     defaults._cbhost = '127.0.0.1'
