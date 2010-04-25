@@ -1,20 +1,20 @@
 import logging
 import uuid
 import eventlet
-from config import config
 from errors import ExpectedException
 import rtjp.errors
 
 class HookboxConn(object):
     logger = logging.getLogger('RTJPConnection')
     
-    def __init__(self, server, rtjp_conn):
+    def __init__(self, server, rtjp_conn, config):
         self._rtjp_conn = rtjp_conn
         self.server = server
         self.state = 'initial'
         self.cookies = None
         self.cookie_string = None
         self.cookie_id = None
+        self.cookie_identifier = config['cookie_identifier']
         self.id = str(uuid.uuid4()).replace('-', '')
         self.user = None
         eventlet.spawn(self._run)
@@ -79,7 +79,7 @@ class HookboxConn(object):
 
         self.cookie_string = fargs['cookie_string']
         self.cookies = parse_cookies(fargs['cookie_string'])
-        self.cookie_id = self.cookies.get(config['cookie_identifier'], None)
+        self.cookie_id = self.cookies.get(self.cookie_identifier, None)
         self.server.connect(self)
         self.state = 'connected'
         self.send_frame('CONNECTED', { 'name': self.user.get_name() })

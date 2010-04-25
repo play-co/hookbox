@@ -25,7 +25,6 @@ try:
 except:
     import simplejson as json
 
-from config import config
 class EmptyLogShim(object):
     def write(self, *args, **kwargs):
         return
@@ -33,9 +32,10 @@ class EmptyLogShim(object):
 
 class HookboxServer(object):
 
-    def __init__(self, interface, port):
-        self.interface = interface
-        self.port = port
+    def __init__(self, config):
+        self.config = config
+        self.interface = config['interface']
+        self.port = config['port']
         self._rtjp_server = rtjp.eventlet.RTJPServer()
 #        self.identifer_key = 'abc';
         self.base_host = config['cbhost']
@@ -46,8 +46,8 @@ class HookboxServer(object):
         self.app['/csp'] = self.csp
         static_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], 'static')
         self.app['/static'] = static.Cling(static_path)
-        self.app['/rest'] = rest.HookboxRest(self)
-        self.admin = HookboxAdminApp(self)
+        self.app['/rest'] = rest.HookboxRest(self, config)
+        self.admin = HookboxAdminApp(self, config)
         self.app['/admin'] = self.admin
         self.channels = {}
         self.conns_by_cookie = {}
@@ -79,10 +79,9 @@ class HookboxServer(object):
 
 
     def http_request(self, path_name, cookie_string=None, form={}):
-        path = self.base_path + '/' + config.get('cb_' + path_name)
-        if config['secret']:
-            form['secret'] = config['secret']
-        form['action'] = path_name
+        path = self.base_path + '/' + self.config.get('cb_' + path_name)
+        if self.config['secret']:
+            form['secret'] = self.config['secret']
         body = urllib.urlencode(form)
         http = httplib.HTTPConnection(self.base_host, self.base_port)
         headers = {'content-type': 'application/x-www-form-urlencoded'}
