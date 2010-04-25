@@ -1,18 +1,15 @@
 import cgi
 import logging
-from config import config
 
 try:
     import json
 except:
     import simplejson as json
 
-secret = config['rest_secret']
-
 class HookboxRest(object):
     logger = logging.getLogger('HookboxRest')
-    def __init__(self, server):
-      
+    def __init__(self, server, config):
+        self.secret = config['rest_secret']
         self.server = server
         self.user = None # hack to make channel implementation simpler
         
@@ -22,13 +19,13 @@ class HookboxRest(object):
         if not handler:
             start_response('404 Not Found', ())
             return "Not Found"
-        if secret is None:
+        if self.secret is None:
             start_response('200 Ok', ())
             return json.dumps([False, { 'msg': "Rest api is disabled by configuration. (Please supply --rest-secret/-r option at start)" }])
 
         try:
             form = get_form(environ)
-            if secret != form.get('secret', None):
+            if self.secret != form.get('secret', None):
                 start_response('200 Ok', ())
                 return json.dumps([False, { 'msg': "Invalid secret" }])
             return handler(environ, start_response)

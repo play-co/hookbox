@@ -22,7 +22,9 @@ _install_requires = [
     'rtjp>=0.1alpha2', 
     'eventlet', 
     'paste', 
-    'static'
+    'static',
+    'nose==0.11.1',
+    'coverage',
 ]
 
 # python <= 2.5
