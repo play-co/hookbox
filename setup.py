@@ -23,8 +23,8 @@ _install_requires = [
     'eventlet', 
     'paste', 
     'static',
-    'nose==0.11.1',
-    'coverage',
+#    'nose==0.11.1',
+#    'coverage',
 ]
 
 # python <= 2.5
