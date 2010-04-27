@@ -90,7 +90,7 @@ class HookboxConn(object):
         if 'channel_name' not in fargs:
             return self.send_error(fid, "channel_name required")
         channel = self.server.get_channel(self, fargs['channel_name'])
-        channel.subscribe(self.user)
+        channel.subscribe(self.user, conn=self)
             
     def frame_UNSUBSCRIBE(self, fid, fargs):
         if self.state != 'connected':
@@ -98,15 +98,15 @@ class HookboxConn(object):
         if 'channel_name' not in fargs:
             return self.send_error(fid, "channel_name required")
         channel = self.server.get_channel(self, fargs['channel_name'])
-        channel.unsubscribe(self.user)
-            
+        channel.unsubscribe(self.user, conn=self)
+    
     def frame_PUBLISH(self, fid, fargs):
         if self.state != 'connected':
             return self.send_error(fid, "Not connected")
         if 'channel_name' not in fargs:
             return self.send_error(fid, "channel_name required")
         channel = self.server.get_channel(self, fargs['channel_name'])
-        channel.publish(self.user, fargs.get('payload', 'null'))
+        channel.publish(self.user, fargs.get('payload', 'null'), conn=self)
 
 def parse_cookies(cookieString):
     output = {}
