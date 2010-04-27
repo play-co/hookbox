@@ -55,6 +55,7 @@ exports.Gui = Class(function() {
 		this.client.sendFrame('SWITCH', { location: 'overview' });		
 	}
 	this.channels = function() {
+		
 		if (this.state == "channels") { return; }
 		this.state = "channels";
 		this.current.hide()
@@ -70,7 +71,9 @@ exports.Gui = Class(function() {
 	}
 	
 	this.channel = function(name) {
+		if (this.state == "channel:" + name) { return; }
 		this.current.hide()
+		this.state = "channel:" + name;
 		this.current = new ChannelView(this, name);
 	}
 	this.CONNECTED = function() {
@@ -189,6 +192,7 @@ UserList = Class(function() {
 ChannelView = Class(function() {
 	
 	this.init = function(gui, name) {
+		X = this;
 		this._gui = gui;
 		this._gui.client.sendFrame('SWITCH', { location: 'watch_channel', channel_name: name });
 		this._gui.client.subscribe('CHANNEL_EVENT', this, this.CHANNEL_EVENT);
@@ -200,7 +204,10 @@ ChannelView = Class(function() {
 
 	this.hide = function() {
 		$("#channel").hide();
+		$("#channel_users").html("")
+		$("#channel_events").html("")
 		this._gui.client.unsubscribe('CHANNEL_EVENT', this);
+		
 	}
 	
 	this._addChannel = function(name) {
@@ -227,7 +234,8 @@ ChannelView = Class(function() {
 	}
 	
 	this.CHANNEL_EVENT = function(args) {
-		logger.debug('ChannelView CHANNEL_EVENT', args);
+		logger.debug('!ChannelView CHANNEL_EVENT', args);
+		var msg = args.type;
 		switch (args.type) {
 			case 'create_channel':
 				for (var i =0, user; user = args.data.subscribers[i]; ++i) {
@@ -237,14 +245,19 @@ ChannelView = Class(function() {
 			case 'destroy_channel':
 				break;
 			case 'publish':
+				msg = "PUBLISH, " + args.data.user + ": " + JSON.stringify(args.data.payload);
 				break;
 			case 'subscribe':
+				msg = "SUBSCRIBE, " + args.data.user
 				this._addUser(args.data.user);
 				break;
 			case 'unsubscribe':
+				msg = "UNSUBSCRIBE, " + args.data.user
 				this._removeUser(args.data.user);
 				break;
 		}
+		$("<div class='channel_event'>" + msg + "</div>").appendTo($("#channel_events"));
+		
 	}
 	
 });

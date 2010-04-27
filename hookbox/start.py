@@ -4,13 +4,14 @@ import logging
 import os
 import sys
 
+from hookbox.config import HookboxConfig
+
 def create_server(config):
-    server = HookboxServer(config['interface'], config['port'])
+    server = HookboxServer(config)
     return server
 
 
-def run_objgraph(server):
-        from config import config
+def run_objgraph(server, config):
         import objgraph
         eventlet.sleep(config['objgraph'])
         print 'creating objgraph image file now'
@@ -18,11 +19,12 @@ def run_objgraph(server):
         sys.exit(0)
 
 def main():
-    from config import config
+    config = HookboxConfig()
+    config.update_from_commandline_arguments(sys.argv)
     logging.basicConfig()
     server = create_server(config)
     if config['objgraph']:
-        eventlet.spawn(run_objgraph, server)
+        eventlet.spawn(run_objgraph, server, config)
     if config['debug']:
         eventlet.spawn(debugloop)
     try:

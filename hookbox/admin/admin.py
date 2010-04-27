@@ -3,7 +3,6 @@ from paste import urlmap
 import static
 import csp.eventlet as csp
 import rtjp.errors
-from hookbox.config import config
 import eventlet
 import logging
 from hookbox.errors import ExpectedException
@@ -14,7 +13,8 @@ class StopLoop(Exception):
 
 class HookboxAdminApp(object):
     
-    def __init__(self, server):
+    def __init__(self, server, config):
+        self.config = config
         self.server = server
         self._wsgi_app = urlmap.URLMap()
         self._csp = csp.Listener()
@@ -37,7 +37,7 @@ class HookboxAdminApp(object):
             try:
                 rtjp_conn = self._rtjp_server.accept().wait()
                 print 'got rtjp conn'
-                conn = AdminProtocol(self, rtjp_conn)
+                conn = AdminProtocol(self, rtjp_conn, self.config)
             except:
                 break
 
@@ -104,7 +104,8 @@ class HookboxAdminApp(object):
 class AdminProtocol(object):
     logger = logging.getLogger('AdminProtocol')
     
-    def __init__(self, admin_app, rtjp_conn):
+    def __init__(self, admin_app, rtjp_conn, config):
+        self.config = config
         self.hookbox = admin_app.server
         self._rtjp_conn = rtjp_conn
         self._admin_app = admin_app
@@ -119,7 +120,7 @@ class AdminProtocol(object):
         if self.logged_in:
             raise ExpectedException("Already logged in")
         
-        if not config['admin_password'] or config['admin_password'] != args['password']:
+        if not self.config['admin_password'] or self.config['admin_password'] != args['password']:
             raise ExpectedException("Invalid admin password")
         self.logged_in = True
         self._admin_app.login(self)

@@ -1,5 +1,6 @@
+import urllib
+import eventlet
 from errors import ExpectedException
-
 try:
     import json
 except ImportError:
@@ -16,18 +17,28 @@ class Channel(object):
         'moderated_subscribe': True,
         'moderated_unsubscribe': True,
         'presenceful': True,
-        'anonymous': False
+        'anonymous': False,
+        'polling': {
+            'mode': "",
+            'interval': 5,
+            'url': "",
+            'form': {},
+            'originator': ""
+        }
     }
 
     def __init__(self, server, name, **options):
-        self.__dict__.update(self._options)
-        self.update_options(**options)
+#        self.__dict__.update(self._options)
         self.server = server
         self.name = name
         self.subscribers = []
         # overwrites the default self.history
         self.history = []
-
+        self._polling_task = None
+        self._polling_lock = eventlet.semaphore.Semaphore()
+        #print 'self._options is', self._options
+        self.update_options(**self._options)
+        self.update_options(**options)
 
     def user_disconnected(self, user):
         # TODO: remove this pointless check, it should never happen, right?
@@ -45,18 +56,97 @@ class Channel(object):
         while len(self.history) > self.history_size:
             self.history.pop(0)
 
-    def update_options(self, **options):
+    def update_options(self, notify_polling=True, **options):
+        # TODO: this can't remain so generic forever. At some point we need
+        #       better checks on values, such as the list of dictionaries
+        #       for history, or the polling options.
+        
+        # TODO: add support for lists (we only have dicts now)
+        # TODO: Probably should make this whole function recursive... though
+        #       we only really have one level of nesting now.
+        
         for key, val in options.items():
             if key not in self._options:
                 raise ValueError("Invalid keyword argument %s" % (key))
             default = self._options[key]
-            if val.__class__ != default.__class__:
+            cls = default.__class__
+            if cls in (unicode, str):
+                cls = basestring
+            if not isinstance(val, cls):
                 raise ValueError("Invalid type for %s (should be %s)" % (key, default.__class__))
+            
+            if isinstance(val, dict):
+                for _key, _val in val.items():
+                    if _key not in self._options[key]:
+                        raise ValueError("Invalid keyword argument %s" % (_key))
+                    default = self._options[key][_key]
+                    cls = default.__class__
+                    if cls in (unicode, str):
+                        cls = basestring
+                    if not isinstance(_val, cls):
+                        raise ValueError("%s is Invalid type for %s (should be %s)" % (_val, _key, default.__class__))
         # two loops forces exception *before* any of the options are set.
         for key, val in options.items():
             # this should create copies of any dicts or lists that are options
-            setattr(self, key, val.__class__(val))
-
+            if isinstance(val, dict) and hasattr(self, key):
+                getattr(self, key).update(val)
+            else:
+                setattr(self, key, val.__class__(val))
+        if 'polling' in options and notify_polling:
+            self.polling_modified()
+            
+    def polling_modified(self):
+        self._polling_lock.acquire()
+        if self._polling_task:
+            self._polling_task.kill()
+        if self.polling['mode'] in ('once', 'simple', 'persistent'):
+            self._polling_task = eventlet.spawn(self._poll)
+        self._polling_lock.release()
+        
+            
+    def _poll(self):
+        while True:
+            mode = self.polling['mode']
+            interval = self.polling['interval']
+            if mode == None:
+                return
+            eventlet.sleep(interval)
+            max_backoff = max(300, interval)
+            backoff_interval = 1
+            while True:
+                self._polling_lock.acquire()
+                try:
+                    if mode == 'simple':
+                        payload = urllib.urlopen(self.polling['url']).read()
+                        try:
+                            payload = json.loads(payload)
+                        except:
+                            pass
+                        success = True
+                        options = {}
+                    else: # "persistent" or "once"
+                        success, options = self.server.http_request(form=self.polling['form'], full_path = self.polling['url'])
+                        payload = options.pop('payload', None)
+                except Exception, e:
+                    self._polling_lock.release()
+                    backoff_interval = min(backoff_interval * 2, max_backoff)
+                    eventlet.sleep(backoff_interval)
+                    continue
+                break
+            try:
+                self.update_options(notify_polling=False, **options)
+            except Exception, e:
+                # TODO: Failure on return options... log it?
+                pass
+            payload = json.dumps(payload)
+            self.publish(None, payload, needs_auth=False, originator=self.polling['originator'])
+            # Note: calling release here may cause us this greenlet to be killed
+            self._polling_lock.release()
+            
+            if 'polling' in options or self.polling['mode'] in ('simple', 'persistent'):
+                continue
+            return
+            
     def publish(self, user, payload, needs_auth=True, conn=None, **kwargs):
         try:
             encoded_payload = json.loads(payload)
@@ -66,10 +156,10 @@ class Channel(object):
         if needs_auth and (self.moderated or self.moderated_publish):
             form = { 'channel_name': self.name, 'payload': payload }
             success, options = self.server.http_request('publish', user.get_cookie(conn), form)
+            self.server.maybe_auto_subscribe(user, options)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             payload = options.get('override_payload', payload)
-            self.server.maybe_auto_subscribe(user, options)
 
         frame = {"channel_name": self.name, "payload":payload}
 

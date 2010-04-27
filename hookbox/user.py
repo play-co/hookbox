@@ -1,3 +1,4 @@
+import eventlet
 class User(object):
     def __init__(self, server, name):
         self.server = server
@@ -8,7 +9,14 @@ class User(object):
     def add_connection(self, conn):
         self.connections.append(conn)
         conn.user = self
+        # call later...
+        eventlet.spawn(self._send_initial_subscriptions, conn)
         
+    def _send_initial_subscriptions(self, conn):
+        for channel in self.channels:
+            frame = {"channel_name": channel.name, "user": self.get_name()}
+            conn.send_frame('SUBSCRIBED', frame)
+            
     def remove_connection(self, conn):
         print 'remove conn on user', self.name
         self.connections.remove(conn)
