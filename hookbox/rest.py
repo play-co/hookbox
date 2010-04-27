@@ -1,6 +1,6 @@
 import cgi
 import logging
-
+from errors import ExpectedException
 try:
     import json
 except:
@@ -28,14 +28,14 @@ class HookboxRest(object):
             if self.secret != form.get('secret', None):
                 start_response('200 Ok', ())
                 return json.dumps([False, { 'msg': "Invalid secret" }])
-            return handler(environ, start_response)
+            del form['secret']
+            return handler(form, start_response)
         except Exception, e:
             self.logger.warn('REST Error: %s', path, exc_info=True)
             start_response('500 Internal server error', [])
             return json.dumps([False, {'msg': str(e) }])
     
-    def render_publish(self, environ, start_response):
-        form = get_form(environ)
+    def render_publish(self, form, start_response):
         channel_name = form.get('channel_name', None)
         if not channel_name:
             raise Exception("Missing channel_name")
@@ -46,13 +46,11 @@ class HookboxRest(object):
         start_response('200 Ok', [])
         return json.dumps([True, {}])
 
-    def render_disconnect(self, environ, start_response):
-        form = get_form(environ)
+    def render_disconnect(self, form, start_response):
         identifier = form.get('identifier', None)
         raise Exception("Not Implemented")
 
-    def render_set_channel_options(self, environ, start_response):
-        form = get_form(environ)
+    def render_set_channel_options(self, form, start_response):
         channel_name = form.get('channel_name', None)
         if not channel_name:
             raise Exception("Missing channel_name")
@@ -61,12 +59,16 @@ class HookboxRest(object):
             start_response('200 Ok', [])
             return json.dumps([False, {"msg": "Channel %s doesn't exist" % (channel_name,) }])
         channel = self.server.get_channel(None, channel_name)
+        for key, val in form.items():
+            try:
+                form[key] = json.loads(val)
+            except:
+                raise ExpectedException("Invalid json value for option %s" % (key,))
         channel.update_options(**form)
         start_response('200 Ok', [])
         return json.dumps([True, {}])
         
-    def render_channel_info(self, environ, start_response):
-        form = get_form(environ)
+    def render_channel_info(self, form, start_response):
         channel_name = form.get('channel_name', None)
         if not channel_name:
             raise Exception("Missing channel_name")

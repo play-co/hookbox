@@ -78,8 +78,11 @@ class HookboxServer(object):
         print "HookboxServer Stopped"
 
 
-    def http_request(self, path_name, cookie_string=None, form={}):
-        path = self.base_path + '/' + self.config.get('cb_' + path_name)
+    def http_request(self, path_name=None, cookie_string=None, form={}, full_path=None):
+        if full_path:
+            path = full_path
+        else:
+            path = self.base_path + '/' + self.config.get('cb_' + path_name)
         if self.config['secret']:
             form['secret'] = self.config['secret']
         body = urllib.urlencode(form)
@@ -95,6 +98,7 @@ class HookboxServer(object):
         try:
            output = json.loads(body)
         except:
+            raise
             raise ExpectedException("Invalid json: " + body)
         #print 'response to', path, 'is:', output
         if not isinstance(output, list) or len(output) != 2:
