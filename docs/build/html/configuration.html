@@ -1,0 +1,246 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        
+        <title>
+    Configuration
+ &mdash; hookbox v0.2.0 documentation</title>
+        
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/docs.css" type="text/css" />
+
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+          URL_ROOT:    '#',
+          VERSION:     '0.2.0',
+          COLLAPSE_MODINDEX: false,
+          FILE_SUFFIX: '.html'
+      };
+    </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/init.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="hookbox v0.2.0 documentation" href="index.html" />
+        <link rel="next" title="Javascript API" href="javascript.html" />
+        <link rel="prev" title="Tutorial" href="tutorial.html" />
+    
+
+    </head>
+    <body>
+        
+
+
+
+
+        <h1>hookbox v0.2.0 documentation</h1>
+
+        <div id="search">
+        Search:
+        <form class="search" action="search.html" method="get">
+          <input type="text" name="q" size="18" /> <input type="submit" value="Search" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        </div>
+
+        <div class="versionheader">
+            Version: <span class="versionnum">0.2.0</span> Last Updated: None
+        </div>
+        <div class="clearboth"></div>
+
+        <div class="topnav">
+            <div id="pagecontrol">
+                <a href="reference/index.html">API Reference</a>
+                |
+                <a href="genindex.html">Index</a>
+            
+                <div class="sourcelink">(<a href="_sources/configuration.txt">view source)</div>
+            </div>
+            
+            <div class="navbanner">
+                <a class="totoc" href="index.html">Table of Contents</a>
+                » 
+    Configuration
+ 
+                
+                
+<div class="prevnext">
+        Previous:
+        <a href="tutorial.html" title="previous chapter">Tutorial</a>
+        Next:
+        <a href="javascript.html" title="next chapter">Javascript API</a>
+</div>
+
+                <h2>
+                    
+    Configuration
+ 
+                </h2>
+            </div>
+                <ul>
+<li><a class="reference external" href="#">Configuration</a><ul>
+<li><a class="reference external" href="#basic-options">Basic Options</a><ul>
+<li><a class="reference external" href="#port-p-port">Port (-p, &#8211;port)</a></li>
+<li><a class="reference external" href="#interface-i-interface">Interface (-i, &#8211;interface)</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#webhook-callback-options">Webhook Callback Options</a><ul>
+<li><a class="reference external" href="#callback-port-cbport">Callback Port (&#8211;cbport)</a></li>
+<li><a class="reference external" href="#callback-hostname-cbhost">Callback Hostname (&#8211;cbhost)</a></li>
+<li><a class="reference external" href="#callback-path-prefix-cbpath">Callback Path Prefix (&#8211;cbpath)</a></li>
+<li><a class="reference external" href="#callback-secret-token-s-secret">Callback Secret Token (-s, &#8211;secret)</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#extended-callback-options">Extended Callback Options</a><ul>
+<li><a class="reference external" href="#connect-callback-path-cb-connect">Connect Callback Path (&#8211;cb-connect)</a></li>
+<li><a class="reference external" href="#disconnect-callback-path-cb-disconnect">Disconnect Callback Path (&#8211;cb-disconnect)</a></li>
+<li><a class="reference external" href="#create-channel-callback-path-cb-create-channel">Create Channel Callback Path (&#8211;cb-create_channel)</a></li>
+<li><a class="reference external" href="#destroy-channel-callback-path-cb-destroy-channel">Destroy Channel Callback Path (&#8211;cb-destroy_channel)</a></li>
+<li><a class="reference external" href="#subscribe-callback-path-cb-subscribe">Subscribe Callback Path (&#8211;cb-subscribe)</a></li>
+<li><a class="reference external" href="#unsubscribe-callback-path-cb-unsubscribe">Unsubscribe Callback Path (&#8211;cb-unsubscribe)</a></li>
+<li><a class="reference external" href="#publish-callback-path-cb-publish">Publish Callback Path (&#8211;cb-publish)</a></li>
+<li><a class="reference external" href="#cookie-identifier-c-cookie-identifier">Cookie Identifier (-c, &#8211;cookie-identifier)</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#rest-options">REST Options</a><ul>
+<li><a class="reference external" href="#rest-secret-r-rest-secret">REST Secret (-r, &#8211;rest-secret)</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#admin-options">Admin Options</a><ul>
+<li><a class="reference external" href="#admin-password-a-admin-password">Admin Password (-a, &#8211;admin-password)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <div class="clearboth"></div>
+        </div>
+        
+        <div class="document">
+            <div class="body">
+                
+<div class="section" id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<p>As of version 0.2, hookbox is completely configurable via command line options. While developing your application, you will want to create a startup script that contains all of the appropriate settings.</p>
+<p>A typical hookbox start command looks like this:</p>
+<div class="highlight-none"><div class="highlight"><pre># hookbox -a myadminpassword -r myrestsecret -s mycallbacksecret</pre></div>
+</div>
+<div class="section" id="basic-options">
+<h2>Basic Options<a class="headerlink" href="#basic-options" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="port-p-port">
+<h3>Port (-p, &#8211;port)<a class="headerlink" href="#port-p-port" title="Permalink to this headline">¶</a></h3>
+<p>The port hookbox binds to is specified by -p PORT or &#8211;port=PORT; the default is 8001.</p>
+</div>
+<div class="section" id="interface-i-interface">
+<h3>Interface (-i, &#8211;interface)<a class="headerlink" href="#interface-i-interface" title="Permalink to this headline">¶</a></h3>
+<p>The interface hookbox binds to is specified by -i INTERFACE or &#8211;interface=INTERFACE; the default is &#8220;0.0.0.0&#8221;</p>
+</div>
+</div>
+<div class="section" id="webhook-callback-options">
+<h2>Webhook Callback Options<a class="headerlink" href="#webhook-callback-options" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="callback-port-cbport">
+<h3>Callback Port (&#8211;cbport)<a class="headerlink" href="#callback-port-cbport" title="Permalink to this headline">¶</a></h3>
+<p>The port of the web application which will handle webhook callbacks is specified by &#8211;cbport=PORT; the default is 80.</p>
+</div>
+<div class="section" id="callback-hostname-cbhost">
+<h3>Callback Hostname (&#8211;cbhost)<a class="headerlink" href="#callback-hostname-cbhost" title="Permalink to this headline">¶</a></h3>
+<p>The hostname of the web application which will handle webhook callbacks is specified by &#8211;cbhost=HOSTNAME; the default is &#8220;localhost&#8221;.</p>
+</div>
+<div class="section" id="callback-path-prefix-cbpath">
+<h3>Callback Path Prefix (&#8211;cbpath)<a class="headerlink" href="#callback-path-prefix-cbpath" title="Permalink to this headline">¶</a></h3>
+<p>All callbacks will be prefixed with the value specified by &#8211;cbpath=PATH_PREFIX; the default is &#8220;/hookbox&#8221;.</p>
+</div>
+<div class="section" id="callback-secret-token-s-secret">
+<h3>Callback Secret Token (-s, &#8211;secret)<a class="headerlink" href="#callback-secret-token-s-secret" title="Permalink to this headline">¶</a></h3>
+<p>If a secret token is provided, all callbacks with include that token value as the form variable &#8220;secret&#8221;; this is useful for blocking unauthorized requests to the callback urls. The secret is specified by -s SECRET or &#8211;secret=SECRET; the default is null (no secret.)</p>
+</div>
+</div>
+<div class="section" id="extended-callback-options">
+<h2>Extended Callback Options<a class="headerlink" href="#extended-callback-options" title="Permalink to this headline">¶</a></h2>
+<p>These options are typically left as default, except in cases where its helpful to point all callbacks at a single url, for instance a single PHP script.</p>
+<div class="section" id="connect-callback-path-cb-connect">
+<h3>Connect Callback Path (&#8211;cb-connect)<a class="headerlink" href="#connect-callback-path-cb-connect" title="Permalink to this headline">¶</a></h3>
+<p>The subpath for the connect callback is specified by &#8211;cb-connect PATH; the default is &#8220;connect&#8221;</p>
+</div>
+<div class="section" id="disconnect-callback-path-cb-disconnect">
+<h3>Disconnect Callback Path (&#8211;cb-disconnect)<a class="headerlink" href="#disconnect-callback-path-cb-disconnect" title="Permalink to this headline">¶</a></h3>
+<p>The subpath for the connect callback is specified by &#8211;cb-disconnect PATH; the default is &#8220;disconnect&#8221;</p>
+</div>
+<div class="section" id="create-channel-callback-path-cb-create-channel">
+<h3>Create Channel Callback Path (&#8211;cb-create_channel)<a class="headerlink" href="#create-channel-callback-path-cb-create-channel" title="Permalink to this headline">¶</a></h3>
+<p>The subpath for the create_channel callback is specified by &#8211;cb-create_channel PATH; the default is &#8220;create_channel&#8221;</p>
+</div>
+<div class="section" id="destroy-channel-callback-path-cb-destroy-channel">
+<h3>Destroy Channel Callback Path (&#8211;cb-destroy_channel)<a class="headerlink" href="#destroy-channel-callback-path-cb-destroy-channel" title="Permalink to this headline">¶</a></h3>
+<p>The subpath for the destroy_channel callback is specified by &#8211;cb-destroy_channel PATH; the default is &#8220;destroy_channel&#8221;</p>
+</div>
+<div class="section" id="subscribe-callback-path-cb-subscribe">
+<h3>Subscribe Callback Path (&#8211;cb-subscribe)<a class="headerlink" href="#subscribe-callback-path-cb-subscribe" title="Permalink to this headline">¶</a></h3>
+<p>The subpath for the subscribe callback is specified by &#8211;cb-subscribe PATH; the default is &#8220;subscribe&#8221;</p>
+</div>
+<div class="section" id="unsubscribe-callback-path-cb-unsubscribe">
+<h3>Unsubscribe Callback Path (&#8211;cb-unsubscribe)<a class="headerlink" href="#unsubscribe-callback-path-cb-unsubscribe" title="Permalink to this headline">¶</a></h3>
+<p>The subpath for the unsubscribe callback is specified by &#8211;cb-unsubscribe PATH; the default is &#8220;unsubscribe&#8221;</p>
+</div>
+<div class="section" id="publish-callback-path-cb-publish">
+<h3>Publish Callback Path (&#8211;cb-publish)<a class="headerlink" href="#publish-callback-path-cb-publish" title="Permalink to this headline">¶</a></h3>
+<p>The subpath for the publish callback is specified by &#8211;cb-publish PATH; the default is &#8220;publish&#8221;</p>
+</div>
+<div class="section" id="cookie-identifier-c-cookie-identifier">
+<h3>Cookie Identifier (-c, &#8211;cookie-identifier)<a class="headerlink" href="#cookie-identifier-c-cookie-identifier" title="Permalink to this headline">¶</a></h3>
+<p>Hookbox will include all user cookies in any user-triggered webhook callback. This option is purely an optimization that will cause hookbox to include only the cookie specified by -c COOKIE_NAME or &#8211;cookie-identifier COOKIE_NAME; the default is to include all cookies.</p>
+</div>
+</div>
+<div class="section" id="rest-options">
+<h2>REST Options<a class="headerlink" href="#rest-options" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="rest-secret-r-rest-secret">
+<h3>REST Secret (-r, &#8211;rest-secret)<a class="headerlink" href="#rest-secret-r-rest-secret" title="Permalink to this headline">¶</a></h3>
+<p>The rest interface is disabled by default and will only be enabled if a REST secret is specified by -r SECRET or &#8211;rest-secret SECRET. The value specified must appear in the form as the value for the key &#8220;secret&#8221; when using the REST Hookbox API.</p>
+</div>
+</div>
+<div class="section" id="admin-options">
+<h2>Admin Options<a class="headerlink" href="#admin-options" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="admin-password-a-admin-password">
+<h3>Admin Password (-a, &#8211;admin-password)<a class="headerlink" href="#admin-password-a-admin-password" title="Permalink to this headline">¶</a></h3>
+<p>Hookbox includes an admin console which can be found at the /admin relative url. (e.g. <a class="reference external" href="http://localhost:8001/admin">http://localhost:8001/admin</a>) This console is disabled by default unless an admin password is specified by -a PASSWORD or &#8211;admin-password PASSWORD</p>
+</div>
+</div>
+</div>
+
+            </div>
+        </div>
+
+        
+        
+            <div class="bottomnav">
+                
+<div class="prevnext">
+        Previous:
+        <a href="tutorial.html" title="previous chapter">Tutorial</a>
+        Next:
+        <a href="javascript.html" title="next chapter">Javascript API</a>
+</div>
+
+                <div class="doc_copyright">
+                    &copy; Copyright 2010, Michael Carter.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+                </div>
+            </div>
+        
+
+
+
+
+
+
+    </body>
+</html>
+
+
+

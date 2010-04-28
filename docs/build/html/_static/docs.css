@@ -6,7 +6,7 @@ body, td {
 }
 
 body {
-	background-color: #FDFBFC;
+	background-color: #FFFFFF;
 	margin:38px;
 	color:#333333;
 }
@@ -69,8 +69,24 @@ h1, h2, h3, h4, h5 {
     font-weight:bold;
 }
 
-.document h1, .document h2, .document h3, .document h4, .document h5 {
+.document h1 {
+    font-size: 1.6em;
+}
+
+.document h2 {
     font-size: 1.4em;
+}
+
+.document h3 {
+    font-size: 1.2em;
+}
+
+.document h4 {
+    font-size: 1.1em;
+}
+
+.document h5 {
+    font-size: 1.0em;
 }
 
 .document img {

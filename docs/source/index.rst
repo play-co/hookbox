@@ -13,7 +13,9 @@ Contents:
 
    intro
    tutorial
-   webhooks
+   configuration
    javascript
+   webhooks
    rest
    polling
+   deployment
