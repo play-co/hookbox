@@ -82,7 +82,11 @@ class HookboxServer(object):
         if full_path:
             path = full_path
         else:
-            path = self.base_path + '/' + self.config.get('cb_' + path_name)
+            if self.config.get('cb_single_url'):
+                path = self.config.get('cb_single_url')
+            else:
+                path = self.base_path + '/' + self.config.get('cb_' + path_name)
+            form['action'] = path_name
         if self.config['secret']:
             form['secret'] = self.config['secret']
         body = urllib.urlencode(form)
@@ -98,7 +102,6 @@ class HookboxServer(object):
         try:
            output = json.loads(body)
         except:
-            raise
             raise ExpectedException("Invalid json: " + body)
         #print 'response to', path, 'is:', output
         if not isinstance(output, list) or len(output) != 2:

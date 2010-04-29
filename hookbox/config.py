@@ -90,7 +90,11 @@ class HookboxOptionParser(object):
                           dest='cb_publish', type='string', 
                           default=defaults._cb_publish,
                           help='relative path for publish webhook callbacks. (default: %default)')
-    
+        parser.add_option("--cb-single-url",
+                          dest='cb_single_url', type='string', 
+                          default=defaults._cb_single_url,
+                          help='Override to send all callbacks to given absolute url.')
+        
     def _add_admin_options(self, parser, defaults):
         parser.add_option("-r", "--rest-secret", 
                           dest="rest_secret", type="string", 
@@ -129,6 +133,7 @@ class HookboxConfig(object):
     defaults._cb_subscribe = 'subscribe'
     defaults._cb_unsubscribe = 'unsubscribe'
     defaults._cb_publish = 'publish'
+    defaults._cb_single_url = NoDefault
     defaults._rest_secret = NoDefault
     defaults._admin_password = NoDefault
     defaults._debug = False
