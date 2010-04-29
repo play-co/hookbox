@@ -4,183 +4,168 @@ jsio('from net.protocols.rtjp import RTJPProtocol');
 exports.logging = logging
 
 exports.connect = function(url, cookieString) {
-    var p = new HookBoxProtocol(url, cookieString);
-    jsioConnect(p, 'csp', {url: url})
-    return p;
+	var p = new HookBoxProtocol(url, cookieString);
+	jsioConnect(p, 'csp', {url: url})
+	return p;
 }
 
 var Subscription = Class(function(supr) {
-    // Public API
+	// Public API
 
-    this.init = function(destination, errorId) {
-        this.destination = destination;
-        this.canceled = false;
-        this._errorId = errorId
-    }
+	this.init = function(args) {
+		this.channelName = args.channel_name;
+		this.history = args.history;
+		this.historySize = args.history_size;
+		this.initialData = args.initial_data;
+		this.presence = args.presence;
+		this.canceled = false;
+	}
 
-    this.onPublish = function(frame) { }
-    this.onSetup = function(frame) { }
-    this.onFailure = function(frame) { }
-
-    this.getDestination = function() {
-        return this.destination;
-    }
-
-    this.cancel = function() {
-        if (!this.canceled) {
-            this.canceled = false;
-            logger.debug('calling this._onCancel()');
-            this._onCancel();
-        }
-    }
+	this.onPublish = function(frame) { }
+	this.onSubscribe = function(frame) {}
+	this.onUnsubscribe = function(frame) {}
 
 
-    // Private API
-    this._onCancel = function() { }
+	this.frame = function(name, args) {
+		switch(name) {
+			case 'PUBLISH':
+				if (this.historySize) { 
+					this.history.push({ user: args.user, payload: args.payload}) 
+					while (this.history.length > this.historySize) { 
+						this.history.shift(); 
+					}
+				}
+				this.onPublish(args);
+				break;
+			case 'UNSUBSCRIBE':
+				var i = this.presence.search(args.user);
+				if (i > -1) { this.presence.splice(i, 1); }
+				this.onUnsubscribe(args);
+				break;
+			case 'SUBSCRIBE':
+				this.presence.push(args.user);
+				this.onSubscribe(args);
+				break;
+		}
+	}
+	
+	this.cancel = function() {
+		if (!this.canceled) {
+			this.canceled = false;
+			logger.debug('calling this._onCancel()');
+			this._onCancel();
+		}
+	}
+
+	// Private API
+	this._onCancel = function() { }
 
 
 })
 
 HookBoxProtocol = Class([RTJPProtocol], function(supr) {
-    // Public api
-    this.onopen = function() { }
-    this.onclose = function() { }
-    this.onerror = function() { }
-    this.onsubscribed = function() { }
+	// Public api
+	this.onOpen = function() { }
+	this.onClose = function() { }
+	this.onError = function() { }
+	this.onSubscribed = function() { }
 
-    this.init = function(url, cookieString) {
-        supr(this, 'init', []);
-        this.url = url;
-				try {
-					this.cookieString = cookieString || document.cookie;
-				} catch(e) {
-					this.cookieString = "";
+	this.init = function(url, cookieString) {
+		supr(this, 'init', []);
+		this.url = url;
+		try {
+			this.cookieString = cookieString || document.cookie;
+		} catch(e) {
+			this.cookieString = "";
+		}
+		this.connected = false;
+
+		this._subscriptions = {}
+		this._buffered_subs = []
+		this._publishes = []
+		this._errors = {}
+		this.username = null;
+	}
+
+	this.subscribe = function(channel_name) {
+		if (!this.connected) {
+			this._buffered_subs.push(channel_name);
+		}
+		else {
+			var fId = this.sendFrame('SUBSCRIBE', {channel_name: channel_name});
+		}
+	}
+
+	this.publish = function(channel_name, data) {
+		if (this.connected) {
+			this.sendFrame('PUBLISH', { channel_name: channel_name, payload: JSON.stringify(data) });
+		} else {
+			this._publishes.push([channel_name, data]);
+		}
+
+	}
+
+	this.connectionMade = function() {
+		logger.debug('connectionMade');
+		this.sendFrame('CONNECT', { cookie_string: this.cookieString });
+	}
+
+	this.frameReceived = function(fId, fName, fArgs) {
+		switch(fName) {
+			case 'CONNECTED':
+				this.connected = true;
+				this.username = fArgs.name;
+				while (this._buffered_subs.length) {
+					var chan = this._buffered_subs.shift();
+					this.sendFrame('SUBSCRIBE', {channel_name: chan});
 				}
-        this.connected = false;
+				while (this._publishes.length) {
+					var pub = this._publishes.splice(0, 1)[0];
+					this.publish.apply(this, pub);
+				}
+				this.onOpen();
+				break;
+			case 'SUBSCRIBE':
+				if (fArgs.user == this.username) {
+					var s = new Subscription(fArgs);
+					this._subscriptions[fArgs.channel_name] = s;
+					s._onCancel = bind(this, function() {
+						this.sendFrame('UNSUBSCRIBE', {
+							channel_name: fArgs.channel_name
+						});
+					});
+					this.onSubscribed(fArgs.channel_name, s);
+					K = s;
+				}
+				else {
+					this._subscriptions[fArgs.channel_name].frame(fName, fArgs);
+				}
+				break
+			case 'PUBLISH':
+				this._subscriptions[fArgs.channel_name].frame(fName, fArgs);
+				break;
+			case 'UNSUBSCRIBE':
+				// TODO: the server can autounsubscribe you...
+				this._subscriptions[fArgs.channel_name].frame(fName, fArgs);
+				break;
+			case 'ERROR':
+				this.onError(fArgs);
+				break;
+		}
+	}
+	this.connectionLost = function() {
+		logger.debug('connectionLost');
+		this.connected = false;
+		this.onClose();
+	}
 
-        this._subscriptions = {}
-        this._buffered_subs = []
-        this._publishes = []
-        this._errors = {}
-    }
+	// TODO: we need another var besides this.connnected, as that becomes true
+	//       only after we get a CONNECTED frame. Maybe our transport is
+	//       connected, but we haven't gotten the frame yet. For now, no one
+	//       should be calling this anyway until they get an onclose.
 
-    this.subscribe = function(channel_name) {
-/*
-        var s = new Subscription();
-        var subscribers;
-        s._onCancel = bind(this, function() {
-            logger.debug('in this._onCancel');
-            var i = subscribers.indexOf(s);
-            subscribers.splice(i, 1);
-            if (!subscribers.length) {
-                // NOTE: Its possible for hookbox to refuse the unsubscribe.
-                //       Then where would we be? I guess its not a common use
-                //       case though.
-                //       -mcarter 10/2/09
-                delete this._subscriptions[channel_name];
-                delete this._errors[fId];
-                this.sendFrame('UNSUBSCRIBE', {channel_name: channel_name});
-            }
-            delete s._onCancel;
-        })
-*/
-        if (!this.connected) {
-            this._buffered_subs.push(channel_name);
-        }
-        else {
-            var fId = this.sendFrame('SUBSCRIBE', {channel_name: channel_name});
-//            this._errors[fId] = subscribers;
-        }
-/*            
-        if (subscribers = this._subscriptions[channel_name]) {
-            subscribers.push(s);
-        } else {
-            subscribers = [ s ];
-            this._subscriptions[channel_name] = subscribers;
-            if (this.connected) {
-                var fId = this.sendFrame('SUBSCRIBE', {channel_name: channel_name});
-                this._errors[fId] = subscribers;
-            }
-        }
-
-        return s;
-*/
-    }
-
-    this.publish = function(channel_name, data) {
-        if (this.connected) {
-            this.sendFrame('PUBLISH', { channel_name: channel_name, payload: JSON.stringify(data) });
-        } else {
-            this._publishes.push([channel_name, data]);
-        }
-
-    }
-
-    this.connectionMade = function() {
-        logger.debug('connectionMade');
-        this.sendFrame('CONNECT', { cookie_string: this.cookieString });
-    }
-
-    this.frameReceived = function(fId, fName, fArgs) {
-        switch(fName) {
-            case 'CONNECTED':
-                this.connected = true;
-                while (this._buffered_subs.length) {
-                    var chan = this._buffered_subs.shift();
-                    this.sendFrame('SUBSCRIBE', {channel_name: chan});
-                }
-                while (this._publishes.length) {
-                    var pub = this._publishes.splice(0, 1)[0];
-                    this.publish.apply(this, pub);
-                }
-                this.onopen();
-                break;
-            case 'SUBSCRIBED':
-                var s = new Subscription();
-                s._onCancel = bind(this, function() {
-                    this.sendFrame('UNSUBSCRIBE', {
-                        channel_name: fArgs.channel_name
-                    });
-                });
-                this.onsubscribed(fArgs.channel_name, s);
-                break
-            case 'PUBLISH':
-                var subscribers;
-                if (subscribers = this._subscriptions[fArgs.channel_name]) {
-                    for (var i = 0, subscriber; subscriber = subscribers[i]; ++i) {
-                        try {
-                            subscriber.onFrame(fArgs);
-                        } catch(e) {
-                            setTimeout(function() { throw e; }, 0);
-                        }
-                    }
-                }
-                break;
-            case 'ERROR':
-                if (subs = this._errors[fArgs.reference_id]) {
-                    for (var i = 0, sub; sub=subs[i]; ++i) {
-                        sub.cancel()
-                        sub.onFailure(fArgs.msg);
-                    }
-                } else {
-                    this.onerror(fArgs);
-                }
-                break;
-        }
-    }
-    this.connectionLost = function() {
-        logger.debug('connectionLost');
-        this.connected = false;
-        this.onclose();
-    }
-
-    // TODO: we need another var besides this.connnected, as that becomes true
-    //       only after we get a CONNECTED frame. Maybe our transport is
-    //       connected, but we haven't gotten the frame yet. For now, no one
-    //       should be calling this anyway until they get an onclose.
-
-    this.reconnect = function() {
-        jsioConnect(this, this.url);
-    }
+	this.reconnect = function() {
+		jsioConnect(this, this.url);
+	}
 
 })
