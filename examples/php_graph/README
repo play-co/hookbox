@@ -1,0 +1,6 @@
+To deploy the php graph example, 
+1) put graph.php somewhere where it can be served by apache and found at http://localhost/graph.php.
+2) run hookbox: hookbox -s secret --cb-single-url="http://localhost/graph.php"
+3) visit http://localhost/graph.php
+
+NOTE: If you want to run this on another domain, then edit the constants at the top of graph.php, and change the --cb-single-url option when starting hookbox.
