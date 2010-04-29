@@ -9,18 +9,18 @@ except ImportError:
 
 class Channel(object):
     _options = {
-        'reflective': True,
+        'reflective': False,
         'history': [],
         'history_size': 0,
         'moderated': True,
         'moderated_publish': True,
         'moderated_subscribe': True,
         'moderated_unsubscribe': True,
-        'presenceful': True,
+        'presenceful': False,
         'anonymous': False,
         'polling': {
             'mode': "",
-            'interval': 5,
+            'interval': 5.0,
             'url': "",
             'form': {},
             'originator': ""
@@ -81,6 +81,8 @@ class Channel(object):
                         raise ValueError("Invalid keyword argument %s" % (_key))
                     default = self._options[key][_key]
                     cls = default.__class__
+                    if isinstance(default, float) and isinstance(_val, int):
+                        _val = float(_val)
                     if cls in (unicode, str):
                         cls = basestring
                     if not isinstance(_val, cls):
@@ -208,42 +210,42 @@ class Channel(object):
         frame = {"channel_name": self.name, "user": user.get_name()}
         self.server.admin.channel_event('subscribe', self.name, frame)
         if self.presenceful:
-            omit = None
-            if not self.reflective:
-                omit = conn
             for subscriber in self.subscribers:
-                subscriber.send_frame('SUBSCRIBED', frame, omit=omit)
-
+                if subscriber == user: continue
+                subscriber.send_frame('SUBSCRIBE', frame)
+                
+        frame["history"] = self.history
+        frame["history_size"] = self.history_size
+        frame["initial_data"] = initial_data
+        
+        if self.presenceful:
+            frame['presence'] = [ subscriber.get_name() for subscriber in self.subscribers ]
+        else:
+            frame['presence'] = [];
+        conn.send_frame('SUBSCRIBE', frame)
 
     def unsubscribe(self, user, conn=None, needs_auth=True):
-        print 'a'
         if user not in self.subscribers:
             return
-        print 'b'
         if needs_auth and (self.moderated or self.moderated_unsubscribe):
             form = { 'channel_name': self.name }
             success, options = self.server.http_request('unsubscribe', user.get_cookie(conn), form)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             self.server.maybe_auto_subscribe(user, options)
-        print 'c'
         frame = {"channel_name": self.name, "user": user.get_name()}
         self.server.admin.channel_event('unsubscribe', self.name, frame)
         if self.presenceful:
-            omit = None
-            if not self.reflective:
-                omit = conn
             for subscriber in self.subscribers:
-                subscriber.send_frame('UNSUBSCRIBED', frame, omit=omit)
-        print 'd'
+                if subscriber == user: continue
+                subscriber.send_frame('UNSUBSCRIBE', frame)
+        user.send_frame('UNSUBSCRIBE', frame)
         self.subscribers.remove(user)
         user.channel_unsubscribed(self)
-        print 'subscribers left', self.subscribers
         if not self.subscribers:
             self.server.destroy_channel(self.name)
     
     def destroy(self, needs_auth=True):
-        print 'destroy channel....'
         form = { 'channel_name': self.name }
         try:
             success, options = self.server.http_request('destroy_channel', form=form)
