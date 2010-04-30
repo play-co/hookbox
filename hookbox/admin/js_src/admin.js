@@ -31,15 +31,52 @@ exports.AdminProtocol= Class([RTJPProtocol, PubSub], function(supr) {
 exports.Gui = Class(function() {
 	
 	this.init = function() {
-		this.client = new admin.AdminProtocol();
+		this.client = new exports.AdminProtocol();
 		this.state = 'init';
-		this.current = $("#login");
-		$("#signon").click(bind(this, this.signon));
-		$("#side_menu a:nth-child(1)").click(bind(this, this.overview))
-		$("#side_menu a:nth-child(2)").click(bind(this, this.channels))
-		$("#side_menu a:nth-child(3)").click(bind(this, this.users))
-		$("#side_menu a:nth-child(4)").click(bind(this, this.configuration))
+		this.current = new LoginView(this);
+		this.selectedLink = $("#side_menu a:nth-child(1)").click(bind(this, 'linkClick', 'overview'));
+		$("#side_menu a:nth-child(2)").click(bind(this, 'linkClick', 'channels'));
+		$("#side_menu a:nth-child(3)").click(bind(this, 'linkClick', 'users'));
+		$("#side_menu a:nth-child(4)").click(bind(this, 'linkClick', 'configuration'));
+		
+		window.onresize = bind(this, 'onResize');
+		this.onResize();
 	}
+	
+	this.linkClick = function(which, e) {
+		e.preventDefault();
+		if (this.selectedLink) { this.selectedLink.removeClass('selected'); }
+		this.selectedLink = $(e.target).addClass('selected');
+		if(this[which]) { this[which](); }
+	}
+	
+	this.center = function(el) {
+		var h = el.offsetHeight || parseInt(el.style.height),
+			w = el.offsetWidth || parseInt(el.style.width);
+			
+		if (el && w && h) {
+			el.style.top = this._height / 2 - h / 2 + 'px';
+			el.style.left = this._width / 2 - w / 2 + 'px';
+		}
+	}
+	
+	this.onResize = function() {
+		this._height = document.documentElement.clientHeight;
+		this._width = document.documentElement.clientWidth;
+		
+		if (this.current.onResize) {
+			this.current.onResize(this._height);
+		} else {
+			var el = this.current._el && this.current._el[0] || this.current._el || this.current && this.current[0] || this.current;
+			this.center(el);
+		}
+		
+		var app = $('#app')[0];
+		app.style.height = this._height - 20 + 'px';
+		app.style.width = 800 + 'px';
+		this.center(app);
+	}
+	
 	this.signon = function() {
 		this.client.setPassword($('#password').val())
 		net.connect(this.client, 'csp', {'url': 'http://localhost:8001/admin/csp'});
@@ -47,6 +84,7 @@ exports.Gui = Class(function() {
 		this.client.subscribe("OVERVIEW", this, this.OVERVIEW);
 		this.state = 'connecting'
 	}
+	
 	this.overview = function() {
 		if (this.state == "overview") { return; }
 		this.current.hide()
@@ -54,6 +92,7 @@ exports.Gui = Class(function() {
 		this.state = "overview";
 		this.client.sendFrame('SWITCH', { location: 'overview' });		
 	}
+	
 	this.channels = function() {
 		
 		if (this.state == "channels") { return; }
@@ -87,12 +126,24 @@ exports.Gui = Class(function() {
 	}
 });
 
+LoginView = Class(function() {
+	this.init = function(gui) {
+		this._el = $('#login');
+		this._pass = $('#password').focus();
+		this._signon = $('#signon');
+		this._pass.keypress(bind(this, function(e) { if (e.keyCode == 13) { gui.signon(); e.preventDefault(); } }));
+		this._signon.click(bind(gui, 'signon'));
+	}
+	
+	this.hide = function() { this._el.hide(); }
+});
+
 ChannelList = Class(function() {
 	this.init = function(gui) {
 		this._gui = gui;
 		this._elements = {}
-		$("#channel_list ul").html("")
-		$("#channel_list").show()
+		$("#channel_list ul").html("");
+		$("#channel_list").show();
 		$("#no_channels").show();
 		this._gui.client.sendFrame('SWITCH', { location: 'channel_list' });
 		this._gui.client.subscribe('CHANNEL_LIST', this, this.CHANNEL_LIST);
