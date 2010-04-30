@@ -85,6 +85,12 @@
                 <ul>
 <li><a class="reference external" href="#">Introduction</a><ul>
 <li><a class="reference external" href="#overview">Overview</a></li>
+<li><a class="reference external" href="#common-patterns">Common Patterns</a><ul>
+<li><a class="reference external" href="#real-time-graph-time-series">Real-time graph (time series)</a></li>
+<li><a class="reference external" href="#chat-room-with-presence">Chat Room (with presence)</a></li>
+<li><a class="reference external" href="#card-game">Card Game</a></li>
+</ul>
+</li>
 <li><a class="reference external" href="#installation">Installation</a></li>
 <li><a class="reference external" href="#github">Github</a></li>
 </ul>
@@ -105,6 +111,68 @@
 <img alt="_images/overview.png" src="_images/overview.png" />
 <p>Any time a user connects or operates on a channel, ( subscribe, publish, unsubscribe) Hookbox makes an http request to the web application for authorization for the action. Once subscribed to a channel, the user&#8217;s browser will receive real-time events that originate either in another browser via the javascript api, or from the web application via the REST api.</p>
 <p>They key insight is that all application development with hookbox Happens either in javascript, or in the native language of the web application itself (e.g. PHP.)</p>
+</div>
+<div class="section" id="common-patterns">
+<h2>Common Patterns<a class="headerlink" href="#common-patterns" title="Permalink to this headline">¶</a></h2>
+<p>Hookbox is built around the concept of named <a class="reference external" href="channels.html"><em>Channels</em></a> which are extremely flexible. These channels can be configured by the web application to provide many features out of the box. Here are a few typical patterns:</p>
+<div class="section" id="real-time-graph-time-series">
+<h3>Real-time graph (time series)<a class="headerlink" href="#real-time-graph-time-series" title="Permalink to this headline">¶</a></h3>
+<p>When a user connects to a web page with a real-time, time series graph, that user needs access to the last N data points on the graph. After that, the user needs updates on an interval. Lets say that we want to build a graph that shows a new data point every second, and always shows the last 30 seconds of data. Firstly, we enable a history on the channel with:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="s2">&quot;history_size&quot;</span><span class="o">:</span> <span class="mi">30</span></pre></div>
+</div>
+<p>This will cause the channel to send any new subscribers the last 30 data points immediately when they subscribe.</p>
+<p>Next we need to put data into the channel on an interval. There are a number of ways we could do this, for instance we have access to the REST API so we could set a cron job that calls <a class="reference external" href="http://HOOKBOX_HOST:HOOKBOX_PORT/rest/publish">http://HOOKBOX_HOST:HOOKBOX_PORT/rest/publish</a> every second. But this method is clumsy and imposes additional deployment constraints on our application. Instead, we can use the channel polling feature to populate our channel with data from a remote url every second. Assuming we had an application hosted at <a class="reference external" href="http://example.org/cpu_usage">http://example.org/cpu_usage</a> which returns a single number representing our target data, we can set polling up like so:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="s2">&quot;polling&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="s2">&quot;url&quot;</span><span class="o">:</span> <span class="s2">&quot;http://example.org/cpu_usage&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;interval&quot;</span><span class="o">:</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="s2">&quot;mode&quot;</span><span class="o">:</span> <span class="s2">&quot;simple&quot;</span>
+<span class="p">}</span></pre></div>
+</div>
+<p>Now our channel will automatically poll our application for new data points every second, and then rebroadcast that too all subscribers.</p>
+<p>Putting it all together, our actual implementation would consist of just a few pieces.</p>
+<ol class="arabic simple">
+<li>A create_channel callback which returns the polling and history_size options. This is just a url in the web application which hookbox will issue and HTTP request to when someone first attempts to subscribe to the channel and it needs to be created.</li>
+<li>A connect callback which returns <tt class="docutils literal"><span class="pre">[true,</span> <span class="pre">{</span> <span class="pre">&quot;name&quot;:</span> <span class="pre">&quot;$username&quot;</span> <span class="pre">}</span> <span class="pre">]</span></tt>. This is again a url in the web application that hookbox will call when someon tries to connect. The value of $username would just be a random string in this case.</li>
+<li>A subscribe callback which returns <tt class="docutils literal"><span class="pre">[true,</span> <span class="pre">{}]</span></tt> so that users can subscribe to the channel</li>
+<li>A publish callback which returns <tt class="docutils literal"><span class="pre">[false,</span> <span class="pre">{}]</span></tt> so that users cannot publish to the channel</li>
+<li>an html with javascript that connects to hookbox, graphs the initial history, and graphs all new data points as they come in.</li>
+</ol>
+<p>If you&#8217;re interested in seeing a completed version of this type of application then take a look at the <a class="reference external" href="http://github.com/mcarter/hookbox/tree/master/examples/php_graph">PHP Real-time Time Series Graph</a> on github.</p>
+</div>
+<div class="section" id="chat-room-with-presence">
+<h3>Chat Room (with presence)<a class="headerlink" href="#chat-room-with-presence" title="Permalink to this headline">¶</a></h3>
+<p>A chat room should contain a history, and presence information (We should see who is in the room, and receives notifications when users join or leave.) Also, its nice to have the server send your own chat messages back to you so you can be sure they went through, so we will turn on reflection. All we need to do is implement a create_channel callback that sets this up by returning:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{</span> <span class="s2">&quot;history_size&quot;</span><span class="o">:</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">&quot;presenceful&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> <span class="s2">&quot;reflective&quot;</span><span class="o">:</span> <span class="kc">true</span> <span class="p">}</span> <span class="p">]</span></pre></div>
+</div>
+<p>In some cases it is nice to persist all chat messages, joins, and leaves, so our web application needs to write these events to the database within the <tt class="docutils literal"><span class="pre">publish</span></tt>, <tt class="docutils literal"><span class="pre">subscribe</span></tt>, and <tt class="docutils literal"><span class="pre">unsubscribe</span></tt> callbacks.</p>
+<p>If we have that information stored in a database, then we can fetch it out to pre-populate the history of the channel from the last conversation by returning the a &#8220;history&#8221; setting as well. Typically a history setting might look like this:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="s2">&quot;history&quot;</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">[</span>
+        <span class="s2">&quot;UNSUBSCRIBE&quot;</span><span class="p">,</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;user&quot;</span><span class="o">:</span> <span class="s2">&quot;mcarter&quot;</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="p">[</span>
+        <span class="s2">&quot;PUBLISH&quot;</span><span class="p">,</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;payload&quot;</span><span class="o">:</span> <span class="s2">&quot;Anyone there?&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;user&quot;</span><span class="o">:</span> <span class="s2">&quot;mcarter&quot;</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="p">[</span>
+        <span class="s2">&quot;SUBSCRIBE&quot;</span><span class="p">,</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;user&quot;</span><span class="o">:</span> <span class="s2">&quot;mcarter&quot;</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">]</span></pre></div>
+</div>
+</div>
+<div class="section" id="card-game">
+<h3>Card Game<a class="headerlink" href="#card-game" title="Permalink to this headline">¶</a></h3>
+<p>TODO</p>
+</div>
 </div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>

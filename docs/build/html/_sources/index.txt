@@ -13,9 +13,9 @@ Contents:
 
    intro
    tutorial
-   configuration
+   channels
    javascript
    webhooks
    rest
-   polling
+   configuration
    deployment
