@@ -46,7 +46,8 @@ exports.Gui = Class(function() {
 	}
 	this.signon = function() {
 		this.client.setPassword($('#password').val())
-		net.connect(this.client, 'csp', {'url': 'http://localhost:8001/admin/csp'});
+		var url = 'http://' + document.domain + ':' + (location.port || 80) + '/admin/csp'
+		net.connect(this.client, 'csp', {'url': url});
 		this.client.subscribe("CONNECTED", this, this.CONNECTED);
 		this.client.subscribe("OVERVIEW", this, this.OVERVIEW);
 		this.state = 'connecting'
