@@ -1,14 +1,67 @@
+html, body { background: #888; margin: 0px; padding: 0px;}
+body { height: 100%; }
+
+body, div, td { font-family: Frutiger, "Frutiger Linotype", Univers, Calibri, "Gill Sans", "Gill Sans MT", "Myriad Pro", Myriad, "DejaVu Sans Condensed", "Liberation Sans", "Nimbus Sans L", Tahoma, Geneva, "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 13px; font-weight: bold; }
+
+h1, h2, h3 { margin: 0px 0px 10px 0px; }
+h1 { font-size: 22px; }
+h2 { font-size: 18px; }
+h3 { font-size: 14px; }
+
 .hidden {
 	display: none;
 }
 
-#side_menu a {
-	display: block;
+#side_menu a { display: block; padding: 2px 3px 3px 4px; -moz-border-radius: 3px; text-decoration: none; outline:none; text-align: left; }
+#side_menu a:hover { background: #FFF; color: #338; }
+#side_menu a.selected { background: #AAA; font-weight: bold; color: #338; }
+
+#login {
+	position: absolute;
+	background: #EEE;
+	font-weight: bold;
+	width: 180px;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	padding: 20px;
+}
+
+#login input { width: 100px; }
+#login button { margin-left: 10px; }
+
+#app {
+	position: absolute;
+	width: 800px;
+	overflow: hidden;
+}
+
+#side_menu { position: absolute; top: 0px; left: 0px; padding: 10px; background: #CCC; width: 140px; -moz-border-radius: 5px; }
+
+#logo {
+	width: 169px;
+	height: 118px;
+	background: url(images/logo2.png);
+	position: absolute;
+	bottom: 10px;
 }
 
 #body {
-	width: 80%;
-	height: 800px;
-	border: 1px solid black;
-	float: right;
+	background: #EEE;
+	position: absolute;
+	left: 170px;
+	width: 400px;
+	height: 100%;
+	-moz-border-radius: 5px;
+}
+
+#bodyContent { padding: 10px; }
+
+#channel_list ul {
+	list-style-type: none;
+	padding-left: 10px;
+}
+
+#channel_list li {
+	margin: 0px;
 }
