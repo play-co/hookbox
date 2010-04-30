@@ -1,9 +1,13 @@
 jsio('import net');
 jsio('from net.protocols.rtjp import RTJPProtocol');
 jsio('import lib.PubSub as PubSub');
+jsio('import base');
+base.logging.get("net.protocols.rtjp").setLevel(base.logging.DEBUG);
+
 
 exports.logging = logging
 logger.setLevel(logging.DEBUG);
+
 
 exports.AdminProtocol= Class([RTJPProtocol, PubSub], function(supr) {
 	this.init = function(password) {
@@ -76,6 +80,21 @@ exports.Gui = Class(function() {
 		this.state = "channel:" + name;
 		this.current = new ChannelView(this, name);
 	}
+	
+	this.user = function(name) {
+		if (this.state == "user:" + name) { return; }
+		this.current.hide()
+		this.state = "user:" + name;
+		this.current = new UserView(this, name);
+	}
+	
+	this.connection = function(id, user) {
+		if (this.state == "connection:" + id) { return; }
+		this.current.hide()
+		this.state = "connection:" + id;
+		this.current = new ConnectionView(this, id, user);
+		
+	}
 	this.CONNECTED = function() {
 		this.overview();
 		$("#app").show()
@@ -86,7 +105,6 @@ exports.Gui = Class(function() {
 		$("#overview_num_channels").html(fArgs.num_channels);
 	}
 });
-
 ChannelList = Class(function() {
 	this.init = function(gui) {
 		this._gui = gui;
@@ -169,6 +187,7 @@ UserList = Class(function() {
 			.appendTo(this._elements[name])
 		$("#no_users").hide();
 	}
+	
 	this.showUser= function(name) {
 		logger.debug("show user", name);
 		this._gui.user(name);
@@ -187,17 +206,144 @@ UserList = Class(function() {
 	}
 });
 
+UserView = Class(function() {
+	this.init = function(gui, name) {
+		logger.debug('in userview!');
+		this._gui = gui;
+		this._gui.client.sendFrame('SWITCH', { location: 'watch_user', user: name });
+		this._gui.client.subscribe('USER_EVENT', this, this.USER_EVENT);
+		this._subscribers = {}
+		this._history = {}
+		this._name = name;
+		this._channels = {};
+		this._connections = {};
+		$("#user_name").html(name);
+		$("#user").show()
+	}
+	this.hide = function() {
+		this._gui.client.unsubscribe('USER_EVENT', this);
+		$("#user_no_channels").show()
+		$("#user_status").html("Disconnected")
+		$("#user").hide()
+		$("#user_channels").html("")
+ 		$("#user_connections").html("")
+	}
+	this.USER_EVENT = function(args) {
+		switch(args.type) {
+			case 'create':
+				$("#user_status").html("Connected");
+				for (var i =0, channel; channel= args.data.channels[i]; ++i) {
+					this._addChannel(channel);
+				}
+				for (var i =0, conn; conn = args.data.connections[i]; ++i) {
+					this._addConnection(conn);
+				}
+				break;
+			case 'destroy':
+				for (key in this._channels) {
+					this._removeChannel(key);
+				}
+				for (key in this._connections) {
+					this._removeConnection(key);
+					$("#user_connections").html("(no connections)");
+				}
+				$("#user_status").html("Disconnected")
+				break;
+			case 'connect':
+				this._addConnection(args.data.id);
+				break;
+			case 'disconnect':
+				this._removeConnection(args.data.id);
+				break;
+		}
+		logger.debug('got USER_EVENT', args);
+	}
+	
+	
+	this.showChannel = function(name) {
+		this._gui.channel(name);
+	}
+	
+	this.showConnection = function(id) {
+		this._gui.connection(id, this._name);
+	}
+	
+	this._removeChannel = function(name) {
+		this._channels[name].remove()
+		delete this._channels[name];
+		// show "no channels" message if none are left
+		for (key in this._channels) { return; }
+		$("#user_no_channels").show();
+	}
+	this._addChannel = function(name) {
+		this._channels[name] = $("<li></li>").appendTo($("#user_channels"));
+		$("<a href='#'>" + name + "</a>").click(bind(this, this.showChannel, name))
+			.appendTo(this._channels[name])
+		$("#user_no_channels").hide();
+	}
+	this._removeConnection = function(id) {
+		this._connections[id].remove()
+		delete this._connections[id];
+		// show "no channels" message if none are left
+		for (key in this._connections) { return; }
+	}
+	
+	this._addConnection = function (id) {
+		logger.debug('add connection!', id);
+		this._connections[id] = $("<li></li>").appendTo($("#user_connections"));
+		$("<a href='#'>" + id+ "</a>").click(bind(this, this.showConnection, id))
+			.appendTo(this._connections[id])
+	}
+});
+
+ConnectionView = Class(function() {
+	
+	this.init = function(gui, id, user) {
+		this._gui = gui;
+		this._gui.client.sendFrame('SWITCH', { location: 'watch_connection', connection_id: id});
+		this._gui.client.subscribe('CONNECTION_EVENT', this, this.CONNECTION_EVENT);
+//		this._gui.
+		this._id = id;
+		this._user = user;
+
+		$("#connection_id").html(id);
+		$("#connection_status").html("Connected")
+		$("#connection").show();
+		$("<a href='#'>" + user + "</a>").click(bind(this._gui, this._gui.user, user))
+			.appendTo($("#connection_user"))
+		
+		logger.debug('f');
+		
+	}
+	
+	this.hide = function() {
+		$("#connection").hide();
+		$("#connection_user").html("")
+	}
+	
+	this.CONNECTION_EVENT = function(args) {
+		switch(args.type) {
+			case 'connect':
+				$("#connection_cookie").html(args.data.cookie);
+				break;
+			case 'disconnect':
+				$("#connection_status").html("Disconnected")
+				break;
+		}
+	}
+	
+});
 
 
 ChannelView = Class(function() {
 	
 	this.init = function(gui, name) {
-		X = this;
 		this._gui = gui;
 		this._gui.client.sendFrame('SWITCH', { location: 'watch_channel', channel_name: name });
 		this._gui.client.subscribe('CHANNEL_EVENT', this, this.CHANNEL_EVENT);
 		this._subscribers = {}
 		this._history = {}
+		this._name = name;
 		$("#channel_name").html(name);
 		$("#channel").show()
 	}
@@ -210,12 +356,25 @@ ChannelView = Class(function() {
 		
 	}
 	
-	this._addChannel = function(name) {
-		this._elements[name] = $("<li></li>").appendTo($("#channel_list ul"));
-		$("<a href='#'>" + name + "</a>").click(bind(this, this.showChannel, name))
-			.appendTo(this._elements[name])
-		$("#no_channels").hide();
+	
+	this.changeChannelSettings = function() {
+		var channelInfo = {
+			channel_name: this._name
+		}
+		// TODO: populate channelInfo with new channel settings
+		this._gui.client.sendFrame('SET_CHANNEL_INFO', channelInfo)
 	}
+	
+	this.publish = function() {
+		var payload = null; // TODO: get payload from ui
+		var user = null; // TODO get username from ui, default "admin"
+		this._gui.client.sendFrame('PUBLISH', {
+			channel_name: this._name,
+			payload: payload,
+			user: user
+		});
+	}
+	
 	
 	
 	
@@ -226,7 +385,7 @@ ChannelView = Class(function() {
 	}
 	
 	this.showUser = function(name) {
-		
+		this._gui.user(name);
 	}
 	this._removeUser = function(name) {
 		this._subscribers[name].remove()

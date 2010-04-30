@@ -118,20 +118,33 @@ class HookboxServer(object):
             raise ExpectedException(options.get('error', 'Unauthorized'))
         if 'name' not in options:
             raise ExpectedException('Unauthorized (missing name parameter in server response)')
+        self.conns[conn.id] = conn
         user = self.get_user(options['name'])
         user.add_connection(conn)
+        self.admin.user_event('connect', user.get_name(), conn.serialize())
+        self.admin.connection_event('connect', conn.id, conn.serialize())
         #print 'successfully connected', user.name
         eventlet.spawn(self.maybe_auto_subscribe, user, options)
 
+    def disconnect(self, conn):
+        self.admin.user_event('disconnect', conn.user.get_name(), { "id": conn.id})
+        self.admin.connection_event('disconnect', conn.id, conn.serialize())
+        del self.conns[conn.id]
+
+    def get_connection(self, id):
+        return self.conns.get(id, None)
+        
+    def exists_user(self, name):
+        return name in self.users
     def get_user(self, name):
         if name not in self.users:
             self.users[name] = User(self, name)
-            self.admin.user_event('connect', { 'name': name })
+            self.admin.user_event('create', name, self.users[name].serialize())
         return self.users[name]
 
     def remove_user(self, name):
         if name in self.users:
-            self.admin.user_event('disconnect', { 'name': name })
+            self.admin.user_event('destroy', name, {})
             del self.users[name]
 
     def create_channel(self, conn, channel_name, **options):
