@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 
 <head>
-	<link type="text/css" href="lib/jqueryui/css/overcast/jquery-ui-1.8.custom.css" rel="stylesheet">
-	<link type="text/css" href="lib/oocss/content.css" rel="stylesheet">
-	<link type="text/css" href="lib/oocss/libraries.css" rel="stylesheet">
 	<link type="text/css" href="admin.css" rel="stylesheet">
 	<script type="text/javascript" src="lib/jqueryui/js/jquery-1.4.2.min.js"></script>
 	<script type="text/javascript" src="lib/jqueryui/js/jquery-ui-1.8.custom.min.js"></script>
@@ -23,17 +20,20 @@
 
 <body>
 	<div id="login">
-		Administrator Password: <input type=text id='password'>
+		<h1>Hookbox</h1>
+		password:
+		<br><input type=text id='password'>
 		<button id="signon">Sign on</button>
 	</div>
 	<div id="app" style="display:none">
 		<div id="side_menu">
-			<a href="#">overview</a>
+			<a href="#" class="selected">overview</a>
 			<a href="#">channels</a>
 			<a href="#">users</a>
 			<a href="#">configuration</a>
 		</div>
-		<div id="body">
+		<div id="logo"></div>
+		<div id="body"><div id="bodyContent">
 			<div id="overview">
 				<h1>Overview</h1>
 				User Count: <span id="overview_num_users"></span><br>
@@ -102,7 +102,6 @@
 				<h2>Connection cookie</h2>
 				<div id="connection_cookie"></div>
 			</div>
-
-		</div>
+		</div></div>
 	</div>
 </body>
