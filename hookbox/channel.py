@@ -179,7 +179,7 @@ class Channel(object):
         self.server.admin.channel_event('publish', self.name, frame)
         if self.history_size:
             del frame['channel_name']
-            self.history.append(frame)
+            self.history.append(('PUBLISH', frame))
             self.prune_history()
 
     def subscribe(self, user, conn=None, needs_auth=True):
@@ -214,15 +214,24 @@ class Channel(object):
                 if subscriber == user: continue
                 subscriber.send_frame('SUBSCRIBE', frame)
                 
+        frame = self._build_subscribe_frame(user, initial_data)
+        conn.send_frame('SUBSCRIBE', frame)
+        if self.history_size:
+            del frame['channel_name']
+            self.history.append(('SUBSCRIBE', {"user": user.get_name() }))
+            self.prune_history()
+
+
+    def _build_subscribe_frame(self, user, initial_data=None):
+        frame = {"channel_name": self.name, "user": user.get_name()}
         frame["history"] = self.history
         frame["history_size"] = self.history_size
-        frame["initial_data"] = initial_data
-        
+        frame["initial_data"] = initial_data        
         if self.presenceful:
             frame['presence'] = [ subscriber.get_name() for subscriber in self.subscribers ]
         else:
             frame['presence'] = [];
-        conn.send_frame('SUBSCRIBE', frame)
+        return frame
 
     def unsubscribe(self, user, conn=None, needs_auth=True):
         if user not in self.subscribers:
@@ -242,6 +251,11 @@ class Channel(object):
         user.send_frame('UNSUBSCRIBE', frame)
         self.subscribers.remove(user)
         user.channel_unsubscribed(self)
+        if self.history_size:
+            del frame['channel_name']
+            self.history.append(('UNSUBSCRIBE', {"user": user.get_name() }))
+            self.prune_history()
+        
         if not self.subscribers:
             self.server.destroy_channel(self.name)
     

@@ -30,7 +30,7 @@ var Subscription = Class(function(supr) {
 		switch(name) {
 			case 'PUBLISH':
 				if (this.historySize) { 
-					this.history.push({ user: args.user, payload: args.payload}) 
+					this.history.push(["PUBLISH", { user: args.user, payload: args.payload}]) 
 					while (this.history.length > this.historySize) { 
 						this.history.shift(); 
 					}
@@ -38,11 +38,23 @@ var Subscription = Class(function(supr) {
 				this.onPublish(args);
 				break;
 			case 'UNSUBSCRIBE':
-				var i = this.presence.search(args.user);
+				if (this.historySize) { 
+					this.history.push(["UNSUBSCRIBE", { user: args.user}]) 
+					while (this.history.length > this.historySize) { 
+						this.history.shift(); 
+					}
+				}
+				var i = this.presence.indexOf(args.user);
 				if (i > -1) { this.presence.splice(i, 1); }
 				this.onUnsubscribe(args);
 				break;
 			case 'SUBSCRIBE':
+				if (this.historySize) { 
+					this.history.push(["SUBSCRIBE", { user: args.user}]) 
+					while (this.history.length > this.historySize) { 
+						this.history.shift(); 
+					}
+				}
 				this.presence.push(args.user);
 				this.onSubscribe(args);
 				break;

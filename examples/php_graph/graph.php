@@ -47,7 +47,7 @@ function main() {
 				$output[1]["history"] = array();
 				// Those 30 data points should start out pre-populated as the value 0.
 				for ($i = 0; $i < 30; $i++) {
-					$output[1]["history"][$i] = array("payload" => 0);
+					$output[1]["history"][$i] = array(0=>"PUBLISH", 1=>array("payload" => 0));
 				}
 				// returning json: [true, { "polling": { ... }, "history": [ .. ], ... } ]
 				print_r(json_encode($output));
@@ -90,6 +90,7 @@ function static_page() {
  <script src="$HOOKBOX_URL/static/hookbox.js"></script>
  <script>
   onload = function() {
+   hookbox.logging.get('net.protocols.rtjp').setLevel(hookbox.logging.DEBUG);
    // This setTimeout avoids some loading bar nonsense
    setTimeout(function() {
      conn = hookbox.connect("$HOOKBOX_URL/csp");
@@ -100,10 +101,9 @@ function static_page() {
      conn.onSubscribed = function(channel_name, subscription) {
        function draw() {
          for (var i = 0, datum; datum = subscription.history[i]; ++i) {
-            document.getElementById("col" + i).style.height=datum.payload;
+            document.getElementById("col" + i).style.height=datum[1].payload;
          }
        } 
-       data = subscription.history;
        subscription.onPublish = function() {
          draw();
        }

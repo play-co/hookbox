@@ -14,8 +14,8 @@ class User(object):
         
     def _send_initial_subscriptions(self, conn):
         for channel in self.channels:
-            frame = {"channel_name": channel.name, "user": self.get_name()}
-            conn.send_frame('SUBSCRIBED', frame)
+            frame = channel._build_subscribe_frame(self)
+            conn.send_frame('SUBSCRIBE', frame)
             
     def remove_connection(self, conn):
         print 'remove conn on user', self.name

@@ -6,27 +6,45 @@
        var el = document.getElementById('chat_input');
        conn.publish('testing', el.value);
    };
+	 function addHistory(txt) {
+			var d = document.createElement('div');
+			d.innerHTML = txt;
+			var h = document.getElementById('history');
+			var shouldScroll = (h.scrollTop + h.offsetHeight) == h.scrollHeight;
+			h.appendChild(d);
+			if (shouldScroll) { h.scrollTop = h.scrollHeight; }
+		}
    onload = function() {
 				hookbox.logging.get('hookbox').setLevel(hookbox.logging.DEBUG);
 				hookbox.logging.get('net.protocols.rtjp').setLevel(hookbox.logging.DEBUG);
 				conn = hookbox.connect('http://localhost:8001/csp');
-				conn.onsubscribed = function(channel_name, s) {
+				conn.onSubscribed = function(channel_name, s) {
 					console.log('blah');
-					s.onFrame = function(frame) {
-							console.log('...');
-							var d = document.createElement('div');
-							d.innerHTML = frame.user + ': ' + frame.payload;
-							var h = document.getElementById('history');
-							var shouldScroll = (h.scrollTop + h.offsetHeight) == h.scrollHeight;
-							h.appendChild(d);
-							if (shouldScroll) { h.scrollTop = h.scrollHeight; }
+					s.onPublish = function(frame) {
+						console.log('...');
+						addHistory(frame.user + ': ' + frame.payload);
 					};
+					s.onSubscribe = function(frame) {
+						addHistory('* ' + frame.user + ' joined');
+					}
+					s.onUnsubscribe = function(frame) {
+						addHistory('* ' + frame.user + ' left');
+					}
 					s.onFailure = function(msg) {
 							alert('Error: ' + msg);
 					}
+					for (var i = 0, item; item = s.history[i]; ++i) {
+						var name = item[0];
+						var frame = item[1];
+						if (name == 'SUBSCRIBE') { s.onSubscribe(frame); }
+						if (name == 'UNSUBSCRIBE') { s.onUnsubscribe(frame); }
+						if (name == 'PUBLISH') { s.onPublish(frame); }
+					}
+					
+					
 				}
 				conn.subscribe('testing');
-				conn.onerror = function(frame) { alert("Error: " + frame.msg); }
+				conn.onError = function(frame) { alert("Error: " + frame.msg); }
 	 }
 
   </script>
