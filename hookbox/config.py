@@ -1,7 +1,9 @@
 from optparse import OptionParser
 
 class NoDefault(object):
-    pass
+    
+    def __nonzero__(self): 
+        return False
 
 class DefaultObject(object):
     pass
@@ -124,8 +126,8 @@ class HookboxConfig(object):
     defaults._cbport = 80
     defaults._cbhost = '127.0.0.1'
     defaults._cbpath = '/hookbox'
-    defaults._cookie_identifier = NoDefault
-    defaults._secret = NoDefault
+    defaults._cookie_identifier = NoDefault()
+    defaults._secret = NoDefault()
     defaults._cb_connect = 'connect'
     defaults._cb_disconnect = 'disconnect'
     defaults._cb_create_channel = 'create_channel'
@@ -133,9 +135,9 @@ class HookboxConfig(object):
     defaults._cb_subscribe = 'subscribe'
     defaults._cb_unsubscribe = 'unsubscribe'
     defaults._cb_publish = 'publish'
-    defaults._cb_single_url = NoDefault
-    defaults._rest_secret = NoDefault
-    defaults._admin_password = NoDefault
+    defaults._cb_single_url = NoDefault()
+    defaults._rest_secret = NoDefault()
+    defaults._admin_password = NoDefault()
     defaults._debug = False
     defaults._objgraph = 0
     
