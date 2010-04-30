@@ -9,7 +9,7 @@ except ImportError:
 
 class Channel(object):
     _options = {
-        'reflective': False,
+        'reflective': True,
         'history': [],
         'history_size': 0,
         'moderated': True,
