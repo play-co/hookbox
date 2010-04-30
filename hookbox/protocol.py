@@ -19,6 +19,13 @@ class HookboxConn(object):
         self.user = None
         eventlet.spawn(self._run)
         
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user": self.user and self.user.get_name(),
+            "cookie": self.cookie_string
+        }
+        
     def send_frame(self, *args, **kw):
         return self._rtjp_conn.send_frame(*args, **kw)
 
@@ -67,6 +74,7 @@ class HookboxConn(object):
         if self.user:
 #            print 'go call remove connection'
             self.user.remove_connection(self)
+            self.server.disconnect(self)
         
     def _default_frame(fid, fname, fargs):
         pass

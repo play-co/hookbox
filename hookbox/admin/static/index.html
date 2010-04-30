@@ -1,19 +1,16 @@
 <!DOCTYPE html>
 
 <head>
-	<link type="text/css" href="lib/jqueryui/css/overcast/jquery-ui-1.8.custom.css" rel="stylesheet"></link>
-	<link type="text/css" href="lib/oocss/content.css" rel="stylesheet"></link>
-	<link type="text/css" href="lib/oocss/libraries.css" rel="stylesheet"></link>
-	<link type="text/css" href="admin.css" rel="stylesheet"></link>
+	<link type="text/css" href="lib/jqueryui/css/overcast/jquery-ui-1.8.custom.css" rel="stylesheet">
+	<link type="text/css" href="lib/oocss/content.css" rel="stylesheet">
+	<link type="text/css" href="lib/oocss/libraries.css" rel="stylesheet">
+	<link type="text/css" href="admin.css" rel="stylesheet">
 	<script type="text/javascript" src="lib/jqueryui/js/jquery-1.4.2.min.js"></script>
 	<script type="text/javascript" src="lib/jqueryui/js/jquery-ui-1.8.custom.min.js"></script>
-	<!--script src="lib/jsio/jsio.js"></script-->
 	<script src="admin.js"></script>
+	<!--script src="lib/jsio/jsio.js"></script-->
 	<script>
-/*		logger = base.logging.get("admin");
-		logger.setLevel(base.logging.DEBUG);
-		base.logging.get("net.protocols.rtjp").setLevel(base.logging.DEBUG);
-		*/
+//		jsio('import .admin');
 		$(function() {
 			gui = new admin.Gui();
 		})
@@ -73,7 +70,39 @@
 				 </div>
 				</div>
 			</div>
+
+			<div id="user" class="hidden">
+				<h2 id="user_name"></h2>
+				<div id="user_status_holder">
+				 <h3>Status</h3>
+				 <div id="user_status">Disconnected</div>
+				</div>
+				<div id="channel_events_holder">
+				 <h3>Event Logs</h3>
+				 <div id="user_events"></div>
+				</div>
+				<div id="user_channels_holder">
+					<h3>Channels</h3>
+					<ul id="user_channels"></ul>
+					<span id="user_no_channels">(no channels)</span>
+				</div>
+				<div id="user_connections_holder">
+				 <h3>Connections</h3>
+					<ul id="user_connections"></ul>
+				</div>
+			</div>
 			
+			<div id="connection" class="hidden">
+			  <h2>Connection Id</h2>
+				<div id="connection_id"></div>
+				<h2>Connection Status</h2>
+				<div id="connection_status"></div>
+				<h2>Connection Username</h2>
+				<div id="connection_user"></div>
+				<h2>Connection cookie</h2>
+				<div id="connection_cookie"></div>
+			</div>
+
 		</div>
 	</div>
 </body>

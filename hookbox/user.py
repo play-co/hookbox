@@ -6,6 +6,13 @@ class User(object):
         self.connections = []
         self.channels = []
         
+    def serialize(self):
+        return {
+            'channels': [ chan.name for chan in self.channels ],
+            'connections': [ conn.id for conn in self.connections ],
+            'name': self.name
+        }
+        
     def add_connection(self, conn):
         self.connections.append(conn)
         conn.user = self
@@ -49,3 +56,5 @@ class User(object):
         if conn:
             return conn.get_cookie()
         return ""
+        
+    

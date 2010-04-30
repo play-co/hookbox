@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="top" title="hookbox v0.2.0 documentation" href="index.html" />
-        <link rel="next" title="Polling (Channels)" href="polling.html" />
+        <link rel="next" title="Configuration" href="configuration.html" />
         <link rel="prev" title="Webhooks" href="webhooks.html" />
     
 
@@ -73,7 +73,7 @@
         Previous:
         <a href="webhooks.html" title="previous chapter">Webhooks</a>
         Next:
-        <a href="polling.html" title="next chapter">Polling (Channels)</a>
+        <a href="configuration.html" title="next chapter">Configuration</a>
 </div>
 
                 <h2>
@@ -82,6 +82,16 @@
  
                 </h2>
             </div>
+                <ul>
+<li><a class="reference external" href="#">Rest Interface</a><ul>
+<li><a class="reference external" href="#channel-info">channel_info</a></li>
+<li><a class="reference external" href="#set-channel-info">set_channel_info</a></li>
+<li><a class="reference external" href="#publish">publish</a></li>
+<li><a class="reference external" href="#destroy-channel">destroy_channel</a></li>
+</ul>
+</li>
+</ul>
+
             <div class="clearboth"></div>
         </div>
         
@@ -90,6 +100,80 @@
                 
 <div class="section" id="rest-interface">
 <h1>Rest Interface<a class="headerlink" href="#rest-interface" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="channel-info">
+<h2>channel_info<a class="headerlink" href="#channel-info" title="Permalink to this headline">¶</a></h2>
+<p>Returns all settings and attributes of a channel.</p>
+<p>Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
+</ul>
+<p>Returns json:</p>
+<p>[ success (boolean) , details (object) ]</p>
+<p>Example:</p>
+<p>Client Requests URL:</p>
+<div class="highlight-none"><div class="highlight"><pre>/rest/channel_info?secret=yo&amp;channel_name=testing</pre></div>
+</div>
+<p>Server Replies:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span>
+    <span class="kc">true</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;testing&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;options&quot;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;anonymous&quot;</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+            <span class="s2">&quot;history&quot;</span><span class="o">:</span> <span class="p">[</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;SUBSCRIBE&quot;</span><span class="p">,</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;user&quot;</span><span class="o">:</span> <span class="s2">&quot;mcarter&quot;</span>
+                    <span class="p">}</span>
+                <span class="p">],</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;PUBLISH&quot;</span><span class="p">,</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;payload&quot;</span><span class="o">:</span> <span class="s2">&quot;good day&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;user&quot;</span><span class="o">:</span> <span class="s2">&quot;mcarter&quot;</span>
+                    <span class="p">}</span>
+                <span class="p">],</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;PUBLISH&quot;</span><span class="p">,</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;payload&quot;</span><span class="o">:</span> <span class="s2">&quot;was gibt es?&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;user&quot;</span><span class="o">:</span> <span class="s2">&quot;mcarter&quot;</span>
+                    <span class="p">}</span>
+                <span class="p">]</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;history_size&quot;</span><span class="o">:</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="s2">&quot;moderated&quot;</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+            <span class="s2">&quot;moderated_publish&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+            <span class="s2">&quot;moderated_subscribe&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+            <span class="s2">&quot;moderated_unsubscribe&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+            <span class="s2">&quot;polling&quot;</span><span class="o">:</span> <span class="p">{</span>
+                <span class="s2">&quot;form&quot;</span><span class="o">:</span> <span class="p">{},</span>
+                <span class="s2">&quot;interval&quot;</span><span class="o">:</span> <span class="mi">5</span><span class="p">,</span>
+                <span class="s2">&quot;mode&quot;</span><span class="o">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;originator&quot;</span><span class="o">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;url&quot;</span><span class="o">:</span> <span class="s2">&quot;&quot;</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;presenceful&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+            <span class="s2">&quot;reflective&quot;</span><span class="o">:</span> <span class="kc">true</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;subscribers&quot;</span><span class="o">:</span> <span class="p">[</span>
+            <span class="s2">&quot;mcarter&quot;</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">]</span></pre></div>
+</div>
+</div>
+<div class="section" id="set-channel-info">
+<h2>set_channel_info<a class="headerlink" href="#set-channel-info" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="publish">
+<h2>publish<a class="headerlink" href="#publish" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="destroy-channel">
+<h2>destroy_channel<a class="headerlink" href="#destroy-channel" title="Permalink to this headline">¶</a></h2>
+</div>
 </div>
 
             </div>
@@ -103,7 +187,7 @@
         Previous:
         <a href="webhooks.html" title="previous chapter">Webhooks</a>
         Next:
-        <a href="polling.html" title="next chapter">Polling (Channels)</a>
+        <a href="configuration.html" title="next chapter">Configuration</a>
 </div>
 
                 <div class="doc_copyright">

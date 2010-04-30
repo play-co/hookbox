@@ -27,7 +27,7 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="top" title="hookbox v0.2.0 documentation" href="index.html" />
         <link rel="next" title="Webhooks" href="webhooks.html" />
-        <link rel="prev" title="Configuration" href="configuration.html" />
+        <link rel="prev" title="Channels" href="channels.html" />
     
 
     </head>
@@ -71,7 +71,7 @@
                 
 <div class="prevnext">
         Previous:
-        <a href="configuration.html" title="previous chapter">Configuration</a>
+        <a href="channels.html" title="previous chapter">Channels</a>
         Next:
         <a href="webhooks.html" title="next chapter">Webhooks</a>
 </div>
@@ -82,6 +82,20 @@
  
                 </h2>
             </div>
+                <ul>
+<li><a class="reference external" href="#">Javascript API</a><ul>
+<li><a class="reference external" href="#connecting">Connecting</a></li>
+<li><a class="reference external" href="#subscribing-to-channels">Subscribing to Channels</a></li>
+<li><a class="reference external" href="#interacting-with-channels">Interacting with Channels</a><ul>
+<li><a class="reference external" href="#channel-attributes">Channel Attributes</a></li>
+<li><a class="reference external" href="#presence-information">Presence Information</a></li>
+<li><a class="reference external" href="#publishing">Publishing</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
             <div class="clearboth"></div>
         </div>
         
@@ -90,6 +104,91 @@
                 
 <div class="section" id="javascript-api">
 <h1>Javascript API<a class="headerlink" href="#javascript-api" title="Permalink to this headline">¶</a></h1>
+<p>The Hookbox javascript api is contained completely in the hookbox.js file that comes with the Hookbox daemon. The file is served by hookbox at <a class="reference external" href="http://HOOKBOX_HOST:HOOKBOX_PORT/static/hookbox.js">http://HOOKBOX_HOST:HOOKBOX_PORT/static/hookbox.js</a>, but you may serve the file from any location and it will still work.</p>
+<div class="section" id="connecting">
+<h2>Connecting<a class="headerlink" href="#connecting" title="Permalink to this headline">¶</a></h2>
+<p>To connect to hookbox you need to provide the url of the hookbox server, with a &#8220;/csp&#8221; as the path. For example, if hookbox server is running on host &#8220;localhost&#8221; and port 8001, (the default) then the to connect:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">conn</span> <span class="o">=</span> <span class="nx">hookbox</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="s1">&#39;http://localhost:8001/csp&#39;</span><span class="p">)</span></pre></div>
+</div>
+<p>Once the connection has been successfully established, the <tt class="docutils literal"><span class="pre">onopen</span></tt> callback will be called. You can attach your own callback to catch:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">conn</span><span class="p">.</span><span class="nx">onOpen</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="nx">alert</span><span class="p">(</span><span class="s2">&quot;connection established!&quot;</span><span class="p">);</span> <span class="p">}</span></pre></div>
+</div>
+<p>If there was an error when connecting the <tt class="docutils literal"><span class="pre">onError</span></tt> callback will be invoked:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">conn</span><span class="p">.</span><span class="nx">onError</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span> <span class="nx">alert</span><span class="p">(</span><span class="s2">&quot;connection failed: &quot;</span> <span class="o">+</span> <span class="nx">err</span><span class="p">.</span><span class="nx">msg</span><span class="p">);</span> <span class="p">}</span></pre></div>
+</div>
+</div>
+<div class="section" id="subscribing-to-channels">
+<h2>Subscribing to Channels<a class="headerlink" href="#subscribing-to-channels" title="Permalink to this headline">¶</a></h2>
+<p>As soon as you have a connection object after calling hookbox.connect, you are free to make calls to conn.subscribe, even before the connection is established. These calls will be buffered until after the onOpen event is fired.</p>
+<p>To subscribe to a channel use the conn.subscribe function:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">conn</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="s2">&quot;my_channel_name&quot;</span><span class="p">);</span></pre></div>
+</div>
+<p>There is no returned object when calling conn.subscribe; rather, a subscription object is passed to you through the onSubscribe callback once the subscription is successful.</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">subscription</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+<span class="nx">conn</span><span class="p">.</span><span class="nx">onSubscribe</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">channelName</span><span class="p">,</span> <span class="nx">_subscription</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">subscription</span> <span class="o">=</span> <span class="nx">_subscription</span><span class="p">;</span>
+<span class="p">}</span></pre></div>
+</div>
+<p>Its important to understand that the <tt class="docutils literal"><span class="pre">onSubscribe</span></tt> callback can be called even if you&#8217;ve never made a call to subscribe. This might be because the web application decided to <tt class="docutils literal"><span class="pre">auto_subscribe</span></tt> you to some channel, or it could be because the user is already logged in and subscribed to multiple channels, though in a different browser window or tab. If the subscribe call is made successfully in another tab, then this tab&#8217;s Hookbox connection object will also issue an <tt class="docutils literal"><span class="pre">onSubscribe</span></tt> callback.</p>
+</div>
+<div class="section" id="interacting-with-channels">
+<h2>Interacting with Channels<a class="headerlink" href="#interacting-with-channels" title="Permalink to this headline">¶</a></h2>
+<p>Once you have a subsription object, you are able to inspect the channel&#8217;s attributes, publish to the channel, and receive publishes from other subscribers in the channel.</p>
+<div class="section" id="channel-attributes">
+<h3>Channel Attributes<a class="headerlink" href="#channel-attributes" title="Permalink to this headline">¶</a></h3>
+<p>If the channel is set to have <tt class="docutils literal"><span class="pre">history_size</span></tt> &gt; 0, then you will have access to history information for that channel:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="nx">subscription</span><span class="p">.</span><span class="nx">history</span>
+<span class="p">[[</span><span class="s2">&quot;PUBLISH&quot;</span><span class="p">,</span> <span class="nb">Object</span> <span class="p">{</span> <span class="nx">user</span><span class="o">=</span><span class="s2">&quot;mcarter&quot;</span><span class="p">,</span> <span class="nx">payload</span><span class="o">=</span><span class="s2">&quot;greetings!&quot;</span><span class="p">}],</span> <span class="p">[</span><span class="s2">&quot;SUBSCRIBE&quot;</span><span class="p">,</span> <span class="nb">Object</span> <span class="p">{</span> <span class="nx">user</span><span class="o">=</span><span class="s2">&quot;mcarter&quot;</span> <span class="p">}</span> <span class="p">]</span> <span class="p">...</span> <span class="p">]</span></pre></div>
+</div>
+<p>All attributes are read only. The complete list:</p>
+<blockquote>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">historySize</span></tt>: the length of the history for the channel.</li>
+<li><tt class="docutils literal"><span class="pre">history</span></tt>: a list of the last N elements where N is the <tt class="docutils literal"><span class="pre">history_size</span></tt> attribute of the channel</li>
+<li><tt class="docutils literal"><span class="pre">initialData</span></tt>: arbitrary data set on the channel by the web application</li>
+<li><tt class="docutils literal"><span class="pre">presenceful</span></tt>: boolean that signifies rather this channel relays presence information</li>
+<li><tt class="docutils literal"><span class="pre">presence</span></tt>: a list of users subscribed to the channel. This is always empty if <tt class="docutils literal"><span class="pre">presenceful</span></tt> is false.</li>
+<li><tt class="docutils literal"><span class="pre">reflective</span></tt>: boolean signifying if this channel reflects publish frames back to the connection that orignated them.</li>
+</ul>
+</blockquote>
+</div>
+<div class="section" id="presence-information">
+<h3>Presence Information<a class="headerlink" href="#presence-information" title="Permalink to this headline">¶</a></h3>
+<p>Note in the above example that one of the frames in the history is <tt class="docutils literal"><span class="pre">SUBSCRIBE</span></tt>. The channel will only relay subscribe and unsubscribe frames to the browser if <tt class="docutils literal"><span class="pre">presenceful</span></tt> = true is set on the channel by the web application. If it is set, then the subscription object will provide access to a list of users currently subscribed to this channel:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subscription</span><span class="o">.</span><span class="n">presence</span>
+<span class="go">[ &quot;mgh&quot;, &quot;mcarter&quot;, &quot;desmaj&quot; ]</span></pre></div>
+</div>
+<p>Whenever a user subscribes or unsubscribes from the channel you will receive an <tt class="docutils literal"><span class="pre">onSubscribe</span></tt> or <tt class="docutils literal"><span class="pre">onUnsubscribe</span></tt> callback from the subscription, and the presence attribute will be updated.</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">subscription</span><span class="p">.</span><span class="nx">onSubscribe</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">frame</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// the user is now in our presence list</span>
+  <span class="nx">assertTrue</span><span class="p">(</span><span class="nx">subscription</span><span class="p">.</span><span class="nx">presence</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">frame</span><span class="p">.</span><span class="nx">user</span><span class="p">)</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+  <span class="nx">alert</span><span class="p">(</span><span class="s2">&quot;user: &quot;</span> <span class="o">+</span> <span class="nx">frame</span><span class="p">.</span><span class="nx">user</span> <span class="o">+</span> <span class="s2">&quot; has subscribed!&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="nx">subscription</span><span class="p">.</span><span class="nx">onUnsubscribe</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">frame</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// the user is no longer in our presence list</span>
+  <span class="nx">assertTrue</span><span class="p">(</span><span class="nx">subscription</span><span class="p">.</span><span class="nx">presence</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">frame</span><span class="p">.</span><span class="nx">user</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+  <span class="nx">alert</span><span class="p">(</span><span class="s2">&quot;user: &quot;</span> <span class="o">+</span> <span class="nx">frame</span><span class="p">.</span><span class="nx">user</span> <span class="o">+</span> <span class="s2">&quot; has unsubscribed!&quot;</span><span class="p">);</span>
+<span class="p">}</span></pre></div>
+</div>
+</div>
+<div class="section" id="publishing">
+<h3>Publishing<a class="headerlink" href="#publishing" title="Permalink to this headline">¶</a></h3>
+<p>Perhaps the most important part of interacting with channels is publishing data receiving published data. You may publish data by calling the <tt class="docutils literal"><span class="pre">subscription.publish</span></tt> method:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">subscription</span><span class="p">.</span><span class="nx">publish</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span>
+<span class="nx">subscription</span><span class="p">.</span><span class="nx">publish</span><span class="p">({</span><span class="nx">foo</span><span class="o">:</span> <span class="s2">&quot;bar&quot;</span><span class="p">});</span>
+<span class="nx">subscription</span><span class="p">.</span><span class="nx">publish</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+<span class="nx">subscription</span><span class="p">.</span><span class="nx">publish</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span> <span class="p">{</span><span class="nx">a</span><span class="o">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span> <span class="p">});</span></pre></div>
+</div>
+<p>As you can see, any native javascript object that can be transported as <tt class="docutils literal"><span class="pre">JSON</span></tt> is legal.</p>
+<p>Whenever data is published to the channel, the onPublish callback on the subscription will be called. If the <tt class="docutils literal"><span class="pre">reflective</span></tt> attribute is set on the channel by the web application, then your own calls to publish will cause an onPublish callback as well.</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">subscription</span><span class="p">.</span><span class="nx">onPublish</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">frame</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">alert</span><span class="p">(</span><span class="nx">frame</span><span class="p">.</span><span class="nx">user</span> <span class="o">+</span> <span class="s2">&quot; said: &quot;</span> <span class="o">+</span> <span class="nx">frame</span><span class="p">.</span><span class="nx">payload</span><span class="p">);</span>
+<span class="p">}</span></pre></div>
+</div>
+<p>Remember, frame.payload can be any javascript object that can be represented  as <tt class="docutils literal"><span class="pre">JSON</span></tt>.</p>
+</div>
+</div>
 </div>
 
             </div>
@@ -101,7 +200,7 @@
                 
 <div class="prevnext">
         Previous:
-        <a href="configuration.html" title="previous chapter">Configuration</a>
+        <a href="channels.html" title="previous chapter">Channels</a>
         Next:
         <a href="webhooks.html" title="next chapter">Webhooks</a>
 </div>
