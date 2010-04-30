@@ -43,7 +43,7 @@ def find_package_data():
     return package_data
 setup(
     name='hookbox',
-    version='0.1a6',
+    version='0.2.0',
     author='Michael Carter',
     author_email='CarterMichael@gmail.com',
     license='MIT License',
