@@ -12,7 +12,7 @@ h3 { font-size: 14px; }
 	display: none;
 }
 
-#side_menu a { display: block; padding: 2px 3px 3px 4px; -moz-border-radius: 3px; text-decoration: none; outline:none; text-align: left; }
+#side_menu a { display: block; padding: 2px 3px 3px 4px; -moz-border-radius: 3px; -webkit-border-radius: 3px; text-decoration: none; outline:none; text-align: left; }
 #side_menu a:hover { background: #FFF; color: #338; }
 #side_menu a.selected { background: #AAA; font-weight: bold; color: #338; }
 
@@ -36,32 +36,37 @@ h3 { font-size: 14px; }
 	overflow: hidden;
 }
 
-#side_menu { position: absolute; top: 0px; left: 0px; padding: 10px; background: #CCC; width: 140px; -moz-border-radius: 5px; }
+#side_menu { position: absolute; top: 0px; left: 0px; padding: 10px; background: #CCC; width: 140px; -moz-border-radius: 5px; -webkit-border-radius: 5px; }
 
 #logo {
-	width: 169px;
-	height: 118px;
-	background: url(images/logo2.png);
+	width: 109px;
+	height: 81px;
+	background: url(images/logo.png) no-repeat;
 	position: absolute;
 	bottom: 10px;
+	left: 22px;
 }
 
 #body {
 	background: #EEE;
 	position: absolute;
 	left: 170px;
-	width: 400px;
 	height: 100%;
 	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
 }
 
 #bodyContent { padding: 10px; }
 
-#channel_list ul {
+ul {
 	list-style-type: none;
 	padding-left: 10px;
 }
 
-#channel_list li {
+li {
 	margin: 0px;
 }
+
+.wideBlock, .block { float: left; width: 240px; border: 1px solid #CCC; padding: 10px; margin-right: 10px; margin-bottom: 10px; -moz-border-radius: 5px; -webkit-border-radius: 5px;}
+.title {  }
+.wideBlock { width: 512px;}

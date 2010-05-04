@@ -55,6 +55,8 @@ exports.Gui = Class(function() {
 	}
 	
 	this.center = function(el) {
+		if (!el) { return; }
+		
 		var h = el.offsetHeight || parseInt(el.style.height),
 			w = el.offsetWidth || parseInt(el.style.width);
 			
@@ -72,13 +74,14 @@ exports.Gui = Class(function() {
 			this.current.onResize(this._height);
 		} else {
 			var el = this.current._el && this.current._el[0] || this.current._el || this.current && this.current[0] || this.current;
-			this.center(el);
+			el && el.style && this.center(el);
 		}
 		
 		var app = $('#app')[0];
 		app.style.height = this._height - 20 + 'px';
-		app.style.width = 800 + 'px';
-		this.center(app);
+		app.style.width = this._width - 10 + 'px';
+		app.style.left = app.style.top = '10px';
+		$('#bodyContent')[0].style.width = this._width - 210 + 'px';
 	}
 	
 	this.signon = function() {
@@ -359,11 +362,12 @@ ConnectionView = Class(function() {
 		this._id = id;
 		this._user = user;
 
+		$("#connection_title").html("<a href='#'>" + user + '</a>: connection ' + id);
 		$("#connection_id").html(id);
 		$("#connection_status").html("Connected")
 		$("#connection").show();
 		$("<a href='#'>" + user + "</a>").click(bind(this._gui, this._gui.user, user))
-			.appendTo($("#connection_user"))
+			.appendTo($("#connection_user"));
 		
 		logger.debug('f');
 		
