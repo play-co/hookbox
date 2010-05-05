@@ -46,6 +46,25 @@ class HookboxRest(object):
         start_response('200 Ok', [])
         return json.dumps([True, {}])
 
+
+    def render_unsubscribe(self, form, start_response):
+        channel_name = form.get('channel_name', None)
+        if not channel_name:
+            raise Exception("Missing channel_name")
+        name= form.get('name', None)
+        if not name:
+            raise Exception("Missing name")
+        if not self.server.exists_channel(channel_name):
+            raise Exception("Channel %s doesn't exist" % (channel_name,))
+        if not self.server.exists_user(name):
+            raise Exception("User %s doesn't exist" % (name,))
+        channel = self.server.get_channel(None, channel_name)
+        user = self.server.get_user(name)
+        channel.unsubscribe(user, needs_auth=False)
+        start_response('200 Ok', [])
+        return json.dumps([True, {}])
+
+
     def render_disconnect(self, form, start_response):
         identifier = form.get('identifier', None)
         raise Exception("Not Implemented")
