@@ -209,8 +209,13 @@ class AdminProtocol(object):
         
     def frame_SET_CHANNEL_INFO(self, id, args):
         channel_name = args.pop('channel_name', None)
+        
+        options = {}
+        for k, v in args.iteritems():
+            options[str(k)] = v
+
         channel = self.hookbox.get_channel(None, channel_name)
-        channel.update_options(**args)
+        channel.update_options(**options)
         
     def start_loop(self, name, args=None):
         if self._loop:
