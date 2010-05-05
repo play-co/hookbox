@@ -1,4 +1,4 @@
-html, body { background: #888; margin: 0px; padding: 0px;}
+html, body { background: #2E282E; margin: 0px; padding: 0px;}
 body { height: 100%; }
 
 body, div, td { font-family: Frutiger, "Frutiger Linotype", Univers, Calibri, "Gill Sans", "Gill Sans MT", "Myriad Pro", Myriad, "DejaVu Sans Condensed", "Liberation Sans", "Nimbus Sans L", Tahoma, Geneva, "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 13px; font-weight: bold; }
@@ -11,10 +11,6 @@ h3 { font-size: 14px; }
 .hidden {
 	display: none;
 }
-
-#side_menu a { display: block; padding: 2px 3px 3px 4px; -moz-border-radius: 3px; -webkit-border-radius: 3px; text-decoration: none; outline:none; text-align: left; }
-#side_menu a:hover { background: #FFF; color: #338; }
-#side_menu a.selected { background: #AAA; font-weight: bold; color: #338; }
 
 #login {
 	position: absolute;
@@ -33,10 +29,13 @@ h3 { font-size: 14px; }
 #app {
 	position: absolute;
 	width: 800px;
-	overflow: hidden;
 }
 
-#side_menu { position: absolute; top: 0px; left: 0px; padding: 10px; background: #CCC; width: 140px; -moz-border-radius: 5px; -webkit-border-radius: 5px; }
+#side_menu { position: absolute; top: 30px; left: 20px; padding: 10px 0px; background: #d3c68a; width: 140px; -moz-border-radius: 5px; -webkit-border-radius: 5px; }
+
+#side_menu a { display: block; padding: 2px 8px 3px 10px; text-decoration: none; outline:none; text-align: right; color: #12141F;}
+#side_menu a:hover { background: #ffffc0; color: #338; }
+#side_menu a.selected { background: #f0e3a5; font-weight: bold; color: #000; }
 
 #logo {
 	width: 109px;
@@ -44,19 +43,20 @@ h3 { font-size: 14px; }
 	background: url(images/logo.png) no-repeat;
 	position: absolute;
 	bottom: 10px;
-	left: 22px;
+	left: 32px;
 }
 
 #body {
 	background: #EEE;
 	position: absolute;
 	left: 170px;
-	height: 100%;
 	-moz-border-radius: 5px;
 	-webkit-border-radius: 5px;
+	margin-bottom: 10px;
+	border: 2px solid #5a9af8;
 }
 
-#bodyContent { padding: 10px; }
+#bodyContent { padding: 10px 0px 10px 10px; }
 
 ul {
 	list-style-type: none;
@@ -67,6 +67,14 @@ li {
 	margin: 0px;
 }
 
-.wideBlock, .block { float: left; width: 240px; border: 1px solid #CCC; padding: 10px; margin-right: 10px; margin-bottom: 10px; -moz-border-radius: 5px; -webkit-border-radius: 5px;}
-.title {  }
-.wideBlock { width: 512px;}
+#body h1 { margin: -10px 0px 8px -10px; background: #5a9af8; color: #d6f2ff; -moz-border-radius: 4px 4px 0px 0px; padding: 0px 5px 2px 8px; }
+
+.block { float: left; width: 250px; border: 1px solid #CCC; padding: 0px; margin-right: 5px; margin-bottom: 5px; -moz-border-radius: 6px 6px 3px 3px; -webkit-border-radius: 3px; background: #FFF; }
+.wideBlock { width: 507px; }
+
+.block h3 { margin: 1px; background: #6E7C7F; color: #EEE; -moz-border-radius: 5px 5px 0px 0px; -webkit-border-radius-topleft: 2px; -webkit-border-radius-topright: 2px; padding: 1px 2px 2px 5px;}
+
+.blockContent { margin: 10px; max-height: 250px; overflow: auto; }
+.channelOptionsTable { margin: 0px auto; }
+.channelOptionsTable tr td:first-child { text-align: right; }
+.channelOptionsButtons { text-align: center; margin-top: 10px;}

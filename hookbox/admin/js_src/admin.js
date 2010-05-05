@@ -32,7 +32,7 @@ exports.AdminProtocol= Class([RTJPProtocol, PubSub], function(supr) {
 	}
 });
 
-exports.Gui = Class(function() {
+var GUI = Class(function() {
 	
 	this.init = function() {
 		this.client = new exports.AdminProtocol();
@@ -78,10 +78,11 @@ exports.Gui = Class(function() {
 		}
 		
 		var app = $('#app')[0];
-		app.style.height = this._height - 20 + 'px';
 		app.style.width = this._width - 10 + 'px';
 		app.style.left = app.style.top = '10px';
-		$('#bodyContent')[0].style.width = this._width - 210 + 'px';
+		var body = $('#body')[0];
+		body.style.minHeight = this._height - 20 + 'px';
+		body.style.minWidth = this._width - 190 + 'px';
 	}
 	
 	this.signon = function() {
@@ -391,6 +392,17 @@ ConnectionView = Class(function() {
 	
 });
 
+util = {
+	userLink: function(userName) { return '<a class="link userLink" href="#user::' + userName + '">' + userName + '</a>'; },
+	removeUserLink: function(userName) { return '<a class="link removeUserLink" href="#removeUser::' + userName + '">remove</a>'; }, 
+	onLinkClick: function(link) {
+		
+	},
+	setChannelOption: function(checkbox, id) {
+		GUI.current.changeChannelSettings();
+	}
+}
+
 
 ChannelView = Class(function() {
 	
@@ -401,8 +413,13 @@ ChannelView = Class(function() {
 		this._subscribers = {}
 		this._history = {}
 		this._name = name;
+		
+		this._usersEl = $('#channel_users');
+		
 		$("#channel_name").html(name);
-		$("#channel").show()
+		$("#channel").show();
+		
+		$("#channel_publish_submit")[0].onclick = bind(this, 'publish');
 	}
 
 	this.hide = function() {
@@ -410,53 +427,143 @@ ChannelView = Class(function() {
 		$("#channel_users").html("")
 		$("#channel_events").html("")
 		this._gui.client.unsubscribe('CHANNEL_EVENT', this);
-		
 	}
 	
-	
-	this.changeChannelSettings = function() {
-		var channelInfo = {
-			channel_name: this._name
-		}
-		// TODO: populate channelInfo with new channel settings
-		this._gui.client.sendFrame('SET_CHANNEL_INFO', channelInfo)
+	this.changeChannelSettings = function(settings) {
+		settings.channel_name = this._name;
+		this._gui.client.sendFrame('SET_CHANNEL_INFO', settings)
 	}
 	
 	this.publish = function() {
-		var payload = null; // TODO: get payload from ui
-		var user = null; // TODO get username from ui, default "admin"
+		var errorEl = $('#channel_publish_error').html(''),
+			raw = $('#channel_publish_data')[0].value;
+		
+		try {
+			var payload = JSON.stringify(eval('(' + raw + ')'));
+		} catch(e) {
+			errorEl.html('invalid payload: ' + e.toString());
+			return;
+		}
+		
+		var user = $('#channel_publish_user')[0].value || 'admin';
+		
 		this._gui.client.sendFrame('PUBLISH', {
 			channel_name: this._name,
 			payload: payload,
 			user: user
 		});
+		
+		// TODO: keep a history!
+		$('#channel_publish_data')[0].value = payload;
+		errorEl.html('sending');
 	}
 	
+	this._showHistory = function(history) {
+		var html = [];
+		for (var i = 0, line; line = history[i]; ++i) {
+			html.push(this._addHistoryLine(line));
+		}
+		$('#channel_history').html(html.join('<br>'));
+	}
 	
+	this._addHistoryLine = function(item) {
+		var name = item[0],
+			data = item[1],
+			link = data.user && util.userLink(data.user) || '';
+		switch(name) {
+			case 'SUBSCRIBE': 	return link + ' subscribed';
+			case 'PUBLISH': 	return link + ' published ' + JSON.stringify(data.payload);
+			case 'UNSUBSCRIBE':	return link + ' unsubscribed';
+			default: 			return link + ' ' + name;
+		}
+	}
 	
+	this._userList = function(users) {
+		for (var i = 0, user; user = users[i]; ++i) {
+			this._addUser(user);
+		}
+	}
 	
-	this._addUser = function(name) {
-		this._subscribers[name] = $("<div></div>").appendTo($("#channel_users"))
-		$("<a href='#'>" + name + "</a>").click(bind(this, this.showUser, name))
-			.appendTo(this._subscribers[name]);
+	this._addUser = function(user) {
+		$('<div>').html(util.userLink(user) + ' (' + util.removeUserLink(user) + ')').appendTo(this._usersEl);
 	}
 	
 	this.showUser = function(name) {
 		this._gui.user(name);
 	}
+	
 	this._removeUser = function(name) {
 		this._subscribers[name].remove()
 		delete this._subscribers[name];
 	}
 	
+	this._optionsForm = function(options) {
+		// call with no arguments to reset to last settings
+		if (!options) { options = this._lastOptions; }
+		this._lastOptions = options;
+		
+		var settingsHTML = [];
+		for (var id in options) {
+			switch(typeof options[id]) {
+				case 'object':
+					switch(id) {
+						case 'history':
+							this._showHistory(options.history)
+							break;
+						case 'polling':
+					}
+					break;
+				case 'boolean':
+					settingsHTML.push('<tr><td>' + id + '</td><td><input type="checkbox" channelSetting="'+id+'"'+(options[id] ? ' checked' : '')+'></td></tr>');
+					break;
+				case 'string':
+					settingsHTML.push('<tr><td>' + id + '</td><td><input type="text" channelSetting="'+id+'"></td></tr>');
+					break;
+			}
+		}
+		
+		var optionsDiv = $('#channel_options');
+		optionsDiv.html('<table class="channelOptionsTable"><tbody>' + settingsHTML.join('') + '</tbody></table>');
+		var optionsBtns = $('<div class="channelOptionsButtons">').appendTo(optionsDiv);
+		$('<button>').html('reset').click(bind(this, 'resetSettings')).appendTo(optionsBtns);
+		$('<button>').html('save').click(bind(this, 'saveSettings')).appendTo(optionsBtns);
+	}
+	
+	this.saveSettings = function() {
+		var data = {},
+			lastOptions = this._lastOptions;
+		$('input', $('#channel_options')).each(function(i) {
+			var id = this.getAttribute('channelSetting');
+			if (!id) { return; }
+			
+			var value;
+			switch(typeof lastOptions[id]) {
+				case 'boolean':
+					value = !!this.checked;
+					break;
+				case 'string':
+					value = this.value;
+					break;
+			}
+			
+			if (lastOptions[id] != value) {
+				data[id] = value;
+			}
+		});
+		
+		this.changeChannelSettings(data);
+	}
+	
+	this.resetSettings = function() { this._optionsForm(this._lastOptions); }
+	
 	this.CHANNEL_EVENT = function(args) {
 		logger.debug('!ChannelView CHANNEL_EVENT', args);
-		var msg = args.type;
+		var msg = args.type,
+			data = args.data;
 		switch (args.type) {
 			case 'create_channel':
-				for (var i =0, user; user = args.data.subscribers[i]; ++i) {
-					this._addUser(user);
-				}
+				this._userList(data.subscribers);
+				this._optionsForm(data.options);
 				break;
 			case 'destroy_channel':
 				break;
@@ -465,7 +572,7 @@ ChannelView = Class(function() {
 				break;
 			case 'subscribe':
 				msg = "SUBSCRIBE, " + args.data.user
-				this._addUser(args.data.user);
+				this._addUserLine(args.data.user);
 				break;
 			case 'unsubscribe':
 				msg = "UNSUBSCRIBE, " + args.data.user
@@ -477,3 +584,7 @@ ChannelView = Class(function() {
 	}
 	
 });
+
+exports.init = function() {
+	GUI = new GUI();
+}

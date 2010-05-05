@@ -9,7 +9,7 @@
 	<script>
 //		jsio('import .admin');
 		$(function() {
-			gui = new admin.Gui();
+			gui = admin.init();
 		})
 /*		$(function() {
 			net.connect(p, 'csp', {'url': 'http://localhost:8001/admin/csp'});
@@ -19,6 +19,7 @@
 </head>
 
 <body>
+	<div id="logo"></div>
 	<div id="login">
 		<h1>Hookbox</h1>
 		password:
@@ -32,7 +33,6 @@
 			<a href="#">users</a>
 			<a href="#">configuration</a>
 		</div>
-		<div id="logo"></div>
 		<div id="body"><div id="bodyContent">
 			<div id="overview">
 				<h1>Overview</h1>
@@ -58,16 +58,31 @@
 				<h2 id="channel_name" class="title"></h2>
 				<div id="channel_events_holder" class="block">
 				 <h3>Event Logs</h3>
-				 <div id="channel_events"></div>
+				 <div id="channel_events" class="blockContent"></div>
 				</div>
 				<div id="channel_users_holder" class="block">
 					<h3>Subscribers</h3>
-					<div id="channel_users"></div>
+					<div id="channel_users" class="blockContent"></div>
 				</div>
-				<div id="channel_history_holder" class="block">
+				<div id="channel_history_holder" class="block wideBlock">
 				 <h3>History</h3>
-				 <div id="channel_history">
+				 <div id="channel_history" class="blockContent">
 				 </div>
+				</div>
+				<div id="channel_options_holder" class="block">
+				 <h3>Options</h3>
+				 <div id="channel_options" class="blockContent"></div>
+				</div>
+				<div id="channel_publish_holder" class="block wideBlock">
+					<h3>Publish</h3>
+					<div id="channel_publish" class="blockContent">
+						<table>
+							<tr><td>username</td><td><input type="text" id="channel_publish_user" value="admin"></td></tr>
+							<tr><td>message (JSON)</td><td><textarea id="channel_publish_data"></textarea></td></tr>
+							<tr><td></td><td><button id="channel_publish_submit">publish</button></td></tr>
+						</table>
+						<div id="channel_publish_error" style="font-style:italic" />
+					</div>
 				</div>
 			</div>
 
@@ -75,20 +90,24 @@
 				<h2 id="user_name"></h2>
 				<div id="user_status_holder" class="block">
 				 <h3>Status</h3>
-				 <div id="user_status">Disconnected</div>
+				 <div id="user_status" class="blockContent">Disconnected</div>
 				</div>
 				<div id="channel_events_holder" class="block">
 				 <h3>Event Logs</h3>
-				 <div id="user_events"></div>
+				 <div id="user_events" class="blockContent"></div>
 				</div>
 				<div id="user_channels_holder" class="block">
 					<h3>Channels</h3>
-					<ul id="user_channels"></ul>
-					<span id="user_no_channels">(no channels)</span>
+					<div class="blockContent">
+						<ul id="user_channels"></ul>
+						<span id="user_no_channels">(no channels)</span>
+					</div>
 				</div>
 				<div id="user_connections_holder" class="block">
-				 <h3>Connections</h3>
-					<ul id="user_connections"></ul>
+					<h3>Connections</h3>
+					<div class="blockContent">
+						<ul id="user_connections"></ul>
+					</div>
 				</div>
 			</div>
 			
@@ -96,19 +115,19 @@
 				<div class="title" id="connection_title"></div>
 				<div class="block">
 					<h2>Connection Id</h2>
-					<div id="connection_id"></div>
+					<div id="connection_id" class="blockContent"></div>
 				</div>
 				<div class="block">
 					<h2>Connection Status</h2>
-					<div id="connection_status"></div>
+					<div id="connection_status" class="blockContent"></div>
 				</div>
 				<div class="block">
 					<h2>Connection Username</h2>
-					<div id="connection_user"></div>
+					<div id="connection_user" class="blockContent"></div>
 				</div>
-				<div class="wideBlock">
+				<div class="block wideBlock">
 					<h2>Connection cookie</h2>
-					<div id="connection_cookie"></div>
+					<div id="connection_cookie" class="blockContent"></div>
 				</div>
 			</div>
 		</div></div>
