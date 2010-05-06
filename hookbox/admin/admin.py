@@ -206,6 +206,17 @@ class AdminProtocol(object):
             return
         channel = self.hookbox.get_channel(None, channel_name)
         channel.publish(self, args.get('payload', None), needs_auth=False)
+    
+    def frame_UNSUBSCRIBE(self, id, args):
+        channel_name = args.get('channel_name', None)
+        if not self.hookbox.exists_channel(channel_name):
+            return
+        channel = self.hookbox.get_channel(None, channel_name)
+        
+        user = self.hookbox.get_user(args.get('user', None))
+        if not user:
+            return
+        channel.unsubscribe(user, needs_auth=False)
         
     def frame_SET_CHANNEL_INFO(self, id, args):
         channel_name = args.pop('channel_name', None)
