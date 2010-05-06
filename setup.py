@@ -37,15 +37,17 @@ def find_package_data():
         os.path.join('hookbox', 'static'),
         os.path.join('hookbox', 'admin', 'static')
     ]
-    package_data = {'': reduce(list.__add__, [ '.git' not in d and [ os.path.join(d[len('hookbox')+1:], e) for e in
+    package_data = {'': reduce(list.__add__, [ '.git' not in d and [ os.path.join(d[len('hookbox/'):], e) for e in
             static_types ] or [] for (d, s, f) in reduce(list.__add__, [ [ i for i in os.walk(target) ] for target in targets ])
         ]) }
     return package_data
+
 setup(
     name='hookbox',
-    version='0.2.0',
+    version='0.2.2',
     author='Michael Carter',
     author_email='CarterMichael@gmail.com',
+    url='http://hookbox.org',
     license='MIT License',
     description='HookBox is a Comet server and message queue that tightly integrates with your existing web application via web hooks and a REST interface.',
     long_description='',
@@ -59,7 +61,7 @@ setup(
     ''',
     
     classifiers = [
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
