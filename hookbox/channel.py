@@ -13,9 +13,9 @@ class Channel(object):
         'history': [],
         'history_size': 0,
         'moderated': True,
-        'moderated_publish': True,
-        'moderated_subscribe': True,
-        'moderated_unsubscribe': True,
+        'moderated_publish': False,
+        'moderated_subscribe': False,
+        'moderated_unsubscribe': False,
         'presenceful': False,
         'anonymous': False,
         'polling': {
