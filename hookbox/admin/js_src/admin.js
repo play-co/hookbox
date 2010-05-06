@@ -2,33 +2,38 @@ jsio('import net');
 jsio('from net.protocols.rtjp import RTJPProtocol');
 jsio('import lib.PubSub as PubSub');
 jsio('import base');
-base.logging.get("net.protocols.rtjp").setLevel(base.logging.DEBUG);
+jsio('import std.uri as uri');
 
+base.logging.get("net.protocols.rtjp").setLevel(base.logging.DEBUG);
 
 exports.logging = logging
 logger.setLevel(logging.DEBUG);
 
 
-exports.AdminProtocol= Class([RTJPProtocol, PubSub], function(supr) {
+exports.AdminProtocol = Class([RTJPProtocol, PubSub], function(supr) {
 	this.init = function(password) {
 		supr(this, 'init', []);
 			this._password = password;
 	}
+	
 	this.setPassword = function(password) {
 		this._password = password;
 	}
+	
 	this.connectionMade = function() {
 		logger.debug('connectionMade');
 		this.sendFrame('LOGIN', { password: this._password});
 	}
-
+	
 	this.frameReceived = function(fId, fName, fArgs) {
 		logger.debug('frameReceived', fId, fName, fArgs);
 		this.publish(fName, fArgs);
 	}
+	
 	this.connectionLost = function() {
 		logger.debug('connectionLost');
 		this.connected = false;
+		this.publish('ConnectionLost');
 	}
 });
 
@@ -37,7 +42,10 @@ var GUI = Class(function() {
 	this.init = function() {
 		this.client = new exports.AdminProtocol();
 		this.state = 'init';
-		this.current = new LoginView(this);
+		
+		this._loginView = new LoginView(this);
+		this.current = this._loginView;
+		
 		this.selectedLink = $("#side_menu a:nth-child(1)").click(bind(this, 'linkClick', 'overview'));
 		$("#side_menu a:nth-child(2)").click(bind(this, 'linkClick', 'channels'));
 		$("#side_menu a:nth-child(3)").click(bind(this, 'linkClick', 'users'));
@@ -89,9 +97,25 @@ var GUI = Class(function() {
 		this.client.setPassword($('#password').val())
 		var url = 'http://' + document.domain + ':' + (location.port || 80) + '/admin/csp'
 		net.connect(this.client, 'csp', {'url': url});
-		this.client.subscribe("CONNECTED", this, this.CONNECTED);
-		this.client.subscribe("OVERVIEW", this, this.OVERVIEW);
+		this.client.subscribe("CONNECTED", this, 'CONNECTED');
+		this.client.subscribe("OVERVIEW", this, 'OVERVIEW');
+		this.client.subscribe('ConnectionLost', this, 'onConnectionLost');
 		this.state = 'connecting'
+	}
+	
+	this.signout = function() {
+		this.state = 'init';
+		
+		this.current.hide();
+		this.current = this._loginView;
+		this.current.show();
+		$("#app").hide()
+		
+		// TODO? this.client.disconnect();
+		this.client
+			.unsubscribe("CONNECTED", this)
+			.unsubscribe("OVERVIEW", this)
+			.unsubscribe("ConnectionLost", this);
 	}
 	
 	this.overview = function() {
@@ -139,14 +163,19 @@ var GUI = Class(function() {
 		this.current = new ConnectionView(this, id, user);
 		
 	}
+	
 	this.CONNECTED = function() {
 		this.overview();
 		$("#app").show()
-//
 	}
+	
 	this.OVERVIEW= function(fArgs) {
 		$("#overview_num_users").html(fArgs.num_users);
 		$("#overview_num_channels").html(fArgs.num_channels);
+	}
+	
+	this.onConnectionLost = function() {
+		this.signout();
 	}
 });
 
@@ -159,6 +188,7 @@ LoginView = Class(function() {
 		this._signon.click(bind(gui, 'signon'));
 	}
 	
+	this.show = function() { this._el.show(); }
 	this.hide = function() { this._el.hide(); }
 });
 
@@ -393,16 +423,23 @@ ConnectionView = Class(function() {
 });
 
 util = {
-	userLink: function(userName) { return '<a class="link userLink" href="#user::' + userName + '">' + userName + '</a>'; },
-	removeUserLink: function(userName) { return '<a class="link removeUserLink" href="#removeUser::' + userName + '">remove</a>'; }, 
-	onLinkClick: function(link) {
+	userLink: function(userName) { return '<a class="link userLink" href="#user=' + encodeURIComponent(userName) + '">' + userName + '</a>'; },
+	removeUserLink: function(userName) { return '<a class="link removeUserLink" href="#removeUser=' + encodeURIComponent(userName) + '">remove</a>'; }, 
+	onLinkClick: function(event) {
+		var url = new uri.Uri(event.target.href);
+		if (!url._anchor) { return; }
 		
+		var data = uri.parseQuery(url._anchor);
+		if (data.user) {
+			GUI.user(data.user);
+		} else if (data.removeUser) {
+			GUI.current._removeUser(data.removeUser);
+		}
 	},
 	setChannelOption: function(checkbox, id) {
 		GUI.current.changeChannelSettings();
 	}
 }
-
 
 ChannelView = Class(function() {
 	
@@ -485,16 +522,27 @@ ChannelView = Class(function() {
 	}
 	
 	this._addUser = function(user) {
-		$('<div>').html(util.userLink(user) + ' (' + util.removeUserLink(user) + ')').appendTo(this._usersEl);
+		this._subscribers[user] = $('<div>').html(util.userLink(user) + ' (' + util.removeUserLink(user) + ')').appendTo(this._usersEl);
 	}
 	
 	this.showUser = function(name) {
 		this._gui.user(name);
 	}
 	
-	this._removeUser = function(name) {
-		this._subscribers[name].remove()
-		delete this._subscribers[name];
+	this.removeUser = function(user) {
+		this._gui.client.sendFrame('UNSUBSCRIBE', {
+			channel_name: this._name,
+			user: user
+		});
+		
+		this._removeUser();
+	}
+	
+	this._removeUser = function(user) {
+		if (this._subscribers[user]) {
+			this._subscribers[user].remove()
+			delete this._subscribers[user];
+		}
 	}
 	
 	this._optionsForm = function(options) {
@@ -514,7 +562,7 @@ ChannelView = Class(function() {
 					}
 					break;
 				case 'boolean':
-					settingsHTML.push('<tr><td>' + id + '</td><td><input type="checkbox" channelSetting="'+id+'"'+(options[id] ? ' checked' : '')+'></td></tr>');
+					settingsHTML.push('<tr><td><input id="channelSettingsCheckbox' + id + '" type="checkbox" channelSetting="'+id+'"'+(options[id] ? ' checked' : '')+'></td><td><label for="channelSettingsCheckbox' + id + '">' + id + '</label></td></tr>');
 					break;
 				case 'string':
 					settingsHTML.push('<tr><td>' + id + '</td><td><input type="text" channelSetting="'+id+'"></td></tr>');
@@ -572,7 +620,7 @@ ChannelView = Class(function() {
 				break;
 			case 'subscribe':
 				msg = "SUBSCRIBE, " + args.data.user
-				this._addUserLine(args.data.user);
+				this._addUser(args.data.user);
 				break;
 			case 'unsubscribe':
 				msg = "UNSUBSCRIBE, " + args.data.user
@@ -587,4 +635,7 @@ ChannelView = Class(function() {
 
 exports.init = function() {
 	GUI = new GUI();
+	
+	// link event delegation
+	$('a', $('#body')).live('click', bind(util, 'onLinkClick'));
 }
