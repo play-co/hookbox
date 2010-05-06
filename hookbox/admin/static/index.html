@@ -76,11 +76,11 @@
 				<div id="channel_publish_holder" class="block wideBlock">
 					<h3>Publish</h3>
 					<div id="channel_publish" class="blockContent">
-						<table>
-							<tr><td>username</td><td><input type="text" id="channel_publish_user" value="admin"></td></tr>
-							<tr><td>message (JSON)</td><td><textarea id="channel_publish_data"></textarea></td></tr>
-							<tr><td></td><td><button id="channel_publish_submit">publish</button></td></tr>
-						</table>
+						<div class="formLabel">username</div>
+						<div class="formInput"><input type="text" id="channel_publish_user" value="admin"></div>
+						<div class="formLabel">message (JSON)</div>
+						<div class="formInput"><textarea id="channel_publish_data" style="width: 480px; height: 150px"></textarea></div>
+						<button id="channel_publish_submit" style="margin-top: 10px">publish</button>
 						<div id="channel_publish_error" style="font-style:italic"></div>
 					</div>
 				</div>

@@ -41,7 +41,7 @@ h3 { font-size: 14px; }
 	width: 109px;
 	height: 81px;
 	background: url(images/logo.png) no-repeat;
-	position: absolute;
+	position: fixed;
 	bottom: 10px;
 	left: 32px;
 }
@@ -74,7 +74,7 @@ li {
 
 .block h3 { margin: 1px; background: #6E7C7F; color: #EEE; -moz-border-radius: 5px 5px 0px 0px; -webkit-border-radius-topleft: 2px; -webkit-border-radius-topright: 2px; padding: 1px 2px 2px 5px;}
 
-.blockContent { margin: 10px; max-height: 250px; overflow: auto; }
+.blockContent { margin: 10px; height: 250px; overflow: auto; }
 .channelOptionsTable { margin: 0px auto; }
 .channelOptionsTable tr td:first-child { text-align: right; }
 .channelOptionsButtons { text-align: center; margin-top: 10px;}
