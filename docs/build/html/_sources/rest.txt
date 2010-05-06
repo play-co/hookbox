@@ -2,8 +2,8 @@
 Rest Interface
 ==============
 
-channel_info
-============
+get_channel_info
+================
 
 Returns all settings and attributes of a channel.
 
@@ -22,7 +22,7 @@ Client Requests URL:
     
 .. sourcecode:: none
 
-    /rest/channel_info?secret=yo&channel_name=testing
+    /rest/get_channel_info?secret=yo&channel_name=testing
 
 
 Server Replies:

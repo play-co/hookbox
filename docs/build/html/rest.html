@@ -84,7 +84,7 @@
             </div>
                 <ul>
 <li><a class="reference external" href="#">Rest Interface</a><ul>
-<li><a class="reference external" href="#channel-info">channel_info</a></li>
+<li><a class="reference external" href="#get-channel-info">get_channel_info</a></li>
 <li><a class="reference external" href="#set-channel-info">set_channel_info</a></li>
 <li><a class="reference external" href="#publish">publish</a></li>
 <li><a class="reference external" href="#destroy-channel">destroy_channel</a></li>
@@ -100,8 +100,8 @@
                 
 <div class="section" id="rest-interface">
 <h1>Rest Interface<a class="headerlink" href="#rest-interface" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="channel-info">
-<h2>channel_info<a class="headerlink" href="#channel-info" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="get-channel-info">
+<h2>get_channel_info<a class="headerlink" href="#get-channel-info" title="Permalink to this headline">¶</a></h2>
 <p>Returns all settings and attributes of a channel.</p>
 <p>Form Variables:</p>
 <ul class="simple">
@@ -112,7 +112,7 @@
 <p>[ success (boolean) , details (object) ]</p>
 <p>Example:</p>
 <p>Client Requests URL:</p>
-<div class="highlight-none"><div class="highlight"><pre>/rest/channel_info?secret=yo&amp;channel_name=testing</pre></div>
+<div class="highlight-none"><div class="highlight"><pre>/rest/get_channel_info?secret=yo&amp;channel_name=testing</pre></div>
 </div>
 <p>Server Replies:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span>
