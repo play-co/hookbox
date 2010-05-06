@@ -90,6 +90,13 @@ class HookboxRest(object):
         identifier = form.get('identifier', None)
         raise ExpectedException("Not Implemented")
 
+    def render_destroy_channel(self, form, start_response):
+        raise ExpectedException("Not Implemented")
+
+    def render_create_channel(self, form, start_response):
+        raise ExpectedException("Not Implemented")
+
+
     def render_set_channel_options(self, form, start_response):
         channel_name = form.get('channel_name', None)
         if not channel_name:
