@@ -108,7 +108,7 @@ class HookboxRest(object):
         start_response('200 Ok', [])
         return json.dumps([True, {}])
         
-    def render_channel_info(self, form, start_response):
+    def render_get_channel_info(self, form, start_response):
         channel_name = form.get('channel_name', None)
         if not channel_name:
             raise ExpectedException("Missing channel_name")
