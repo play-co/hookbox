@@ -393,12 +393,11 @@ ConnectionView = Class(function() {
 		this._id = id;
 		this._user = user;
 
-		$("#connection_title").html("<a href='#'>" + user + '</a>: connection ' + id);
+		$("#connection_title").html('Connection ' + id);
 		$("#connection_id").html(id);
-		$("#connection_status").html("Connected")
+		$("#connection_status").html("Connected");
+		$("#connection_user").html(util.userLink(user));
 		$("#connection").show();
-		$("<a href='#'>" + user + "</a>").click(bind(this._gui, this._gui.user, user))
-			.appendTo($("#connection_user"));
 		
 		logger.debug('f');
 		
@@ -434,6 +433,8 @@ util = {
 			GUI.user(data.user);
 		} else if (data.removeUser) {
 			GUI.current.removeUser(data.removeUser);
+		} else if (typeof GUI[url._anchor] == 'function') {
+			GUI[url._anchor]();
 		}
 	},
 	setChannelOption: function(checkbox, id) {
@@ -573,13 +574,18 @@ ChannelView = Class(function() {
 		var optionsDiv = $('#channel_options');
 		optionsDiv.html('<table class="channelOptionsTable"><tbody>' + settingsHTML.join('') + '</tbody></table>');
 		var optionsBtns = $('<div class="channelOptionsButtons">').appendTo(optionsDiv);
-		$('<button>').html('reset').click(bind(this, 'resetSettings')).appendTo(optionsBtns);
-		$('<button>').html('save').click(bind(this, 'saveSettings')).appendTo(optionsBtns);
+		
+		$('table input', optionsDiv).live('change', bind(this, 'saveSettings'));
+		
+//		$('<button>').html('reset').click(bind(this, 'resetSettings')).appendTo(optionsBtns);
+//		$('<button>').html('save').click(bind(this, 'saveSettings')).appendTo(optionsBtns);
 	}
 	
 	this.saveSettings = function() {
 		var data = {},
-			lastOptions = this._lastOptions;
+			lastOptions = this._lastOptions,
+			changed = false;
+		
 		$('input', $('#channel_options')).each(function(i) {
 			var id = this.getAttribute('channelSetting');
 			if (!id) { return; }
@@ -595,11 +601,14 @@ ChannelView = Class(function() {
 			}
 			
 			if (lastOptions[id] != value) {
-				data[id] = value;
+				lastOptions[id] = data[id] = value;
+				changed = true;
 			}
 		});
 		
-		this.changeChannelSettings(data);
+		if (changed) {
+			this.changeChannelSettings(data);
+		}
 	}
 	
 	this.resetSettings = function() { this._optionsForm(this._lastOptions); }

@@ -55,25 +55,26 @@
 			</div>
 			
 			<div id="channel" class="hidden">
+				<h1><a href="#channels">Channels</a></h1>
 				<h2 id="channel_name" class="title"></h2>
-				<div id="channel_events_holder" class="block">
+				<div id="channel_options_holder" class="block tallBlock">
+				 <h3>Options</h3>
+				 <div id="channel_options" class="blockContent"></div>
+				</div>
+				<div id="channel_events_holder" class="block tallBlock">
 				 <h3>Event Logs</h3>
 				 <div id="channel_events" class="blockContent"></div>
 				</div>
-				<div id="channel_users_holder" class="block">
+				<div id="channel_users_holder" class="block tallBlock">
 					<h3>Subscribers</h3>
 					<div id="channel_users" class="blockContent"></div>
 				</div>
-				<div id="channel_history_holder" class="block wideBlock">
+				<div id="channel_history_holder" class="block tallBlock wideBlock">
 				 <h3>History</h3>
 				 <div id="channel_history" class="blockContent">
 				 </div>
 				</div>
-				<div id="channel_options_holder" class="block">
-				 <h3>Options</h3>
-				 <div id="channel_options" class="blockContent"></div>
-				</div>
-				<div id="channel_publish_holder" class="block wideBlock">
+				<div id="channel_publish_holder" class="block tallBlock wideBlock">
 					<h3>Publish</h3>
 					<div id="channel_publish" class="blockContent">
 						<div class="formLabel">username</div>
@@ -87,11 +88,8 @@
 			</div>
 
 			<div id="user" class="hidden">
-				<h2 id="user_name"></h2>
-				<div id="user_status_holder" class="block">
-				 <h3>Status</h3>
-				 <div id="user_status" class="blockContent">Disconnected</div>
-				</div>
+				<h1><a href="#users">Users</a></h1>
+				<h2><span id="user_name"></span> (<span id="user_status">Disconnected</span>)</h2>
 				<div id="channel_events_holder" class="block">
 				 <h3>Event Logs</h3>
 				 <div id="user_events" class="blockContent"></div>
@@ -112,21 +110,19 @@
 			</div>
 			
 			<div id="connection" class="hidden">
-				<div class="title" id="connection_title"></div>
-				<div class="block">
-					<h2>Connection Id</h2>
-					<div id="connection_id" class="blockContent"></div>
-				</div>
-				<div class="block">
-					<h2>Connection Status</h2>
-					<div id="connection_status" class="blockContent"></div>
-				</div>
-				<div class="block">
-					<h2>Connection Username</h2>
-					<div id="connection_user" class="blockContent"></div>
+				<h2 id="connection_title"></h2>
+				<div class="block wideBlock">
+					<h3>Connection</h3>
+					<div class="blockContent">
+						<table>
+							<tr><td>id:</td><td><span id="connection_id"></span></td></tr>
+							<tr><td>status:</td><td><span id="connection_status"></span></td></tr>
+							<tr><td>user:</td><td><span id="connection_user"></span></td></tr>
+						</table>
+					</div>
 				</div>
 				<div class="block wideBlock">
-					<h2>Connection cookie</h2>
+					<h3>Connection cookie</h3>
 					<div id="connection_cookie" class="blockContent"></div>
 				</div>
 			</div>
