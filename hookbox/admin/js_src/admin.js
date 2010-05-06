@@ -433,7 +433,7 @@ util = {
 		if (data.user) {
 			GUI.user(data.user);
 		} else if (data.removeUser) {
-			GUI.current._removeUser(data.removeUser);
+			GUI.current.removeUser(data.removeUser);
 		}
 	},
 	setChannelOption: function(checkbox, id) {
