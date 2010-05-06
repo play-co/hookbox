@@ -84,9 +84,12 @@
             </div>
                 <ul>
 <li><a class="reference external" href="#">Rest Interface</a><ul>
-<li><a class="reference external" href="#channel-info">channel_info</a></li>
-<li><a class="reference external" href="#set-channel-info">set_channel_info</a></li>
 <li><a class="reference external" href="#publish">publish</a></li>
+<li><a class="reference external" href="#subscribe">subscribe</a></li>
+<li><a class="reference external" href="#unsubscribe">unsubscribe</a></li>
+<li><a class="reference external" href="#get-channel-info">get_channel_info</a></li>
+<li><a class="reference external" href="#set-channel-options">set_channel_options</a></li>
+<li><a class="reference external" href="#create-channel">create_channel</a></li>
 <li><a class="reference external" href="#destroy-channel">destroy_channel</a></li>
 </ul>
 </li>
@@ -100,10 +103,79 @@
                 
 <div class="section" id="rest-interface">
 <h1>Rest Interface<a class="headerlink" href="#rest-interface" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="channel-info">
-<h2>channel_info<a class="headerlink" href="#channel-info" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="publish">
+<h2>publish<a class="headerlink" href="#publish" title="Permalink to this headline">¶</a></h2>
+<p>Publish a message to a channel.</p>
+<p>Required Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
+<li><tt class="docutils literal"><span class="pre">payload</span></tt>: The json payload to publish</li>
+</ul>
+<p>Optional Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">originator</span></tt>: The name of the user who will appear to do the publish</li>
+</ul>
+<p>Returns json:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="nx">success</span> <span class="p">(</span><span class="kr">boolean</span><span class="p">)</span> <span class="p">,</span> <span class="nx">details</span> <span class="p">(</span><span class="nx">object</span><span class="p">)</span> <span class="p">]</span></pre></div>
+</div>
+<p>Example:</p>
+<p>Client Requests URL:</p>
+<div class="highlight-none"><div class="highlight"><pre>/rest/publish?secret=yo&amp;channel_name=testing&amp;payload=[1, 2, &quot;foo&quot;]&amp;originator=dictator</pre></div>
+</div>
+<p>Server Replies:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
+</div>
+<p>And the following frame is published to channel &#8216;testing&#8217;:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span> <span class="s2">&quot;user&quot;</span><span class="o">:</span> <span class="nx">dictator</span><span class="p">,</span> <span class="s2">&quot;payload&quot;</span><span class="o">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;foo&quot;</span><span class="p">]</span> <span class="p">}</span></pre></div>
+</div>
+</div>
+<div class="section" id="subscribe">
+<h2>subscribe<a class="headerlink" href="#subscribe" title="Permalink to this headline">¶</a></h2>
+<p>Add a user to a channel.</p>
+<p>Required Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: The name of the target user.</li>
+</ul>
+<p>Returns json:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="nx">success</span> <span class="p">(</span><span class="kr">boolean</span><span class="p">)</span> <span class="p">,</span> <span class="nx">details</span> <span class="p">(</span><span class="nx">object</span><span class="p">)</span> <span class="p">]</span></pre></div>
+</div>
+<p>Example:</p>
+<p>Client Requests URL:</p>
+<div class="highlight-none"><div class="highlight"><pre>/rest/subscribe?secret=yo&amp;channel_name=testing&amp;user=mcarter</pre></div>
+</div>
+<p>Server Replies:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
+</div>
+<p>And the user &#8220;mcarter&#8221; is subscribed to the channel &#8220;testing&#8221;.</p>
+</div>
+<div class="section" id="unsubscribe">
+<h2>unsubscribe<a class="headerlink" href="#unsubscribe" title="Permalink to this headline">¶</a></h2>
+<p>Remove a user from a channel.</p>
+<p>Required Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: The name of the target user.</li>
+</ul>
+<p>Returns json:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="nx">success</span> <span class="p">(</span><span class="kr">boolean</span><span class="p">)</span> <span class="p">,</span> <span class="nx">details</span> <span class="p">(</span><span class="nx">object</span><span class="p">)</span> <span class="p">]</span></pre></div>
+</div>
+<p>Example:</p>
+<p>Client Requests URL:</p>
+<div class="highlight-none"><div class="highlight"><pre>/rest/unsubscribe?secret=yo&amp;channel_name=testing&amp;user=mcarter</pre></div>
+</div>
+<p>Server Replies:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
+</div>
+<p>And the user &#8220;mcarter&#8221; is unsubscribed from the channel &#8220;testing&#8221;.</p>
+</div>
+<div class="section" id="get-channel-info">
+<h2>get_channel_info<a class="headerlink" href="#get-channel-info" title="Permalink to this headline">¶</a></h2>
 <p>Returns all settings and attributes of a channel.</p>
-<p>Form Variables:</p>
+<p>Required Form Variables:</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
 <li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
@@ -112,7 +184,7 @@
 <p>[ success (boolean) , details (object) ]</p>
 <p>Example:</p>
 <p>Client Requests URL:</p>
-<div class="highlight-none"><div class="highlight"><pre>/rest/channel_info?secret=yo&amp;channel_name=testing</pre></div>
+<div class="highlight-none"><div class="highlight"><pre>/rest/get_channel_info?secret=yo&amp;channel_name=testing</pre></div>
 </div>
 <p>Server Replies:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span>
@@ -165,14 +237,43 @@
 <span class="p">]</span></pre></div>
 </div>
 </div>
-<div class="section" id="set-channel-info">
-<h2>set_channel_info<a class="headerlink" href="#set-channel-info" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="set-channel-options">
+<h2>set_channel_options<a class="headerlink" href="#set-channel-options" title="Permalink to this headline">¶</a></h2>
+<p>Set the options on a channel.</p>
+<p>Required Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
+</ul>
+<p>Optional Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">anonymous</span></tt>: json boolean</li>
+<li><tt class="docutils literal"><span class="pre">history</span></tt>: json list in the proper history format</li>
+<li><tt class="docutils literal"><span class="pre">history_size</span></tt>: json integer</li>
+<li><tt class="docutils literal"><span class="pre">moderated</span></tt>: json boolean</li>
+<li><tt class="docutils literal"><span class="pre">moderated_publish</span></tt>: json boolean</li>
+<li><tt class="docutils literal"><span class="pre">moderated_subscribe</span></tt>: json boolean</li>
+<li><tt class="docutils literal"><span class="pre">moderated_unsubscribe</span></tt>: json boolean</li>
+<li><tt class="docutils literal"><span class="pre">polling</span></tt>: json object in the proper polling format</li>
+<li><tt class="docutils literal"><span class="pre">presenceful</span></tt>: json boolean</li>
+<li><tt class="docutils literal"><span class="pre">reflective</span></tt>: json boolean</li>
+</ul>
+<p>Example:</p>
+<p>Client Requests URL:</p>
+<div class="highlight-none"><div class="highlight"><pre>/rest/set_channel_options?secret=yo&amp;channel_name=testing&amp;history_size=2&amp;presenceful=true</pre></div>
 </div>
-<div class="section" id="publish">
-<h2>publish<a class="headerlink" href="#publish" title="Permalink to this headline">¶</a></h2>
+<p>Server Replies:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">history_size</span></tt> of the channel is now <cite>2</cite>, and <tt class="docutils literal"><span class="pre">presenceful</span></tt> is <cite>false</cite>.</p>
+</div>
+<div class="section" id="create-channel">
+<h2>create_channel<a class="headerlink" href="#create-channel" title="Permalink to this headline">¶</a></h2>
+<p>TODO</p>
 </div>
 <div class="section" id="destroy-channel">
 <h2>destroy_channel<a class="headerlink" href="#destroy-channel" title="Permalink to this headline">¶</a></h2>
+<p>TODO</p>
 </div>
 </div>
 

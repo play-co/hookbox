@@ -34,11 +34,14 @@ class HookboxRest(object):
             self.logger.warn('REST Error: %s', path, exc_info=True)
             start_response('500 Internal server error', [])
             return json.dumps([False, {'msg': str(e) }])
-    
+        except ExpectedException, e:
+            start_response('200 Ok', [])
+            return json.dumps([False, {'msg': str(e) }])
+            
     def render_publish(self, form, start_response):
         channel_name = form.get('channel_name', None)
         if not channel_name:
-            raise Exception("Missing channel_name")
+            raise ExpectedException("Missing channel_name")
         payload = form.get('payload', 'null')
         originator = form.get('originator', None)
         channel = self.server.get_channel(None, channel_name)
@@ -46,14 +49,58 @@ class HookboxRest(object):
         start_response('200 Ok', [])
         return json.dumps([True, {}])
 
+
+    def render_unsubscribe(self, form, start_response):
+        channel_name = form.get('channel_name', None)
+        if not channel_name:
+            raise ExpectedException("Missing channel_name")
+        name= form.get('name', None)
+        if not name:
+            raise ExpectedException("Missing name")
+        if not self.server.exists_channel(channel_name):
+            raise ExpectedException("Channel %s doesn't exist" % (channel_name,))
+        if not self.server.exists_user(name):
+            raise ExpectedException("User %s doesn't exist" % (name,))
+        channel = self.server.get_channel(None, channel_name)
+        user = self.server.get_user(name)
+        channel.unsubscribe(user, needs_auth=False)
+        start_response('200 Ok', [])
+        return json.dumps([True, {}])
+
+    def render_subscribe(self, form, start_response):
+        channel_name = form.get('channel_name', None)
+        if not channel_name:
+            raise ExpectedException("Missing channel_name")
+        name= form.get('name', None)
+        if not name:
+            raise ExpectedException("Missing name")
+        if not self.server.exists_channel(channel_name):
+            raise ExpectedException("Channel %s doesn't exist" % (channel_name,))
+        if not self.server.exists_user(name):
+            raise ExpectedException("User %s doesn't exist" % (name,))
+        channel = self.server.get_channel(None, channel_name)
+        user = self.server.get_user(name)
+        channel.subscribe(user, needs_auth=False)
+        start_response('200 Ok', [])
+        return json.dumps([True, {}])
+
+
+
     def render_disconnect(self, form, start_response):
         identifier = form.get('identifier', None)
-        raise Exception("Not Implemented")
+        raise ExpectedException("Not Implemented")
+
+    def render_destroy_channel(self, form, start_response):
+        raise ExpectedException("Not Implemented")
+
+    def render_create_channel(self, form, start_response):
+        raise ExpectedException("Not Implemented")
+
 
     def render_set_channel_options(self, form, start_response):
         channel_name = form.get('channel_name', None)
         if not channel_name:
-            raise Exception("Missing channel_name")
+            raise ExpectedException("Missing channel_name")
         del form['channel_name']
         if not self.server.exists_channel(channel_name):
             start_response('200 Ok', [])
@@ -68,10 +115,10 @@ class HookboxRest(object):
         start_response('200 Ok', [])
         return json.dumps([True, {}])
         
-    def render_channel_info(self, form, start_response):
+    def render_get_channel_info(self, form, start_response):
         channel_name = form.get('channel_name', None)
         if not channel_name:
-            raise Exception("Missing channel_name")
+            raise ExpectedException("Missing channel_name")
         if not self.server.exists_channel(channel_name):
             start_response('200 Ok', [])
             return json.dumps([False, {"msg": "Channel %s doesn't exist" % (channel_name,) }])
