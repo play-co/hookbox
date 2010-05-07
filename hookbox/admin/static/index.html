@@ -28,16 +28,25 @@
 	</div>
 	<div id="app" style="display:none">
 		<div id="side_menu">
-			<a href="#" class="selected">overview</a>
-			<a href="#">channels</a>
-			<a href="#">users</a>
-			<a href="#">configuration</a>
+			<a href="#overview" class="selected">overview</a>
+			<a href="#channels">channels</a>
+			<a href="#users">users</a>
+			<a href="#configuration">configuration</a>
 		</div>
 		<div id="body"><div id="bodyContent">
 			<div id="overview">
 				<h1>Overview</h1>
-				User Count: <span id="overview_num_users"></span><br>
-				Channel Count: <span id="overview_num_channels"></span><br>
+				<div class="block">
+					<h3>Summary</h3>
+					<div class="blockContent">
+						<a class="overviewLabel" href="#users">users:
+							<div id="overview_num_users" class="overviewNum"></div>
+						</a>
+						<a class="overviewLabel" href="#channels">channels:
+							<div id="overview_num_channels" class="overviewNum"></div>
+						</a>
+					</div>
+				</div>
 			</div>
 			<div id="channel_list" class="hidden">
 				<h1>Channels</h1>
@@ -55,11 +64,11 @@
 			</div>
 			
 			<div id="channel" class="hidden">
-				<h1><a href="#channels">Channels</a></h1>
-				<h2 id="channel_name" class="title"></h2>
-				<div id="channel_options_holder" class="block tallBlock">
-				 <h3>Options</h3>
-				 <div id="channel_options" class="blockContent"></div>
+				<h1><a href="#channels">Channels</a> > <span id="channel_name" class="title"></span></h1>
+				<div id="channel_history_holder" class="block tallBlock wideBlock">
+				 <h3>History</h3>
+				 <div id="channel_history" class="blockContent">
+				 </div>
 				</div>
 				<div id="channel_events_holder" class="block tallBlock">
 				 <h3>Event Logs</h3>
@@ -69,10 +78,9 @@
 					<h3>Subscribers</h3>
 					<div id="channel_users" class="blockContent"></div>
 				</div>
-				<div id="channel_history_holder" class="block tallBlock wideBlock">
-				 <h3>History</h3>
-				 <div id="channel_history" class="blockContent">
-				 </div>
+				<div id="channel_options_holder" class="block tallBlock">
+				 <h3>Options</h3>
+				 <div id="channel_options" class="blockContent"></div>
 				</div>
 				<div id="channel_publish_holder" class="block tallBlock wideBlock">
 					<h3>Publish</h3>
@@ -80,7 +88,7 @@
 						<div class="formLabel">username</div>
 						<div class="formInput"><input type="text" id="channel_publish_user" value="admin"></div>
 						<div class="formLabel">message (JSON)</div>
-						<div class="formInput"><textarea id="channel_publish_data" style="width: 480px; height: 150px"></textarea></div>
+						<div class="formInput"><textarea id="channel_publish_data" style="width: 460px; height: 140px"></textarea></div>
 						<button id="channel_publish_submit" style="margin-top: 10px">publish</button>
 						<div id="channel_publish_error" style="font-style:italic"></div>
 					</div>

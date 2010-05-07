@@ -2,7 +2,7 @@ html, body { background: #2E282E; margin: 0px; padding: 0px;}
 body { height: 100%; }
 
 body, div, td { font-family: Frutiger, "Frutiger Linotype", Univers, Calibri, "Gill Sans", "Gill Sans MT", "Myriad Pro", Myriad, "DejaVu Sans Condensed", "Liberation Sans", "Nimbus Sans L", Tahoma, Geneva, "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 13px; font-weight: bold; }
-
+a { outline: none; }
 h1, h2, h3 { margin: 0px 0px 10px 0px; }
 h1 { font-size: 22px; }
 h2 { font-size: 18px; }
@@ -68,12 +68,12 @@ li {
 	margin: 0px;
 }
 
-#body h1 { margin: -10px 0px 8px -10px; background: #5a9af8; -moz-border-radius: 4px 4px 0px 0px; padding: 0px 5px 2px 8px; }
-#body h1, #body h1 a { color: #d6f2ff; }
+#body h1 { margin: -10px 0px 10px -10px; background: #5a9af8 url('images/h1.png') repeat-x; -moz-border-radius: 4px 4px 0px 0px; padding: 0px 5px 2px 8px; }
+#body h1, #body h1 a { color: #324a6d; }
 
-.block { float: left; width: 250px; border: 1px solid #CCC; padding: 0px; margin-right: 5px; margin-bottom: 5px; -moz-border-radius: 6px 6px 3px 3px; -webkit-border-radius: 3px; background: #FFF; }
+.block { float: left; width: 250px; border: 1px solid #464f51; padding: 0px; margin-right: 5px; margin-bottom: 5px; -moz-border-radius: 6px 6px 3px 3px; -webkit-border-radius: 3px; background: #FFF; }
 .wideBlock { width: 507px; }
-.block h3 { margin: 1px; background: #6E7C7F; color: #EEE; -moz-border-radius: 5px 5px 0px 0px; -webkit-border-radius-topleft: 2px; -webkit-border-radius-topright: 2px; padding: 1px 2px 2px 5px;}
+.block h3 { margin: 1px; background: #6E7C7F url('images/h3.png') 0px -2px repeat-x; color: #EEE; -moz-border-radius: 5px 5px 0px 0px; -webkit-border-radius-topleft: 2px; -webkit-border-radius-topright: 2px; padding: 3px 2px 4px 5px;}
 
 .blockContent { margin: 10px; max-height: 250px; overflow: auto; }
 .tallBlock .blockContent { height: 250px; }
@@ -81,5 +81,8 @@ li {
 
 .channelOptionsTable { margin: 0px auto; }
 .channelOptionsButtons { text-align: center; margin-top: 10px;}
+
+.overviewLabel { float: left; text-align: right; font-size: 20px; display: block; padding: 10px; text-decoration: none; width: 200px;}
+.overviewNum { width: 80px; text-align: left; float: right; margin-top: -12px; margin-left: 20px; font-family: Georgia, serif; font-size: 36px; padding: 2px; }
 
 tr td:first-child { text-align: right; }
