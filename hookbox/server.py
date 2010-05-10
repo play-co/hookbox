@@ -10,7 +10,7 @@ import static
 
 import eventlet.wsgi
 
-from csp.eventlet import Listener
+from csp_eventlet import Listener
 import rtjp.eventlet
 
 from errors import ExpectedException
