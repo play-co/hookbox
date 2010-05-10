@@ -29,6 +29,7 @@ h3 { font-size: 14px; }
 #app {
 	position: absolute;
 	width: 800px;
+	margin-bottom: 10px;
 }
 
 #side_menu { position: absolute; top: 30px; left: 20px; padding: 10px 0px; background: #d3c68a; width: 140px; -moz-border-radius: 5px; -webkit-border-radius: 5px; }
@@ -86,3 +87,4 @@ li {
 .overviewNum { width: 80px; text-align: left; float: right; margin-top: -12px; margin-left: 20px; font-family: Georgia, serif; font-size: 36px; padding: 2px; }
 
 tr td:first-child { text-align: right; }
+.inputNumber { width: 60px; }
