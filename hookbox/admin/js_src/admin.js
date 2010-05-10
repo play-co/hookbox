@@ -565,8 +565,9 @@ ChannelView = Class(function() {
 				case 'boolean':
 					settingsHTML.push('<tr><td><input id="channelSettingsCheckbox' + id + '" type="checkbox" channelSetting="'+id+'"'+(options[id] ? ' checked' : '')+'></td><td><label for="channelSettingsCheckbox' + id + '">' + id + '</label></td></tr>');
 					break;
+				case 'number':
 				case 'string':
-					settingsHTML.push('<tr><td>' + id + '</td><td><input type="text" channelSetting="'+id+'"></td></tr>');
+					settingsHTML.push('<tr><td><input type="text" channelSetting="'+id+'"></td><td>' + id + '</td></tr>');
 					break;
 			}
 		}
@@ -594,6 +595,9 @@ ChannelView = Class(function() {
 			switch(typeof lastOptions[id]) {
 				case 'boolean':
 					value = !!this.checked;
+					break;
+				case 'number':
+					value = parseFloat(this.value);
 					break;
 				case 'string':
 					value = this.value;
