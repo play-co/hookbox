@@ -86,11 +86,11 @@ var GUI = Class(function() {
 		}
 		
 		var app = $('#app')[0];
-		app.style.width = this._width - 10 + 'px';
+		app.style.width = this._width - 30 + 'px';
 		app.style.left = app.style.top = '10px';
 		var body = $('#body')[0];
 		body.style.minHeight = this._height - 20 + 'px';
-		body.style.minWidth = this._width - 190 + 'px';
+		body.style.minWidth = this._width - 210 + 'px';
 	}
 	
 	this.signon = function() {
@@ -551,7 +551,7 @@ ChannelView = Class(function() {
 		if (!options) { options = this._lastOptions; }
 		this._lastOptions = options;
 		
-		var settingsHTML = [];
+		var html = {'checkbox': [], 'number': []};
 		for (var id in options) {
 			switch(typeof options[id]) {
 				case 'object':
@@ -563,17 +563,20 @@ ChannelView = Class(function() {
 					}
 					break;
 				case 'boolean':
-					settingsHTML.push('<tr><td><input id="channelSettingsCheckbox' + id + '" type="checkbox" channelSetting="'+id+'"'+(options[id] ? ' checked' : '')+'></td><td><label for="channelSettingsCheckbox' + id + '">' + id + '</label></td></tr>');
+					html.checkbox.push('<tr><td><input id="channelSettingsCheckbox' + id + '" type="checkbox" channelSetting="'+id+'"'+(options[id] ? ' checked' : '')+'></td><td><label for="channelSettingsCheckbox' + id + '">' + id + '</label></td></tr>');
 					break;
 				case 'number':
 				case 'string':
-					settingsHTML.push('<tr><td><input type="text" channelSetting="'+id+'"></td><td>' + id + '</td></tr>');
+					html.number.push('<tr><td>' + id + '</td><td><input type="text" class="inputNumber" channelSetting="'+id+'" value="'+options[id]+'"></td></tr>');
 					break;
 			}
 		}
 		
 		var optionsDiv = $('#channel_options');
-		optionsDiv.html('<table class="channelOptionsTable"><tbody>' + settingsHTML.join('') + '</tbody></table>');
+		optionsDiv.html('<table class="channelOptionsTable"><tbody>'
+			+ html.checkbox.join('')
+			+ html.number.join('')
+			+ '</tbody></table>');
 		var optionsBtns = $('<div class="channelOptionsButtons">').appendTo(optionsDiv);
 		
 		$('table input', optionsDiv).live('change', bind(this, 'saveSettings'));
