@@ -18,7 +18,7 @@ static_types = [
 #    _install_requires.append("Twisted")
 
 _install_requires = [
-    'csp>=0.1alpha10', 
+    'eventlet_csp>=0.3.0', 
     'rtjp>=0.1alpha2', 
     'eventlet', 
     'paste', 
@@ -44,7 +44,7 @@ def find_package_data():
 
 setup(
     name='hookbox',
-    version='0.2.2',
+    version='0.2.4',
     author='Michael Carter',
     author_email='CarterMichael@gmail.com',
     url='http://hookbox.org',
