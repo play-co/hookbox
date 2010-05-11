@@ -44,7 +44,7 @@ def find_package_data():
 
 setup(
     name='hookbox',
-    version='0.2.5',
+    version='0.2.6',
     author='Michael Carter',
     author_email='CarterMichael@gmail.com',
     url='http://hookbox.org',
