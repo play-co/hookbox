@@ -1,7 +1,7 @@
 import os
 from paste import urlmap
 import static
-import csp.eventlet as csp
+import csp_eventlet as csp
 import rtjp.errors
 import eventlet
 import logging
