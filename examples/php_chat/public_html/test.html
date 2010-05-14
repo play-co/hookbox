@@ -42,8 +42,11 @@
 						if (name == 'UNSUBSCRIBE') { s.onUnsubscribe(frame); }
 						if (name == 'PUBLISH') { s.onPublish(frame); }
 					}
+					addHistory('* ' + conn.username + ' enters ' + channel_name);
 					
-					
+				}
+				conn.onUnsubscribed = function(sub, args) {
+					addHistory("** You have been unsubscribed from the channel");
 				}
 				conn.subscribe('testing');
 				conn.onError = function(frame) { alert("Error: " + frame.msg); }

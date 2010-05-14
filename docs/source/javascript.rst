@@ -25,8 +25,17 @@ If there was an error when connecting the ``onError`` callback will be invoked:
 
     conn.onError = function(err) { alert("connection failed: " + err.msg); }
 
+Disconnecting
+=============
 
+To disconnect from hookbox use the ``conn.disconnect`` method:
 
+.. sourcecode:: javascript
+
+	conn.disconnect();
+
+NOTE: This method will often not result in a successful disconnect if called in the unload handler for the web page, in which case the user won't be disconnected until they timeout (after about 60 seconds)
+	
 Subscribing to Channels
 =======================
 
@@ -139,4 +148,16 @@ It sometimes makes sense for the web application to stash some additional state 
         alert('the name state is: ' + JSON.stringify(subscription.state));
     }
 	
-	
+Unsubscribing
+-------------
+
+You can use the javascript client to request that the user be unsubscribed from a channel with the ``subscription.cancel`` method. When the subscription has been successfully canceled, the ``conn.onUnsubscribed`` will be issued. Keep in mind that the web app may override this request and not allow the user to be unsubscribed and so the onUnsubscribed callback will not be issued.
+
+.. sourcecode:: javascript
+
+    subscription = conn.subscribe('foo.bar.baz')
+	...
+	conn.onUnsubscribed = function(subscription, frame) {
+		alert('successfully unsubscribed from: ' + subscription.channelName);
+	}
+    subscription.cancel();

@@ -85,12 +85,14 @@
                 <ul>
 <li><a class="reference external" href="#">Javascript API</a><ul>
 <li><a class="reference external" href="#connecting">Connecting</a></li>
+<li><a class="reference external" href="#disconnecting">Disconnecting</a></li>
 <li><a class="reference external" href="#subscribing-to-channels">Subscribing to Channels</a></li>
 <li><a class="reference external" href="#interacting-with-channels">Interacting with Channels</a><ul>
 <li><a class="reference external" href="#channel-attributes">Channel Attributes</a></li>
 <li><a class="reference external" href="#presence-information">Presence Information</a></li>
 <li><a class="reference external" href="#publishing">Publishing</a></li>
 <li><a class="reference external" href="#state">State</a></li>
+<li><a class="reference external" href="#unsubscribing">Unsubscribing</a></li>
 </ul>
 </li>
 </ul>
@@ -117,6 +119,13 @@
 <p>If there was an error when connecting the <tt class="docutils literal"><span class="pre">onError</span></tt> callback will be invoked:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">conn</span><span class="p">.</span><span class="nx">onError</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span> <span class="nx">alert</span><span class="p">(</span><span class="s2">&quot;connection failed: &quot;</span> <span class="o">+</span> <span class="nx">err</span><span class="p">.</span><span class="nx">msg</span><span class="p">);</span> <span class="p">}</span></pre></div>
 </div>
+</div>
+<div class="section" id="disconnecting">
+<h2>Disconnecting<a class="headerlink" href="#disconnecting" title="Permalink to this headline">¶</a></h2>
+<p>To disconnect from hookbox use the <tt class="docutils literal"><span class="pre">conn.disconnect</span></tt> method:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">conn</span><span class="p">.</span><span class="nx">disconnect</span><span class="p">();</span></pre></div>
+</div>
+<p>NOTE: This method will often not result in a successful disconnect if called in the unload handler for the web page, in which case the user won&#8217;t be disconnected until they timeout (after about 60 seconds)</p>
 </div>
 <div class="section" id="subscribing-to-channels">
 <h2>Subscribing to Channels<a class="headerlink" href="#subscribing-to-channels" title="Permalink to this headline">¶</a></h2>
@@ -202,6 +211,17 @@
     <span class="c1">// for you and stored on subscription.state</span>
     <span class="nx">alert</span><span class="p">(</span><span class="s1">&#39;the name state is: &#39;</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">subscription</span><span class="p">.</span><span class="nx">state</span><span class="p">));</span>
 <span class="p">}</span></pre></div>
+</div>
+</div>
+<div class="section" id="unsubscribing">
+<h3>Unsubscribing<a class="headerlink" href="#unsubscribing" title="Permalink to this headline">¶</a></h3>
+<p>You can use the javascript client to request that the user be unsubscribed from a channel with the <tt class="docutils literal"><span class="pre">subscription.cancel</span></tt> method. When the subscription has been successfully canceled, the <tt class="docutils literal"><span class="pre">conn.onUnsubscribed</span></tt> will be issued. Keep in mind that the web app may override this request and not allow the user to be unsubscribed and so the onUnsubscribed callback will not be issued.</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">subscription</span> <span class="o">=</span> <span class="nx">conn</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="s1">&#39;foo.bar.baz&#39;</span><span class="p">)</span>
+    <span class="p">...</span>
+    <span class="nx">conn</span><span class="p">.</span><span class="nx">onUnsubscribed</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">subscription</span><span class="p">,</span> <span class="nx">frame</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">alert</span><span class="p">(</span><span class="s1">&#39;successfully unsubscribed from: &#39;</span> <span class="o">+</span> <span class="nx">subscription</span><span class="p">.</span><span class="nx">channelName</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="nx">subscription</span><span class="p">.</span><span class="nx">cancel</span><span class="p">();</span></pre></div>
 </div>
 </div>
 </div>

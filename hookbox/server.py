@@ -146,8 +146,14 @@ class HookboxServer(object):
     def remove_user(self, name):
         if name in self.users:
             self.admin.user_event('destroy', name, {})
+            user = self.users[name]
             del self.users[name]
-
+            form = { 'name': name }
+            try:
+                self.http_request('disconnect', user.get_cookie(), form)
+            except Exception, e:
+                print 'Error with disconnect callback', e
+        
     def create_channel(self, conn, channel_name, **options):
         if channel_name in self.channels:
             raise ExpectedException("Channel already exists")

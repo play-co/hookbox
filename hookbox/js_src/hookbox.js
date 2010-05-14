@@ -72,7 +72,6 @@ var Subscription = Class(function(supr) {
 	
 	this.cancel = function() {
 		if (!this.canceled) {
-			this.canceled = false;
 			logger.debug('calling this._onCancel()');
 			this._onCancel();
 		}
@@ -90,7 +89,7 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 	this.onClose = function() { }
 	this.onError = function() { }
 	this.onSubscribed = function() { }
-
+	this.onUnsubscribed = function() { }
 	this.init = function(url, cookieString) {
 		supr(this, 'init', []);
 		this.url = url;
@@ -166,9 +165,18 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 				/* FALL THROUGH */
 			case 'PUBLISH':
 				/* FALL THROUGH */
+				var sub = this._subscriptions[fArgs.channel_name];
+				sub.frame(fName, fArgs);
+				break;
+				
 			case 'UNSUBSCRIBE':
-				// TODO: the server can autounsubscribe you...
-				this._subscriptions[fArgs.channel_name].frame(fName, fArgs);
+				var sub = this._subscriptions[fArgs.channel_name];
+				sub.canceled = true;
+				sub.frame(fName, fArgs);
+				if (fArgs.user == this.username) {
+					delete this._subscriptions[fArgs.channel_name]
+					this.onUnsubscribed(sub, fArgs);
+				}
 				break;
 			case 'ERROR':
 				this.onError(fArgs);
@@ -188,6 +196,10 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 
 	this.reconnect = function() {
 		jsioConnect(this, this.url);
+	}
+	
+	this.disconnect = function() {
+		this.transport.loseConnection();
 	}
 
 })
