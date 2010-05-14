@@ -68,7 +68,7 @@ All attributes are read only. The complete list:
 		
  * ``historySize``: the length of the history for the channel.
  * ``history``: a list of the last N elements where N is the ``history_size`` attribute of the channel 
- * ``initialData``: arbitrary data set on the channel by the web application
+ * ``state``: arbitrary (json) data set on the channel by the web application. This attribute updates automatically when the web application changes it, and an onState callback is issued on the subscription.
  * ``presenceful``: boolean that signifies rather this channel relays presence information
  * ``presence``: a list of users subscribed to the channel. This is always empty if ``presenceful`` is false.
  * ``reflective``: boolean signifying if this channel reflects publish frames back to the connection that orignated them.
@@ -120,3 +120,23 @@ Whenever data is published to the channel, the onPublish callback on the subscri
     }
 
 Remember, frame.payload can be any javascript object that can be represented  as ``JSON``.
+
+State
+-----
+
+It sometimes makes sense for the web application to stash some additional state information on the channel either by setting it in a webhook callback response, or using the rest api. In javascript, the subscription object maintains the ``state`` attribute and issues onState callbacks whenever this attribute is modified. The state cannot be modified by the client; it is unidirectional only. The ``state`` attribute is always a valid json object {}.
+
+.. sourcecode:: javascript
+
+    subscription.onState = function(frame) {
+        var updates = frame.updates; // object with the new keys/values and 
+                                     // modified keys/values
+
+        var deletes = frame.deletes; // list containing all deleted keys.
+
+        // No need to compute the state from the updates and deletes, its done
+        // for you and stored on subscription.state
+        alert('the name state is: ' + JSON.stringify(subscription.state));
+    }
+	
+	

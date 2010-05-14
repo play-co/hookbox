@@ -216,6 +216,7 @@ Optional Form Variables:
 * ``polling``: json object in the proper polling format
 * ``presenceful``: json boolean
 * ``reflective``: json boolean
+* ``state``: json object
 
 Example:
     
@@ -243,3 +244,67 @@ destroy_channel
 ===============
 
 TODO
+
+
+state_set_key
+=============
+Sets a key in a channel's state object. If the key already exists it is replaced, and if not it is created.
+
+Required Form Variables:
+
+* ``secret``: The password specified in the config as ``-r`` or ``--rest-secret``.
+* ``channel_name``: The target channel.
+
+Optional Form Variables:
+
+* ``key``: The target key in the state
+* ``val``: any valid json structure; it will be the new value of the given key on the state
+
+Example:
+    
+Client Requests URL:
+    
+.. sourcecode:: none
+
+    /rest/state_set_key?secret=yo&channel_name=testing&key=score&val={ "mcarter": 5, "desmaj": 11 }
+
+
+Server Replies:
+    
+.. sourcecode:: javascript
+    
+    [ true, {} ]
+
+The ``state`` of the channel now contains the key "testing" with the value { "mcarter": 5, "desmaj": 11 }. An onState javascript callback will be issued to all subscribers; They will be able to access subscription.state.score.mcarter and will see the value 5.
+
+state_delete_key
+================
+
+Removes a key from the state of a channel. If the key doesn't exist then nothing happens.
+
+Required Form Variables:
+
+* ``secret``: The password specified in the config as ``-r`` or ``--rest-secret``.
+* ``channel_name``: The target channel.
+
+Optional Form Variables:
+
+* ``key``: The target key in the state to delete
+
+Example:
+    
+Client Requests URL:
+    
+.. sourcecode:: none
+
+    /rest/state_delete_key?secret=yo&channel_name=testing&key=score
+
+	
+Server Replies:
+    
+.. sourcecode:: javascript
+    
+    [ true, {} ]
+
+	
+The ``state`` of the channel no longer contains the key "score". An onState callback will be issued to all subscribers.

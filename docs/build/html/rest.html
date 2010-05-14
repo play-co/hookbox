@@ -91,6 +91,8 @@
 <li><a class="reference external" href="#set-channel-options">set_channel_options</a></li>
 <li><a class="reference external" href="#create-channel">create_channel</a></li>
 <li><a class="reference external" href="#destroy-channel">destroy_channel</a></li>
+<li><a class="reference external" href="#state-set-key">state_set_key</a></li>
+<li><a class="reference external" href="#state-delete-key">state_delete_key</a></li>
 </ul>
 </li>
 </ul>
@@ -257,6 +259,7 @@
 <li><tt class="docutils literal"><span class="pre">polling</span></tt>: json object in the proper polling format</li>
 <li><tt class="docutils literal"><span class="pre">presenceful</span></tt>: json boolean</li>
 <li><tt class="docutils literal"><span class="pre">reflective</span></tt>: json boolean</li>
+<li><tt class="docutils literal"><span class="pre">state</span></tt>: json object</li>
 </ul>
 <p>Example:</p>
 <p>Client Requests URL:</p>
@@ -274,6 +277,49 @@
 <div class="section" id="destroy-channel">
 <h2>destroy_channel<a class="headerlink" href="#destroy-channel" title="Permalink to this headline">¶</a></h2>
 <p>TODO</p>
+</div>
+<div class="section" id="state-set-key">
+<h2>state_set_key<a class="headerlink" href="#state-set-key" title="Permalink to this headline">¶</a></h2>
+<p>Sets a key in a channel&#8217;s state object. If the key already exists it is replaced, and if not it is created.</p>
+<p>Required Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
+</ul>
+<p>Optional Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">key</span></tt>: The target key in the state</li>
+<li><tt class="docutils literal"><span class="pre">val</span></tt>: any valid json structure; it will be the new value of the given key on the state</li>
+</ul>
+<p>Example:</p>
+<p>Client Requests URL:</p>
+<div class="highlight-none"><div class="highlight"><pre>/rest/state_set_key?secret=yo&amp;channel_name=testing&amp;key=score&amp;val={ &quot;mcarter&quot;: 5, &quot;desmaj&quot;: 11 }</pre></div>
+</div>
+<p>Server Replies:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">state</span></tt> of the channel now contains the key &#8220;testing&#8221; with the value { &#8220;mcarter&#8221;: 5, &#8220;desmaj&#8221;: 11 }. An onState javascript callback will be issued to all subscribers; They will be able to access subscription.state.score.mcarter and will see the value 5.</p>
+</div>
+<div class="section" id="state-delete-key">
+<h2>state_delete_key<a class="headerlink" href="#state-delete-key" title="Permalink to this headline">¶</a></h2>
+<p>Removes a key from the state of a channel. If the key doesn&#8217;t exist then nothing happens.</p>
+<p>Required Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
+</ul>
+<p>Optional Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">key</span></tt>: The target key in the state to delete</li>
+</ul>
+<p>Example:</p>
+<p>Client Requests URL:</p>
+<div class="highlight-none"><div class="highlight"><pre>/rest/state_delete_key?secret=yo&amp;channel_name=testing&amp;key=score</pre></div>
+</div>
+<p>Server Replies:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">state</span></tt> of the channel no longer contains the key &#8220;score&#8221;. An onState callback will be issued to all subscribers.</p>
 </div>
 </div>
 

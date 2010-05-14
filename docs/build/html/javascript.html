@@ -90,6 +90,7 @@
 <li><a class="reference external" href="#channel-attributes">Channel Attributes</a></li>
 <li><a class="reference external" href="#presence-information">Presence Information</a></li>
 <li><a class="reference external" href="#publishing">Publishing</a></li>
+<li><a class="reference external" href="#state">State</a></li>
 </ul>
 </li>
 </ul>
@@ -145,7 +146,7 @@
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">historySize</span></tt>: the length of the history for the channel.</li>
 <li><tt class="docutils literal"><span class="pre">history</span></tt>: a list of the last N elements where N is the <tt class="docutils literal"><span class="pre">history_size</span></tt> attribute of the channel</li>
-<li><tt class="docutils literal"><span class="pre">initialData</span></tt>: arbitrary data set on the channel by the web application</li>
+<li><tt class="docutils literal"><span class="pre">state</span></tt>: arbitrary (json) data set on the channel by the web application. This attribute updates automatically when the web application changes it, and an onState callback is issued on the subscription.</li>
 <li><tt class="docutils literal"><span class="pre">presenceful</span></tt>: boolean that signifies rather this channel relays presence information</li>
 <li><tt class="docutils literal"><span class="pre">presence</span></tt>: a list of users subscribed to the channel. This is always empty if <tt class="docutils literal"><span class="pre">presenceful</span></tt> is false.</li>
 <li><tt class="docutils literal"><span class="pre">reflective</span></tt>: boolean signifying if this channel reflects publish frames back to the connection that orignated them.</li>
@@ -187,6 +188,21 @@
 <span class="p">}</span></pre></div>
 </div>
 <p>Remember, frame.payload can be any javascript object that can be represented  as <tt class="docutils literal"><span class="pre">JSON</span></tt>.</p>
+</div>
+<div class="section" id="state">
+<h3>State<a class="headerlink" href="#state" title="Permalink to this headline">¶</a></h3>
+<p>It sometimes makes sense for the web application to stash some additional state information on the channel either by setting it in a webhook callback response, or using the rest api. In javascript, the subscription object maintains the <tt class="docutils literal"><span class="pre">state</span></tt> attribute and issues onState callbacks whenever this attribute is modified. The state cannot be modified by the client; it is unidirectional only. The <tt class="docutils literal"><span class="pre">state</span></tt> attribute is always a valid json object {}.</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">subscription</span><span class="p">.</span><span class="nx">onState</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">frame</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">updates</span> <span class="o">=</span> <span class="nx">frame</span><span class="p">.</span><span class="nx">updates</span><span class="p">;</span> <span class="c1">// object with the new keys/values and</span>
+                                 <span class="c1">// modified keys/values</span>
+
+    <span class="kd">var</span> <span class="nx">deletes</span> <span class="o">=</span> <span class="nx">frame</span><span class="p">.</span><span class="nx">deletes</span><span class="p">;</span> <span class="c1">// list containing all deleted keys.</span>
+
+    <span class="c1">// No need to compute the state from the updates and deletes, its done</span>
+    <span class="c1">// for you and stored on subscription.state</span>
+    <span class="nx">alert</span><span class="p">(</span><span class="s1">&#39;the name state is: &#39;</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">subscription</span><span class="p">.</span><span class="nx">state</span><span class="p">));</span>
+<span class="p">}</span></pre></div>
+</div>
 </div>
 </div>
 </div>
