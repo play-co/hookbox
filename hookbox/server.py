@@ -94,7 +94,7 @@ class HookboxServer(object):
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         if cookie_string:
             headers['Cookie'] = cookie_string
-        http.request('POST', path, body=body, headers=headers)
+        http.request('GET', path, body="", headers=headers)
         response = http.getresponse()
         if response.status != 200:
             raise ExpectedException("Invalid callback response, status=%s (%s), body: %s" % (response.status, path, response.read()))
@@ -102,6 +102,7 @@ class HookboxServer(object):
         try:
            output = json.loads(body)
         except:
+            print 'body is', body, len(body)
             raise ExpectedException("Invalid json: " + body)
         #print 'response to', path, 'is:', output
         if not isinstance(output, list) or len(output) != 2:

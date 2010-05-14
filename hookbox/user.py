@@ -25,7 +25,6 @@ class User(object):
             conn.send_frame('SUBSCRIBE', frame)
             
     def remove_connection(self, conn):
-        print 'remove conn on user', self.name
         self.connections.remove(conn)
         if not self.connections:
             print 'no more connections...'

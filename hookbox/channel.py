@@ -24,7 +24,8 @@ class Channel(object):
             'url': "",
             'form': {},
             'originator': ""
-        }
+        },
+        'state': {}
     }
 
     def __init__(self, server, name, **options):
@@ -37,6 +38,7 @@ class Channel(object):
         self._polling_task = None
         self._polling_lock = eventlet.semaphore.Semaphore()
         #print 'self._options is', self._options
+        self.state = {}
         self.update_options(**self._options)
         self.update_options(**options)
 
@@ -74,7 +76,9 @@ class Channel(object):
                 cls = basestring
             if not isinstance(val, cls):
                 raise ValueError("Invalid type for %s (should be %s)" % (key, default.__class__))
-            
+            if key == 'state':
+                self.state_replace(val)
+                continue
             if isinstance(val, dict):
                 for _key, _val in val.items():
                     if _key not in self._options[key]:
@@ -221,12 +225,65 @@ class Channel(object):
             self.history.append(('SUBSCRIBE', {"user": user.get_name() }))
             self.prune_history()
 
+    def state_del(self, key):
+        if key not in self.state:
+            return
+        del self.state[key]
+        self.state_broadcast(deletes=[key])
+    
+    def state_set(self, key, val):
+        if key in self.state and self.state[key] == val:
+            return
+        self.state[key] = val
+        self.state_broadcast(updates={ key: val })
+    
+    def state_broadcast(self, updates={}, deletes=[]):
+        frame = { 
+            "channel_name": self.name, 
+            "updates": updates, 
+            "deletes": deletes 
+        }
+        for subscriber in self.subscribers:
+            subscriber.send_frame('STATE_UPDATE', frame)
 
+    # TODO: We can do much better than this with a recursive json diffing
+    #       algorithm. This is good enough for now...
+    #       -mcarter 5/13/2010
+    def state_replace(self, state):
+        checked_keys = []
+        updates = []
+        deletes = []
+        adds = []
+        for key in self.state:
+            checked_keys.append(key)
+            # key deleted
+            if key not in state:
+                deletes.append(key)
+            # key changed
+            elif state[key] != self.state[key]:
+                updates.append(key)
+            # no update
+            else:
+                pass
+        for key in state:
+            if key in checked_keys: continue
+            adds.append(key)
+        changes = {
+            'updates': dict([(k, state[k]) for k in updates + adds]),
+            'deletes': deletes,
+        }
+        # avoid sharing the self._options.state dict
+        if state:
+            self.state = state
+        else:
+            self.state = {}
+        self.state_broadcast(**changes)
+        
     def _build_subscribe_frame(self, user, initial_data=None):
         frame = {"channel_name": self.name, "user": user.get_name()}
         frame["history"] = self.history
         frame["history_size"] = self.history_size
-        frame["initial_data"] = initial_data        
+        frame["state"] = self.state
         if self.presenceful:
             frame['presence'] = [ subscriber.get_name() for subscriber in self.subscribers ]
         else:

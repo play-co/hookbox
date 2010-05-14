@@ -16,7 +16,7 @@ var Subscription = Class(function(supr) {
 		this.channelName = args.channel_name;
 		this.history = args.history;
 		this.historySize = args.history_size;
-		this.initialData = args.initial_data;
+		this.state = args.state;
 		this.presence = args.presence;
 		this.canceled = false;
 	}
@@ -24,7 +24,7 @@ var Subscription = Class(function(supr) {
 	this.onPublish = function(frame) { }
 	this.onSubscribe = function(frame) {}
 	this.onUnsubscribe = function(frame) {}
-
+	this.onState = function(frame) {}
 
 	this.frame = function(name, args) {
 		switch(name) {
@@ -57,6 +57,15 @@ var Subscription = Class(function(supr) {
 				}
 				this.presence.push(args.user);
 				this.onSubscribe(args);
+				break;
+			case 'STATE_UPDATE':
+				for (var i = 0, key; key = args.deletes[i]; ++i) {
+					delete this.state[key];
+				}
+				for (key in args.updates) {
+					this.state[key] = args.updates[key];
+				}
+				this.onState(args);
 				break;
 		}
 	}
@@ -153,9 +162,10 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 					this._subscriptions[fArgs.channel_name].frame(fName, fArgs);
 				}
 				break
+			case 'STATE_UPDATE':
+				/* FALL THROUGH */
 			case 'PUBLISH':
-				this._subscriptions[fArgs.channel_name].frame(fName, fArgs);
-				break;
+				/* FALL THROUGH */
 			case 'UNSUBSCRIBE':
 				// TODO: the server can autounsubscribe you...
 				this._subscriptions[fArgs.channel_name].frame(fName, fArgs);

@@ -19,9 +19,8 @@
 				hookbox.logging.get('net.protocols.rtjp').setLevel(hookbox.logging.DEBUG);
 				conn = hookbox.connect('http://localhost:8001/csp');
 				conn.onSubscribed = function(channel_name, s) {
-					console.log('blah');
+					SUB = s;
 					s.onPublish = function(frame) {
-						console.log('...');
 						addHistory(frame.user + ': ' + frame.payload);
 					};
 					s.onSubscribe = function(frame) {
@@ -32,6 +31,9 @@
 					}
 					s.onFailure = function(msg) {
 							alert('Error: ' + msg);
+					}
+					s.onState = function(frame) {
+						addHistory("* Channel State Changed...");
 					}
 					for (var i = 0, item; item = s.history[i]; ++i) {
 						var name = item[0];

@@ -25,10 +25,9 @@ class HookboxRest(object):
 
         try:
             form = get_form(environ)
-            if self.secret != form.get('secret', None):
+            if self.secret != form.pop('secret', None):
                 start_response('200 Ok', ())
                 return json.dumps([False, { 'msg': "Invalid secret" }])
-            del form['secret']
             return handler(form, start_response)
         except Exception, e:
             self.logger.warn('REST Error: %s', path, exc_info=True)
@@ -126,6 +125,43 @@ class HookboxRest(object):
         start_response('200 Ok', [])
         return json.dumps([True, channel.serialize()])
 
+        
+    def render_state_set_key(self, form, start_response):
+        channel_name = form.pop('channel_name', None)
+        if not channel_name:
+            raise ExpectedException("Missing channel_name")
+        if not self.server.exists_channel(channel_name):
+            start_response('200 Ok', [])
+            return json.dumps([False, {"msg": "Channel %s doesn't exist" % (channel_name,) }])
+        if 'key' not in form:
+            raise ExpectedExcpetion("Missing 'key' argument")
+        if 'val' not in form:
+            raise ExpectedException("Missing 'val' argument")
+        try:
+            val = json.loads(form['val'])
+        except:
+            raise ExpectedException('Invalid json: "%s"' % (val,))
+            
+        channel = self.server.get_channel(None, channel_name)
+        channel.state_set(form['key'], val)
+        start_response('200 Ok', [])
+        return json.dumps([True, {}])
+        
+    def render_state_delete_key(self, form, start_response):
+        channel_name = form.pop('channel_name', None)
+        if not channel_name:
+            raise ExpectedException("Missing channel_name")
+        if not self.server.exists_channel(channel_name):
+            start_response('200 Ok', [])
+            return json.dumps([False, {"msg": "Channel %s doesn't exist" % (channel_name,) }])
+        if 'key' not in form:
+            raise ExpectedExcpetion("Missing 'key' argument")
+        channel = self.server.get_channel(None, channel_name)
+        channel.state_del(form['key'])
+        start_response('200 Ok', [])
+        return json.dumps([True, {}])
+    
+        
 def get_form(environ):
     form = {}
     if environ['REQUEST_METHOD'].upper() == 'POST':
