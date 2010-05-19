@@ -195,7 +195,7 @@ class Channel(object):
         initial_data = None
         
         if needs_auth and (self.moderated or self.moderated_subscribe):
-            form = { 'destination': self.name }
+            form = { 'channel_name': self.name, "user": user.get_name() }
             success, options = self.server.http_request('subscribe', user.get_cookie(conn), form)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
@@ -294,7 +294,7 @@ class Channel(object):
         if user not in self.subscribers:
             return
         if needs_auth and (self.moderated or self.moderated_unsubscribe):
-            form = { 'channel_name': self.name }
+            form = { 'channel_name': self.name, "user": user.get_name() }
             success, options = self.server.http_request('unsubscribe', user.get_cookie(conn), form)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
