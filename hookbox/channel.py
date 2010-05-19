@@ -46,7 +46,7 @@ class Channel(object):
         # TODO: remove this pointless check, it should never happen, right?
         if user not in self.subscribers:
             return
-        self.unsubscribe(user, needs_auth=False)
+        self.unsubscribe(user, needs_auth=True, force_auth=True)
 
         
 
@@ -290,13 +290,13 @@ class Channel(object):
             frame['presence'] = [];
         return frame
 
-    def unsubscribe(self, user, conn=None, needs_auth=True):
+    def unsubscribe(self, user, conn=None, needs_auth=True, force_auth=False):
         if user not in self.subscribers:
             return
         if needs_auth and (self.moderated or self.moderated_unsubscribe):
             form = { 'channel_name': self.name, "user": user.get_name() }
             success, options = self.server.http_request('unsubscribe', user.get_cookie(conn), form)
-            if not success:
+            if not success or force_auth:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             self.server.maybe_auto_subscribe(user, options)
         frame = {"channel_name": self.name, "user": user.get_name()}
