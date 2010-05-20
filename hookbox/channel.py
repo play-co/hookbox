@@ -296,7 +296,7 @@ class Channel(object):
         if needs_auth and (self.moderated or self.moderated_unsubscribe):
             form = { 'channel_name': self.name, "user": user.get_name() }
             success, options = self.server.http_request('unsubscribe', user.get_cookie(conn), form)
-            if not success or force_auth:
+            if not (success or force_auth):
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             self.server.maybe_auto_subscribe(user, options)
         frame = {"channel_name": self.name, "user": user.get_name()}
