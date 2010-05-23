@@ -23,6 +23,7 @@ _install_requires = [
     'static',
     'csp_eventlet>=0.3.0', 
     'rtjp_eventlet>=0.2.0', 
+    'pygments',
 #    'nose==0.11.1',
 #    'coverage',
 ]
