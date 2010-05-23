@@ -2,7 +2,7 @@ import logging
 import uuid
 import eventlet
 from errors import ExpectedException
-import rtjp.errors
+import rtjp_eventlet
 
 class HookboxConn(object):
     logger = logging.getLogger('RTJPConnection')
@@ -51,7 +51,7 @@ class HookboxConn(object):
 #                print 'read a frame...'
                 fid, fname, fargs= self._rtjp_conn.recv_frame().wait()
 #                print 'got frame', fid, fname, fargs
-            except rtjp.errors.ConnectionLost, e:
+            except rtjp_eventlet.errors.ConnectionLost, e:
 #                print 'connection lost'
                 break
             except:

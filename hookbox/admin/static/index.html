@@ -2,6 +2,7 @@
 
 <head>
 	<link type="text/css" href="admin.css" rel="stylesheet">
+	<link type="text/css" href="highlighter.css" rel="stylesheet">
 	<script type="text/javascript" src="lib/jqueryui/js/jquery-1.4.2.min.js"></script>
 	<script type="text/javascript" src="lib/jqueryui/js/jquery-ui-1.8.custom.min.js"></script>
 	<script src="admin.js"></script>
@@ -32,6 +33,8 @@
 			<a href="#channels">channels</a>
 			<a href="#users">users</a>
 			<a href="#configuration">configuration</a>
+			<a href="#console_logs">Console Logs</a>
+			<a href="#webhooks_logs">Webhook Logs</a>
 		</div>
 		<div id="body"><div id="bodyContent">
 			<div id="overview">
@@ -61,6 +64,22 @@
 				<span id="no_users">(no users)</span>
 			</div>
 			<div id="configuration" class="hidden">
+			</div>
+			
+			<div id="console_logs" class="hidden">
+			 <h1>Console Logs</h1>
+			 <div class="highlight">
+				<pre id="console_logs_history">
+				</pre>
+			 </div>
+			</div>
+			
+			<div id="webhooks_logs" class="hidden">
+			 <h1>Webhook Logs</h1>
+			 <div class="highlight">
+				<pre id="webhooks_logs_history">
+				</pre>
+			 </div>
 			</div>
 			
 			<div id="channel" class="hidden">

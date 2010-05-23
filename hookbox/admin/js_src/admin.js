@@ -50,6 +50,8 @@ var GUI = Class(function() {
 		$("#side_menu a:nth-child(2)").click(bind(this, 'linkClick', 'channels'));
 		$("#side_menu a:nth-child(3)").click(bind(this, 'linkClick', 'users'));
 		$("#side_menu a:nth-child(4)").click(bind(this, 'linkClick', 'configuration'));
+		$("#side_menu a:nth-child(5)").click(bind(this, 'linkClick', 'consoleLogs'));
+		$("#side_menu a:nth-child(6)").click(bind(this, 'linkClick', 'webhookLogs'));
 		
 		window.onresize = bind(this, 'onResize');
 		this.onResize();
@@ -126,6 +128,22 @@ var GUI = Class(function() {
 		this.client.sendFrame('SWITCH', { location: 'overview' });		
 	}
 	
+	this.consoleLogs = function() {
+		if (this.state == "consoleLogs") { return; }
+		this.state = "consoleLogs";
+		this.current.hide();
+		this.current = new ConsoleLogsView(this);
+	}
+	
+	this.webhookLogs = function() {
+		if (this.state == "webhookLogs") { return; }
+		this.state = "webhookLogs";
+		this.current.hide();
+		this.current = new WebhooksLogsView(this);
+	}
+	
+	
+	
 	this.channels = function() {
 		
 		if (this.state == "channels") { return; }
@@ -192,7 +210,61 @@ LoginView = Class(function() {
 	this.hide = function() { this._el.hide(); }
 });
 
-ChannelList = Class(function() {
+var ConsoleLogsView = Class(function() {
+	this.init = function(gui) {
+		this._gui = gui;
+		this._elements = {}
+		$("#console_logs_history").html("");
+		$("#console_logs").show()
+		this._gui.client.sendFrame('SWITCH', { location: 'console_logs' });
+		this._gui.client.subscribe('CONSOLE_OUTPUT', this, this.CONSOLE_OUTPUT);
+	}
+	this.hide = function() {
+		$("#console_logs").hide();
+		this._gui.client.unsubscribe('CONSOLE_OUTPUT', this);
+	}
+	this.CONSOLE_OUTPUT = function(args) {
+		$("#console_logs_history").append(args.data)
+	}
+});
+
+var WebhooksLogsView = Class(function() {
+	this.init = function(gui) {
+		logger.debug('a');
+		this._gui = gui;
+		logger.debug('b');
+		this._elements = {}
+		$("#webhooks_logs_history").html("");
+		$("#webhooks_logs").show()
+		logger.debug('c');
+		this._gui.client.sendFrame('SWITCH', { location: 'webhooks' });
+		this._gui.client.subscribe('WEBHOOK_EVENTS', this, this.WEBHOOK_EVENTS);
+		logger.debug('d');
+	}
+	this.hide = function() {
+		$("#webhooks_logs").hide();
+		this._gui.client.unsubscribe('WEBHOOK_EVENTS', this);
+	}
+	this.WEBHOOK_EVENTS = function(args) {
+		for (var i = 0, event; event = args.events[i]; ++i) {
+			var target = $("#webhooks_logs_history");
+			$("<div>Type: " + event.type + "</div>").appendTo(target);
+			$("<div>Date: " + event.date+ "</div>").appendTo(target);
+			$("<div>Url: " + event.url+ "</div>").appendTo(target);
+			$("<div>Status: " + event.status+ "</div>").appendTo(target);
+			$("<div>Success: " + new Boolean(event.success) + "</div>").appendTo(target);
+			if (event.err) {
+				$("<div>Error: " + event.err + "</div>").appendTo(target);
+			}
+			$("<div><u>Form Body</u><br>" + event.form + "</div>").appendTo(target);
+			$("<div>Cookie: " + (event.cookie || "(empty)") + "</div>").appendTo(target);
+			$("<div><u>Response Body</u><br>" + event.response + "</div>").appendTo(target);
+			$("<hr>").appendTo(target)
+		}
+	}
+});
+
+var ChannelList = Class(function() {
 	this.init = function(gui) {
 		this._gui = gui;
 		this._elements = {}

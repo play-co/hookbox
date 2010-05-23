@@ -2,15 +2,31 @@ import os
 from paste import urlmap
 import static
 import csp_eventlet as csp
-import rtjp.errors
+import rtjp_eventlet
 import eventlet
 import logging
 from hookbox.errors import ExpectedException
+import cgi
+import datetime
 
+MAX_CONSOLE_LENGTH = 10240
+WEBHOOK_HISTORY_SIZE = 100
 class StopLoop(Exception):
     pass
 
-
+class OutputWrapper(object):
+    
+    def __init__(self, observer, orig):
+        self._observer = observer
+        self._orig = orig
+        
+    def write(self, data):
+        self._observer(data)
+        self._orig.write(data)
+        
+    def __getattr__(self, key):
+        return getattr(self._orig, key)
+    
 class HookboxAdminApp(object):
     
     def __init__(self, server, config):
@@ -21,8 +37,11 @@ class HookboxAdminApp(object):
         self._wsgi_app['/csp'] = self._csp
         static_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], 'static')        
         self._wsgi_app['/'] = static.Cling(static_path)
-        self._rtjp_server = rtjp.eventlet.RTJPServer()
-        eventlet.spawn(self._run)
+        self._rtjp_server = rtjp_eventlet.RTJPServer()
+        
+        self.console_buffer = ""
+        self._wrap_output()
+        
         self.conns = []
         self.watched_channels = {}
         self.watched_users = {}
@@ -30,9 +49,28 @@ class HookboxAdminApp(object):
         self.channel_list_watchers = []
         self.user_list_watchers = []
         self.watching_index = {}
+        self.console_watchers = []
+        
+        self.webhooks_watchers = []
+        self.webhooks_history = []
+        
+        eventlet.spawn(self._run)
         
     def __call__(self, environ, start_response):
         return self._wsgi_app(environ, start_response)
+    
+    
+    def _wrap_output(self):
+        import sys
+        sys.stdout = OutputWrapper(self._output, sys.stdout)
+        sys.stderr = OutputWrapper(self._output, sys.stderr)
+    
+    def _output(self, data):
+        self.console_buffer += data
+        trim_point = max(0,len(self.console_buffer)-MAX_CONSOLE_LENGTH)
+        self.console_buffer = self.console_buffer[trim_point:]
+        self.console_event(data)
+    
     
     def _run(self):
         self._rtjp_server.listen(sock=self._csp)
@@ -55,9 +93,57 @@ class HookboxAdminApp(object):
                 getattr(self, 'unwatch_' + type)(key, conn)
             else:
                 getattr(self, 'unwatch_' + type)(conn)
-                
-        del self.watching_index[conn.id]
-        print self.__dict__
+        
+        self.watching_index.pop(conn.id, None)
+        
+    def webhook_event(self, type, url, status, success, response, form_body, cookie_string, err):
+        frame = {
+            "type": type,
+            "url": cgi.escape(url),
+            "status": status,
+            "success": success,
+            "response": cgi.escape(response),
+            "form": cgi.escape(form_body),
+            "cookie": cgi.escape(cookie_string or ""),
+            "err": cgi.escape(err),
+            "date": datetime.datetime.now().strftime("%A %d-%b-%y %T %Z")
+        }
+        self.webhooks_history.append(frame)
+        while len(self.webhooks_history) > WEBHOOK_HISTORY_SIZE:
+            self.webhooks_history.pop(0)
+        for conn in self.webhooks_watchers:
+            conn.send_frame('WEBHOOK_EVENTS', { 'events': [frame] })
+
+    def watch_webhooks(self, conn):
+        self.add_watch_index(conn, 'webhooks')
+        self.webhooks_watchers.append(conn)
+        
+    def unwatch_webhooks(self, conn):
+        self.del_watch_index(conn, 'webhooks')
+        self.webhooks_watchers.remove(conn)
+        
+    
+    def watch_console(self, conn):
+        self.add_watch_index(conn, 'console')
+        self.console_watchers.append(conn)
+        
+    def unwatch_console(self, conn):
+        self.del_watch_index(conn, 'console')
+        self.console_watchers.remove(conn)
+    
+    def _highlight(self, data):
+#        from pygments import highlight
+#        from pygments.lexers import PythonTracebackLexer#PythonLexer#PythonConsoleLexer #
+#        from pygments.formatters import HtmlFormatter
+
+#        return highlight(data, PythonTracebackLexer(), HtmlFormatter())[28:-14]+
+        return cgi.escape(data)
+        
+    def console_event(self, data):
+        
+        for conn in self.console_watchers:
+            conn.send_frame('CONSOLE_OUTPUT', { 'data': self._highlight(data) })
+        
     def channel_event(self, event_type, channel_name, data):
         if event_type == 'create_channel':
             for conn in self.channel_list_watchers:
@@ -261,6 +347,8 @@ class AdminProtocol(object):
             self._admin_app.unwatch_user(username, self)
             
 
+
+
     def loop_watch_connection(self, args):
         connection_id = args['connection_id']
         self._admin_app.watch_connection(connection_id, self)
@@ -277,6 +365,27 @@ class AdminProtocol(object):
                 eventlet.sleep(1)
         finally:
             self._admin_app.unwatch_channel_list(self)
+
+    def loop_console_logs(self, args):
+        self._admin_app.watch_console(self)
+        self.send_frame('CONSOLE_OUTPUT', { 
+            'data': self._admin_app._highlight(self._admin_app.console_buffer),
+        })
+        try:
+            while True:
+                eventlet.sleep(100)
+        finally:
+            self._admin_app.unwatch_console(self)
+
+    def loop_webhooks(self, args):
+        self._admin_app.watch_webhooks(self)
+        if self._admin_app.webhooks_history:
+            self.send_frame('WEBHOOK_EVENTS', { 'events': self._admin_app.webhooks_history })
+        try:
+            while True:
+                eventlet.sleep(100)
+        finally:
+            self._admin_app.unwatch_webhooks(self)
 
     def loop_user_list(self, args):
         self._admin_app.watch_user_list(self)
@@ -297,7 +406,7 @@ class AdminProtocol(object):
         while True:
             try:
                 fid, fname, fargs= self._rtjp_conn.recv_frame().wait()
-            except rtjp.errors.ConnectionLost, e:
+            except rtjp_eventlet.errors.ConnectionLost, e:
                 break
             except:
                 self.logger.warn("Error reading frame", exc_info=True)
@@ -313,5 +422,10 @@ class AdminProtocol(object):
                     self.send_error(fid, e)
             else:
                 self._default_frame(fid, fname, fargs)
+        self._cleanup()
+        
+    def _cleanup(self):
+        if self._loop:
+            self._loop.kill()
         self._admin_app.logout(self)
             

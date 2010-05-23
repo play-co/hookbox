@@ -11,7 +11,7 @@ import static
 import eventlet.wsgi
 
 from csp_eventlet import Listener
-import rtjp.eventlet
+import rtjp_eventlet
 
 from errors import ExpectedException
 import channel
@@ -29,6 +29,7 @@ class EmptyLogShim(object):
     def write(self, *args, **kwargs):
         return
 
+logger = logging.getLogger('hookbox')
 
 class HookboxServer(object):
 
@@ -36,7 +37,7 @@ class HookboxServer(object):
         self.config = config
         self.interface = config['interface']
         self.port = config['port']
-        self._rtjp_server = rtjp.eventlet.RTJPServer()
+        self._rtjp_server = rtjp_eventlet.RTJPServer()
 #        self.identifer_key = 'abc';
         self.base_host = config['cbhost']
         self.base_port = config['cbport']
@@ -89,28 +90,43 @@ class HookboxServer(object):
             form['action'] = path_name
         if self.config['secret']:
             form['secret'] = self.config['secret']
-        body = urllib.urlencode(form)
+        form_body = urllib.urlencode(form)
         http = httplib.HTTPConnection(self.base_host, self.base_port)
+        url = "http://" + self.base_host
+        if self.base_port != 80:
+            url += ":" + str(self.base_port)
+        url += path
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         if cookie_string:
             headers['Cookie'] = cookie_string
-        http.request('POST', path, body=body, headers=headers)
+        http.request('POST', path, body=form_body, headers=headers)
         response = http.getresponse()
-        if response.status != 200:
-            raise ExpectedException("Invalid callback response, status=%s (%s), body: %s" % (response.status, path, response.read()))
         body = response.read()
+        if response.status != 200:
+            self.admin.webhook_event(path_name, url, response.status, False, body, form_body, cookie_string, "Invalid status")
+            raise ExpectedException("Invalid callback response, status=%s (%s), body: %s" % (response.status, path, body))
         try:
            output = json.loads(body)
         except:
-            print 'body is', body, len(body)
+            self.admin.webhook_event(path_name, url, response.status, False, body, form_body, cookie_string, "Invalid json response")
             raise ExpectedException("Invalid json: " + body)
         #print 'response to', path, 'is:', output
         if not isinstance(output, list) or len(output) != 2:
+            self.admin.webhook_event(path_name, url, response.status, False, body, form_body, cookie_string, "len(response) != 2 (list)")
             raise ExpectedException("Invalid response (expected json list of length 2)")
         if not isinstance(output[1], dict):
+            self.admin.webhook_event(path_name, url, response.status, False, body, form_body, cookie_string, "response[1] != json object")
             raise ExpectedException("Invalid response (expected json object in response index 1)")
         output[1] = dict([(str(k), v) for (k,v) in output[1].items()])
+        err = ""
+        if not output[0]:
+            err = output[1].get('msg', "(No reason given)")
+        self.admin.webhook_event(path_name, url, response.status, output[0], body, form_body, cookie_string, err)
         return output
+
+        # type, url, response status, success/failture, raw_output
+
+#    def _webhook_error
 
     def connect(self, conn):
         form = { 'conn_id': conn.id }
@@ -151,8 +167,10 @@ class HookboxServer(object):
             form = { 'name': name }
             try:
                 self.http_request('disconnect', user.get_cookie(), form)
+            except ExpectedException, e:
+                pass
             except Exception, e:
-                print 'Error with disconnect callback', e
+                self.logger.warn("Unexpected error when removing user: %s", e, exc_info=True)
         
     def create_channel(self, conn, channel_name, **options):
         if channel_name in self.channels:
