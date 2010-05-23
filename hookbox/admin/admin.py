@@ -8,28 +8,19 @@ import logging
 from hookbox.errors import ExpectedException
 import cgi
 import datetime
+import eventlet
 
 MAX_CONSOLE_LENGTH = 10240
 WEBHOOK_HISTORY_SIZE = 100
 class StopLoop(Exception):
     pass
 
-class OutputWrapper(object):
     
-    def __init__(self, observer, orig):
-        self._observer = observer
-        self._orig = orig
         
-    def write(self, data):
-        self._observer(data)
-        self._orig.write(data)
-        
-    def __getattr__(self, key):
-        return getattr(self._orig, key)
-    
 class HookboxAdminApp(object):
     
-    def __init__(self, server, config):
+    def __init__(self, server, config, outputter):
+        outputter.add_observer(self._output)
         self.config = config
         self.server = server
         self._wsgi_app = urlmap.URLMap()
@@ -62,8 +53,6 @@ class HookboxAdminApp(object):
     
     def _wrap_output(self):
         import sys
-        sys.stdout = OutputWrapper(self._output, sys.stdout)
-        sys.stderr = OutputWrapper(self._output, sys.stderr)
     
     def _output(self, data):
         self.console_buffer += data
@@ -132,11 +121,11 @@ class HookboxAdminApp(object):
         self.console_watchers.remove(conn)
     
     def _highlight(self, data):
-#        from pygments import highlight
-#        from pygments.lexers import PythonTracebackLexer#PythonLexer#PythonConsoleLexer #
-#        from pygments.formatters import HtmlFormatter
+        from pygments import highlight
+        from pygments.lexers import PythonTracebackLexer#PythonLexer#PythonConsoleLexer #
+        from pygments.formatters import HtmlFormatter
 
-#        return highlight(data, PythonTracebackLexer(), HtmlFormatter())[28:-14]+
+        return highlight(data, PythonTracebackLexer(), HtmlFormatter())[28:-13]
         return cgi.escape(data)
         
     def console_event(self, data):

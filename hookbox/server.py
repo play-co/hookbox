@@ -33,7 +33,7 @@ logger = logging.getLogger('hookbox')
 
 class HookboxServer(object):
 
-    def __init__(self, config):
+    def __init__(self, config, outputter):
         self.config = config
         self.interface = config['interface']
         self.port = config['port']
@@ -48,7 +48,7 @@ class HookboxServer(object):
         static_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], 'static')
         self.app['/static'] = static.Cling(static_path)
         self.app['/rest'] = rest.HookboxRest(self, config)
-        self.admin = HookboxAdminApp(self, config)
+        self.admin = HookboxAdminApp(self, config, outputter)
         self.app['/admin'] = self.admin
         self.channels = {}
         self.conns_by_cookie = {}

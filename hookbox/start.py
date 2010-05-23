@@ -1,13 +1,15 @@
+# NB: THESE LINES MUST BE FIRST
+import output_wrapper
+
 import eventlet
 from server import HookboxServer
 import logging
 import os
 import sys
-
 from hookbox.config import HookboxConfig
 
-def create_server(config):
-    server = HookboxServer(config)
+def create_server(config, outputter):
+    server = HookboxServer(config, outputter)
     return server
 
 
@@ -22,7 +24,7 @@ def main():
     config = HookboxConfig()
     config.update_from_commandline_arguments(sys.argv)
     logging.basicConfig()
-    server = create_server(config)
+    server = create_server(config, output_wrapper.outputter)
     if config['objgraph']:
         eventlet.spawn(run_objgraph, server, config)
     if config['debug']:
@@ -54,6 +56,10 @@ def debugloop():
             # TODO: Need another argument for base source of jsio tree in order
             #       to successfully compile hookbox.js
             pyjsiocompile([src, '--output', out])
+
+
+
+
   
 if __name__ == "__main__":
     main()
