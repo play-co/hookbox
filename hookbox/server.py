@@ -33,10 +33,11 @@ logger = logging.getLogger('hookbox')
 
 class HookboxServer(object):
 
-    def __init__(self, config, outputter):
+    def __init__(self, bound_socket, config, outputter):
         self.config = config
         self.interface = config['interface']
         self.port = config['port']
+        self._bound_socket = bound_socket
         self._rtjp_server = rtjp_eventlet.RTJPServer()
 #        self.identifer_key = 'abc';
         self.base_host = config['cbhost']
@@ -57,7 +58,10 @@ class HookboxServer(object):
 
     def run(self):
         print "Listening to hookbox on http://%s:%s" % (self.interface or "0.0.0.0", self.port)
-        eventlet.spawn(eventlet.wsgi.server, eventlet.listen((self.interface, self.port)), self.app, log=EmptyLogShim())
+        if not self._bound_socket:
+            self._bound_socket = eventlet.listen((self.interface, self.port))
+        el
+        eventlet.spawn(eventlet.wsgi.server, self._bound_socket, self.app, log=EmptyLogShim())
         ev = eventlet.event.Event()
         self._rtjp_server.listen(sock=self.csp)
         eventlet.spawn(self._run, ev)
@@ -208,8 +212,8 @@ class HookboxServer(object):
         #print 'maybe autosubscribe....'
         for destination in options.get('auto_subscribe', ()):
             #print 'subscribing to', destination
-            channel = self.get_channel(None, destination)
+            channel = self.get_channel(user, destination)
             channel.subscribe(user, needs_auth=False)
         for destination in options.get('auto_unsubscribe', ()):
-            channel = self.get_channel(None, destination)
+            channel = self.get_channel(user, destination)
             channel.unsubscribe(user, needs_auth=False)
