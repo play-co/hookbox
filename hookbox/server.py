@@ -60,7 +60,7 @@ class HookboxServer(object):
         print "Listening to hookbox on http://%s:%s" % (self.interface or "0.0.0.0", self.port)
         if not self._bound_socket:
             self._bound_socket = eventlet.listen((self.interface, self.port))
-        el
+#        el
         eventlet.spawn(eventlet.wsgi.server, self._bound_socket, self.app, log=EmptyLogShim())
         ev = eventlet.event.Event()
         self._rtjp_server.listen(sock=self.csp)

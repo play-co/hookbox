@@ -9,7 +9,7 @@ import sys
 from hookbox.config import HookboxConfig
 
 def create_server(bound_socket, config, outputter):
-    server = HookboxServer(bound_socket,config, outputter)
+    server = HookboxServer(bound_socket, config, outputter)
     return server
 
 
