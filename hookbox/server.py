@@ -145,7 +145,7 @@ class HookboxServer(object):
         self.admin.user_event('connect', user.get_name(), conn.serialize())
         self.admin.connection_event('connect', conn.id, conn.serialize())
         #print 'successfully connected', user.name
-        eventlet.spawn(self.maybe_auto_subscribe, user, options)
+        eventlet.spawn(self.maybe_auto_subscribe, user, options, conn=conn)
 
     def disconnect(self, conn):
         self.admin.user_event('disconnect', conn.user.get_name(), { "id": conn.id})
@@ -208,12 +208,12 @@ class HookboxServer(object):
             self.create_channel(conn, channel_name)
         return self.channels[channel_name]
 
-    def maybe_auto_subscribe(self, user, options):
+    def maybe_auto_subscribe(self, user, options, conn=None):
         #print 'maybe autosubscribe....'
         for destination in options.get('auto_subscribe', ()):
             #print 'subscribing to', destination
             channel = self.get_channel(user, destination)
-            channel.subscribe(user, needs_auth=False)
+            channel.subscribe(user, conn=conn, needs_auth=False)
         for destination in options.get('auto_unsubscribe', ()):
             channel = self.get_channel(user, destination)
-            channel.unsubscribe(user, needs_auth=False)
+            channel.unsubscribe(user, conn=conn, needs_auth=False)
