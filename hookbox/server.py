@@ -43,6 +43,12 @@ class HookboxServer(object):
         self.base_host = config['cbhost']
         self.base_port = config['cbport']
         self.base_path = config['cbpath']
+        if config['cb_single_url']:
+            import urlparse
+            u = urlparse.urlparse(config['cb_single_url'])
+            self.base_host = u.hostname
+            self.base_port = u.port or 80
+            self.base_path = u.path
         self.app = urlmap.URLMap()
         self.csp = Listener()
         self.app['/csp'] = self.csp
@@ -88,7 +94,7 @@ class HookboxServer(object):
             path = full_path
         else:
             if self.config.get('cb_single_url'):
-                path = self.config.get('cb_single_url')
+                path = self.base_path
             else:
                 path = self.base_path + '/' + self.config.get('cb_' + path_name)
             form['action'] = path_name
@@ -103,9 +109,16 @@ class HookboxServer(object):
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         if cookie_string:
             headers['Cookie'] = cookie_string
-        http.request('POST', path, body=form_body, headers=headers)
-        response = http.getresponse()
-        body = response.read()
+        body = None
+        try:
+            http.request('POST', path, body=form_body, headers=headers)
+            response = http.getresponse()
+            body = response.read()
+        except Exception, e:
+            import traceback
+            self.admin.webhook_event(path_name, url, 0, False, body, form_body, cookie_string, e)
+            traceback.print_exc()
+            return False, {}
         if response.status != 200:
             self.admin.webhook_event(path_name, url, response.status, False, body, form_body, cookie_string, "Invalid status")
             raise ExpectedException("Invalid callback response, status=%s (%s), body: %s" % (response.status, path, body))

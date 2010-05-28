@@ -88,13 +88,13 @@ class HookboxAdminApp(object):
     def webhook_event(self, type, url, status, success, response, form_body, cookie_string, err):
         frame = {
             "type": type,
-            "url": cgi.escape(url),
+            "url": url and cgi.escape(str(url)),
             "status": status,
             "success": success,
-            "response": cgi.escape(response),
-            "form": cgi.escape(form_body),
-            "cookie": cgi.escape(cookie_string or ""),
-            "err": cgi.escape(err),
+            "response": response and cgi.escape(str(response)),
+            "form": form_body and cgi.escape(str(form_body)),
+            "cookie": cookie_string and cgi.escape(str(cookie_string)),
+            "err": err and cgi.escape(str(err)),
             "date": datetime.datetime.now().strftime("%A %d-%b-%y %T %Z")
         }
         self.webhooks_history.append(frame)
