@@ -36,9 +36,9 @@ Callback Path Prefix (--cbpath)
 -------------------------------
 All callbacks will be prefixed with the value specified by --cbpath=PATH_PREFIX; the default is "/hookbox".
 
-Callback Secret Token (-s, --secret)
-------------------------------------
-If a secret token is provided, all callbacks with include that token value as the form variable "secret"; this is useful for blocking unauthorized requests to the callback urls. The secret is specified by -s SECRET or --secret=SECRET; the default is null (no secret.)
+Callback Secret Token (-s, --webhook-secret)
+--------------------------------------------
+If a secret token is provided, all callbacks with include that token value as the form variable "secret"; this is useful for blocking unauthorized requests to the callback urls. The secret is specified by -s SECRET or --webhook-secret=SECRET; the default is null (no secret.)
 
 Extended Callback Options
 =========================
