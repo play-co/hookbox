@@ -184,8 +184,8 @@ class HookboxRest(object):
             try:
                 form[key] = json.loads(form[key])
             except:
-                raise ExpectedException("Invalid json value for form key '%s'", % (key,))
-        for key in form
+                raise ExpectedException("Invalid json value for form key '%s'" % (key,))
+        for key in form:
             if key in self._config_vars:
                 self.server.config[key] = form.get(key)
         start_response('200 Ok', [])
