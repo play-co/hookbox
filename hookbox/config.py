@@ -58,10 +58,10 @@ class HookboxOptionParser(object):
                           dest="cookie_identifier", type="string",
                           metavar="COOKIE_IDENTIFIER",
                           help="The name of the cookie field used to identify unique sessions.")
-        parser.add_option("-s", "--secret", 
-                          dest="secret", type="string",
-                          metavar="SECRET",
-                          help="The SECRET token to pass to all webhook callbacks as form variable \"secret\".")
+        parser.add_option("-s", "--webhook-secret", 
+                          dest="webhook_secret", type="string",
+                          metavar="WEBHOOK_SECRET",
+                          help="The WEBHOOK_SECRET token to pass to all webhook callbacks as form variable \"secret\".")
     
     def _add_callback_path_options(self, parser, defaults):
         parser.add_option('--cb-connect', 
@@ -127,7 +127,7 @@ class HookboxConfig(object):
     defaults._cbhost = '127.0.0.1'
     defaults._cbpath = '/hookbox'
     defaults._cookie_identifier = NoDefault()
-    defaults._secret = NoDefault()
+    defaults._webhook_secret = NoDefault()
     defaults._cb_connect = 'connect'
     defaults._cb_disconnect = 'disconnect'
     defaults._cb_create_channel = 'create_channel'
@@ -155,3 +155,4 @@ class HookboxConfig(object):
             setattr(self, attr, options[attr])
     
     get = __getitem__ = lambda self, attr: getattr(self, attr)
+    set = __setitem__ = lambda self, attr, val: setattr(self, attr, val)
