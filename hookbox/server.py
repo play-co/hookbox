@@ -4,6 +4,7 @@ from eventlet.green import httplib
 import os
 import sys
 import urllib
+import urlparse
 import eventlet
 from paste import urlmap
 import static
@@ -19,6 +20,7 @@ import rest
 import protocol
 from user import User
 from admin.admin import HookboxAdminApp
+
 
 try:
     import json
@@ -43,12 +45,7 @@ class HookboxServer(object):
         self.base_host = config['cbhost']
         self.base_port = config['cbport']
         self.base_path = config['cbpath']
-        if config['cb_single_url']:
-            import urlparse
-            u = urlparse.urlparse(config['cb_single_url'])
-            self.base_host = u.hostname
-            self.base_port = u.port or 80
-            self.base_path = u.path
+            
         self.app = urlmap.URLMap()
         self.csp = Listener()
         self.app['/csp'] = self.csp
@@ -61,6 +58,7 @@ class HookboxServer(object):
         self.conns_by_cookie = {}
         self.conns = {}
         self.users = {}
+
 
     def run(self):
         print "Listening to hookbox on http://%s:%s" % (self.interface or "0.0.0.0", self.port)
@@ -88,24 +86,41 @@ class HookboxServer(object):
                 break
         print "HookboxServer Stopped"
 
-
     def http_request(self, path_name=None, cookie_string=None, form={}, full_path=None):
+        if not full_path and self.config['cb_single_url']:
+            full_path = self.config['cb_single_url']
         if full_path:
-            path = full_path
+            u = urlparse.urlparse(full_path)
+            host = u.hostname
+            port = u.port or 80
+            path = u.path
+            if u.query:
+                path += '?' + u.query
         else:
-            if self.config.get('cb_single_url'):
-                path = self.base_path
-            else:
-                path = self.base_path + '/' + self.config.get('cb_' + path_name)
+#            if self.config.get('cb_single_url'):
+#                path = self.config["cbpath"]
+#                host = self.base_host
+#            else:
+            path = self.base_path + '/' + self.config.get('cb_' + path_name)
+            host = self.config["cbhost"]
+            port = self.config["cbport"]
+        
+        if path_name:
             form['action'] = path_name
-        if self.config['secret']:
-            form['secret'] = self.config['secret']
+        if self.config['webhook_secret']:
+            form['secret'] = self.config['webhook_secret']
+            
         form_body = urllib.urlencode(form)
-        http = httplib.HTTPConnection(self.base_host, self.base_port)
-        url = "http://" + self.base_host
-        if self.base_port != 80:
+        # TODO: stash this, and re-use it; maybe it will do keep alive too!
+        #       -mcarter 5/28/10
+        http = httplib.HTTPConnection(host, port)
+        
+        # for logging
+        url = "http://" + host
+        if port != 80:
             url += ":" + str(self.base_port)
         url += path
+        
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         if cookie_string:
             headers['Cookie'] = cookie_string
