@@ -4,6 +4,7 @@ from eventlet.green import httplib
 import os
 import sys
 import urllib
+import urlparse
 import eventlet
 from paste import urlmap
 import static
@@ -20,6 +21,7 @@ import protocol
 from user import User
 from admin.admin import HookboxAdminApp
 
+
 try:
     import json
 except:
@@ -33,15 +35,17 @@ logger = logging.getLogger('hookbox')
 
 class HookboxServer(object):
 
-    def __init__(self, config, outputter):
+    def __init__(self, bound_socket, config, outputter):
         self.config = config
         self.interface = config['interface']
         self.port = config['port']
+        self._bound_socket = bound_socket
         self._rtjp_server = rtjp_eventlet.RTJPServer()
 #        self.identifer_key = 'abc';
         self.base_host = config['cbhost']
         self.base_port = config['cbport']
         self.base_path = config['cbpath']
+            
         self.app = urlmap.URLMap()
         self.csp = Listener()
         self.app['/csp'] = self.csp
@@ -55,9 +59,13 @@ class HookboxServer(object):
         self.conns = {}
         self.users = {}
 
+
     def run(self):
         print "Listening to hookbox on http://%s:%s" % (self.interface or "0.0.0.0", self.port)
-        eventlet.spawn(eventlet.wsgi.server, eventlet.listen((self.interface, self.port)), self.app, log=EmptyLogShim())
+        if not self._bound_socket:
+            self._bound_socket = eventlet.listen((self.interface, self.port))
+#        el
+        eventlet.spawn(eventlet.wsgi.server, self._bound_socket, self.app, log=EmptyLogShim())
         ev = eventlet.event.Event()
         self._rtjp_server.listen(sock=self.csp)
         eventlet.spawn(self._run, ev)
@@ -78,30 +86,54 @@ class HookboxServer(object):
                 break
         print "HookboxServer Stopped"
 
-
     def http_request(self, path_name=None, cookie_string=None, form={}, full_path=None):
+        if not full_path and self.config['cb_single_url']:
+            full_path = self.config['cb_single_url']
         if full_path:
-            path = full_path
+            u = urlparse.urlparse(full_path)
+            host = u.hostname
+            port = u.port or 80
+            path = u.path
+            if u.query:
+                path += '?' + u.query
         else:
-            if self.config.get('cb_single_url'):
-                path = self.config.get('cb_single_url')
-            else:
-                path = self.base_path + '/' + self.config.get('cb_' + path_name)
+#            if self.config.get('cb_single_url'):
+#                path = self.config["cbpath"]
+#                host = self.base_host
+#            else:
+            path = self.base_path + '/' + self.config.get('cb_' + path_name)
+            host = self.config["cbhost"]
+            port = self.config["cbport"]
+        
+        if path_name:
             form['action'] = path_name
-        if self.config['secret']:
-            form['secret'] = self.config['secret']
+        if self.config['webhook_secret']:
+            form['secret'] = self.config['webhook_secret']
+            
         form_body = urllib.urlencode(form)
-        http = httplib.HTTPConnection(self.base_host, self.base_port)
-        url = "http://" + self.base_host
-        if self.base_port != 80:
+        # TODO: stash this, and re-use it; maybe it will do keep alive too!
+        #       -mcarter 5/28/10
+        http = httplib.HTTPConnection(host, port)
+        
+        # for logging
+        url = "http://" + host
+        if port != 80:
             url += ":" + str(self.base_port)
         url += path
+        
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         if cookie_string:
             headers['Cookie'] = cookie_string
-        http.request('POST', path, body=form_body, headers=headers)
-        response = http.getresponse()
-        body = response.read()
+        body = None
+        try:
+            http.request('POST', path, body=form_body, headers=headers)
+            response = http.getresponse()
+            body = response.read()
+        except Exception, e:
+            import traceback
+            self.admin.webhook_event(path_name, url, 0, False, body, form_body, cookie_string, e)
+            traceback.print_exc()
+            return False, {}
         if response.status != 200:
             self.admin.webhook_event(path_name, url, response.status, False, body, form_body, cookie_string, "Invalid status")
             raise ExpectedException("Invalid callback response, status=%s (%s), body: %s" % (response.status, path, body))
@@ -141,7 +173,7 @@ class HookboxServer(object):
         self.admin.user_event('connect', user.get_name(), conn.serialize())
         self.admin.connection_event('connect', conn.id, conn.serialize())
         #print 'successfully connected', user.name
-        eventlet.spawn(self.maybe_auto_subscribe, user, options)
+        eventlet.spawn(self.maybe_auto_subscribe, user, options, conn=conn)
 
     def disconnect(self, conn):
         self.admin.user_event('disconnect', conn.user.get_name(), { "id": conn.id})
@@ -204,12 +236,12 @@ class HookboxServer(object):
             self.create_channel(conn, channel_name)
         return self.channels[channel_name]
 
-    def maybe_auto_subscribe(self, user, options):
+    def maybe_auto_subscribe(self, user, options, conn=None):
         #print 'maybe autosubscribe....'
         for destination in options.get('auto_subscribe', ()):
             #print 'subscribing to', destination
-            channel = self.get_channel(None, destination)
-            channel.subscribe(user, needs_auth=False)
+            channel = self.get_channel(user, destination)
+            channel.subscribe(user, conn=conn, needs_auth=False)
         for destination in options.get('auto_unsubscribe', ()):
-            channel = self.get_channel(None, destination)
-            channel.unsubscribe(user, needs_auth=False)
+            channel = self.get_channel(user, destination)
+            channel.unsubscribe(user, conn=conn, needs_auth=False)

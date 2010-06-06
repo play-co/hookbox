@@ -27,6 +27,7 @@ var Subscription = Class(function(supr) {
 	this.onState = function(frame) {}
 
 	this.frame = function(name, args) {
+		logger.debug('received frame', name, args);
 		switch(name) {
 			case 'PUBLISH':
 				if (this.historySize) { 
@@ -44,8 +45,13 @@ var Subscription = Class(function(supr) {
 						this.history.shift(); 
 					}
 				}
-				var i = this.presence.indexOf(args.user);
-				if (i > -1) { this.presence.splice(i, 1); }
+				
+				for (var i = 0, user; user = this.presence[i]; ++i) {
+					if (user == args.user) {
+						this.presence.splice(i, 1);
+						break;
+					}
+				}
 				this.onUnsubscribe(args);
 				break;
 			case 'SUBSCRIBE':
@@ -174,7 +180,7 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 				sub.canceled = true;
 				sub.frame(fName, fArgs);
 				if (fArgs.user == this.username) {
-					delete this._subscriptions[fArgs.channel_name]
+					delete this._subscriptions[fArgs.channel_name];
 					this.onUnsubscribed(sub, fArgs);
 				}
 				break;

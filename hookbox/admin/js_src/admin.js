@@ -49,9 +49,9 @@ var GUI = Class(function() {
 		this.selectedLink = $("#side_menu a:nth-child(1)").click(bind(this, 'linkClick', 'overview'));
 		$("#side_menu a:nth-child(2)").click(bind(this, 'linkClick', 'channels'));
 		$("#side_menu a:nth-child(3)").click(bind(this, 'linkClick', 'users'));
-		$("#side_menu a:nth-child(4)").click(bind(this, 'linkClick', 'configuration'));
-		$("#side_menu a:nth-child(5)").click(bind(this, 'linkClick', 'consoleLogs'));
-		$("#side_menu a:nth-child(6)").click(bind(this, 'linkClick', 'webhookLogs'));
+		$("#side_menu a:nth-child(4)").click(bind(this, 'linkClick', 'consoleLogs'));
+		$("#side_menu a:nth-child(5)").click(bind(this, 'linkClick', 'webhookLogs'));
+		$("#side_menu a:nth-child(6)").click(bind(this, 'linkClick', 'configuration'));
 		
 		window.onresize = bind(this, 'onResize');
 		this.onResize();

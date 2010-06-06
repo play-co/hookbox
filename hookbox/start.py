@@ -8,8 +8,8 @@ import os
 import sys
 from hookbox.config import HookboxConfig
 
-def create_server(config, outputter):
-    server = HookboxServer(config, outputter)
+def create_server(bound_socket, config, outputter):
+    server = HookboxServer(bound_socket, config, outputter)
     return server
 
 
@@ -20,11 +20,11 @@ def run_objgraph(server, config):
         objgraph.show_backrefs([server])
         sys.exit(0)
 
-def main():
+def main(bound_socket=None):
     config = HookboxConfig()
     config.update_from_commandline_arguments(sys.argv)
     logging.basicConfig()
-    server = create_server(config, output_wrapper.outputter)
+    server = create_server(bound_socket, config, output_wrapper.outputter)
     if config['objgraph']:
         eventlet.spawn(run_objgraph, server, config)
     if config['debug']:

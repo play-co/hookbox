@@ -162,7 +162,7 @@ class Channel(object):
         if needs_auth and (self.moderated or self.moderated_publish):
             form = { 'channel_name': self.name, 'payload': payload }
             success, options = self.server.http_request('publish', user.get_cookie(conn), form)
-            self.server.maybe_auto_subscribe(user, options)
+            self.server.maybe_auto_subscribe(user, options, conn=conn)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             payload = options.get('override_payload', payload)
@@ -202,7 +202,7 @@ class Channel(object):
             if 'initial_data' in options:
                 has_initial_data = True
                 initial_data = options['initial_data']
-            self.server.maybe_auto_subscribe(user, options)
+            self.server.maybe_auto_subscribe(user, options, conn=conn)
             
         if has_initial_data or self.history:
             frame = dict(channel_name=self.name, history=self.history, initial_data=initial_data)
@@ -303,7 +303,7 @@ class Channel(object):
                 success, options = False, {}
             if not (success or force_auth):
                 raise ExpectedException(options.get('error', 'Unauthorized'))
-            self.server.maybe_auto_subscribe(user, options)
+            self.server.maybe_auto_subscribe(user, options, conn=conn)
         frame = {"channel_name": self.name, "user": user.get_name()}
         self.server.admin.channel_event('unsubscribe', self.name, frame)
         if self.presenceful:

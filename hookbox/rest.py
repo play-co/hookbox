@@ -5,6 +5,7 @@ try:
     import json
 except:
     import simplejson as json
+import urlparse
 
 class HookboxRest(object):
     logger = logging.getLogger('HookboxRest')
@@ -161,6 +162,34 @@ class HookboxRest(object):
         start_response('200 Ok', [])
         return json.dumps([True, {}])
     
+    _config_vars = [
+        "cbhost",
+        "cbport",
+        "cbpath",
+        "cb_connect",
+        "cb_disconnect",
+        "cb_create_channel",
+        "cb_destroy_channel",
+        "cb_subscribe",
+        "cb_unsubscribe",
+        "cb_publish",
+        "cb_single_url",
+        "admin_password",
+        "webhook_secret",
+        "rest_secret",
+    ]
+
+    def render_set_config(self, form, start_response):
+        for key in form:
+            try:
+                form[key] = json.loads(form[key])
+            except:
+                raise ExpectedException("Invalid json value for form key '%s'" % (key,))
+        for key in form:
+            if key in self._config_vars:
+                self.server.config[key] = form.get(key)
+        start_response('200 Ok', [])
+        return json.dumps([True, {}])
         
 def get_form(environ):
     form = {}
