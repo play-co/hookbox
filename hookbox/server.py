@@ -109,7 +109,11 @@ class HookboxServer(object):
             form['action'] = path_name
         if self.config['webhook_secret']:
             form['secret'] = self.config['webhook_secret']
-            
+        # TODO: The following code creates a hideously bloated form_body. I'm
+        #       sure we actually have to use urlencode for this.
+        for key, val in form.items():
+            del form[key]
+            form[key.encode('utf8')] = val.encode('utf8')
         form_body = urllib.urlencode(form)
         # TODO: stash this, and re-use it; maybe it will do keep alive too!
         #       -mcarter 5/28/10
