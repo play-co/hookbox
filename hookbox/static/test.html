@@ -5,15 +5,17 @@
    hookbox.logging.get('hookbox').setLevel(hookbox.logging.DEBUG);
    hookbox.logging.get('net.protocols.rtjp').setLevel(hookbox.logging.DEBUG);
    function go() {
-        c = hookbox.connect('http://localhost:8001/csp');
-        s = c.subscribe('testing');
-        s.onFrame = function(frame) {
-            console.log('received frame', frame);
+        c = hookbox.connect('http://' + location.host + '/csp');
+        c.onSubscribed = function(name, s) {
+            s.onFrame = function(frame) {
+                console.log('received frame', frame);
+            };
+            s.onFailure = function(err) {
+                console.log('ERR subscribing', err);
+            };
+            c.publish('testing', [1,2,3]);
         };
-        s.onFailure = function(err) {
-            console.log('ERR subscribing', err);
-        }
-        c.publish('testing', [1,2,3]);
+        c.subscribe('testing');
    }
 
   </script>
