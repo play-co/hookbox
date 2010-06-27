@@ -74,8 +74,8 @@ class HookboxRest(object):
         name= form.get('name', None)
         if not name:
             raise ExpectedException("Missing name")
-        if not self.server.exists_channel(channel_name):
-            raise ExpectedException("Channel %s doesn't exist" % (channel_name,))
+#        if not self.server.exists_channel(channel_name):
+#            raise ExpectedException("Channel %s doesn't exist" % (channel_name,))
         if not self.server.exists_user(name):
             raise ExpectedException("User %s doesn't exist" % (name,))
         channel = self.server.get_channel(None, channel_name)
