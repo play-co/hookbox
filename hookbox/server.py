@@ -111,9 +111,12 @@ class HookboxServer(object):
             form['secret'] = self.config['webhook_secret']
         # TODO: The following code creates a hideously bloated form_body. I'm
         #       sure we actually have to use urlencode for this.
-        for key, val in form.items():
-            del form[key]
-            form[key.encode('utf8')] = val.encode('utf8')
+        # TODO: I rolled back the unicode fix, because its broken...
+        #       -mcarter 6/27/10
+#        for key, val in form.items():
+#            del form[key]
+#            form[key.encode('utf8')] = val.encode('utf8')
+
         form_body = urllib.urlencode(form)
         # TODO: stash this, and re-use it; maybe it will do keep alive too!
         #       -mcarter 5/28/10
