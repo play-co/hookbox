@@ -219,7 +219,9 @@ class Channel(object):
                 subscriber.send_frame('SUBSCRIBE', frame)
                 
         frame = self._build_subscribe_frame(user, initial_data)
-        conn.send_frame('SUBSCRIBE', frame)
+        
+        user.send_frame('SUBSCRIBE', frame)
+            
         if self.history_size:
             del frame['channel_name']
             self.history.append(('SUBSCRIBE', {"user": user.get_name() }))
