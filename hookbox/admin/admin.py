@@ -6,9 +6,11 @@ import rtjp_eventlet
 import eventlet
 import logging
 from hookbox.errors import ExpectedException
+import hookbox #for version info
 import cgi
 import datetime
 import eventlet
+
 
 MAX_CONSOLE_LENGTH = 10240
 WEBHOOK_HISTORY_SIZE = 100
@@ -269,7 +271,7 @@ class AdminProtocol(object):
             raise ExpectedException("Invalid admin password")
         self.logged_in = True
         self._admin_app.login(self)
-        self.send_frame("CONNECTED")
+        self.send_frame("CONNECTED", {'version': hookbox.__version__})
         self.start_loop('overview')
         
     def frame_SWITCH(self, id, args):

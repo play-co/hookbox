@@ -83,7 +83,7 @@ li {
 .channelOptionsTable { margin: 0px auto; }
 .channelOptionsButtons { text-align: center; margin-top: 10px;}
 
-.overviewLabel { float: left; text-align: right; font-size: 20px; display: block; padding: 10px; text-decoration: none; width: 200px;}
+.overviewLabel { float: left; text-align: left; font-size: 20px; display: block; padding: 3px; padding-left: 15px; padding-right: 5px; text-decoration: none; width: 200px;}
 .overviewNum { width: 80px; text-align: left; float: right; margin-top: -12px; margin-left: 20px; font-family: Georgia, serif; font-size: 36px; padding: 2px; }
 
 tr td:first-child { text-align: right; }

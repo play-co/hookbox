@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 import os, sys
+import hookbox
 
 static_types = [
     '*.js', 
@@ -43,31 +44,36 @@ def find_package_data():
         ]) }
     return package_data
 
-setup(
-    name='hookbox',
-    version='0.3.0',
-    author='Michael Carter',
-    author_email='CarterMichael@gmail.com',
-    url='http://hookbox.org',
-    license='MIT License',
-    description='HookBox is a Comet server and message queue that tightly integrates with your existing web application via web hooks and a REST interface.',
-    long_description='',
-    packages= find_packages(),
-    package_data = find_package_data(),
-    zip_safe = False,
-    install_requires = _install_requires,
-    entry_points = '''    
-        [console_scripts]
-        hookbox = hookbox.start:main
-    ''',
-    
-    classifiers = [
-        'Development Status :: 4 - Beta',
-        'Environment :: Console',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Topic :: Software Development :: Libraries :: Python Modules'
-    ],        
-)
+def main():
+    setup(
+        name='hookbox',
+        version=hookbox.__version__,
+        author='Michael Carter',
+        author_email='CarterMichael@gmail.com',
+        url='http://hookbox.org',
+        license='MIT License',
+        description='HookBox is a Comet server and message queue that tightly integrates with your existing web application via web hooks and a REST interface.',
+        long_description='',
+        packages= find_packages(),
+        package_data = find_package_data(),
+        zip_safe = False,
+        install_requires = _install_requires,
+        entry_points = '''    
+            [console_scripts]
+            hookbox = hookbox.start:main
+        ''',
+        
+        classifiers = [
+            'Development Status :: 4 - Beta',
+            'Environment :: Console',
+            'Intended Audience :: Developers',
+            'License :: OSI Approved :: MIT License',
+            'Operating System :: OS Independent',
+            'Programming Language :: Python',
+            'Topic :: Software Development :: Libraries :: Python Modules'
+        ],        
+    )
+
+
+if __name__ == '__main__':
+    main()

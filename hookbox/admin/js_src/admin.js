@@ -42,8 +42,8 @@ var GUI = Class(function() {
 	this.init = function() {
 		this.client = new exports.AdminProtocol();
 		this.state = 'init';
-		
 		this._loginView = new LoginView(this);
+		this._version = 'unknown'
 		this.current = this._loginView;
 		
 		this.selectedLink = $("#side_menu a:nth-child(1)").click(bind(this, 'linkClick', 'overview'));
@@ -182,9 +182,11 @@ var GUI = Class(function() {
 		
 	}
 	
-	this.CONNECTED = function() {
+	this.CONNECTED = function(fArgs) {
+		this._version = fArgs.version
 		this.overview();
 		$("#app").show()
+		$("#version").html(fArgs.version);
 	}
 	
 	this.OVERVIEW= function(fArgs) {
