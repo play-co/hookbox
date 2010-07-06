@@ -141,6 +141,7 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 
 	this.connectionMade = function() {
 		logger.debug('connectionMade');
+		this.transport.setEncoding('utf8');
 		this.sendFrame('CONNECT', { cookie_string: this.cookieString });
 	}
 
