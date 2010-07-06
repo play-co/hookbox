@@ -17,7 +17,6 @@ class HookboxConn(object):
         self.cookie_identifier = config['cookie_identifier']
         self.id = str(uuid.uuid4()).replace('-', '')
         self.user = None
-        eventlet.spawn(self._run)
         
     def serialize(self):
         return {
@@ -45,7 +44,7 @@ class HookboxConn(object):
         if self.state == 'connected':
             self.server.closed(self)
         
-    def _run(self):
+    def run(self):
         while True:
             try:
 #                print 'read a frame...'

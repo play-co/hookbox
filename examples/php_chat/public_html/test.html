@@ -17,7 +17,7 @@
    onload = function() {
 				hookbox.logging.get('hookbox').setLevel(hookbox.logging.DEBUG);
 				hookbox.logging.get('net.protocols.rtjp').setLevel(hookbox.logging.DEBUG);
-				conn = hookbox.connect('http://localhost:8001/csp');
+				conn = hookbox.connect('http://127.0.0.1:8001');
 				conn.onSubscribed = function(channel_name, s) {
 					SUB = s;
 					s.onPublish = function(frame) {

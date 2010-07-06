@@ -10,6 +10,7 @@ from paste import urlmap
 import static
 
 import eventlet.wsgi
+import eventlet.websocket
 
 from csp_eventlet import Listener
 import rtjp_eventlet
@@ -49,6 +50,9 @@ class HookboxServer(object):
         self.app = urlmap.URLMap()
         self.csp = Listener()
         self.app['/csp'] = self.csp
+        self.app['/ws'] = self._ws_wrapper
+        self._ws_wsgi_app = eventlet.websocket.WebSocketWSGI(self._ws_wsgi_app)
+        
         static_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], 'static')
         self.app['/static'] = static.Cling(static_path)
         self.app['/rest'] = rest.HookboxRest(self, config)
@@ -59,7 +63,16 @@ class HookboxServer(object):
         self.conns = {}
         self.users = {}
 
+    def _ws_wrapper(self, environ, start_response):
+        environ['PATH_INFO'] = environ['SCRIPT_NAME'] + environ['PATH_INFO']
+        environ['SCRIPT_NAME'] = ''
+        return self._ws_wsgi_app(environ, start_response)
 
+    def _ws_wsgi_app(self, ws):
+        sock = SockWebSocketWrapper(ws)
+        rtjp_conn = rtjp_eventlet.RTJPConnection(sock=sock)
+        self._accept(rtjp_conn)
+        
     def run(self):
         print "Listening to hookbox on http://%s:%s" % (self.interface or "0.0.0.0", self.port)
         if not self._bound_socket:
@@ -74,13 +87,18 @@ class HookboxServer(object):
     def __call__(self, environ, start_response):
         return self.app(environ, start_response)
 
+    def _accept(self, rtjp_conn):
+        conn = protocol.HookboxConn(self, rtjp_conn, self.config)
+        conn.run()
+
     def _run(self, ev):
         # NOTE: You probably want to call this method directly if you're trying
         #       To use some other wsgi server than eventlet.wsgi
         while True:
             try:
                 rtjp_conn = self._rtjp_server.accept().wait()
-                conn = protocol.HookboxConn(self, rtjp_conn, self.config)
+                eventlet.spawn(self._accept, rtjp_conn)
+#                conn = protocol.HookboxConn(self, rtjp_conn, self.config)
             except:
                 ev.send_exception(*sys.exc_info())
                 break
@@ -113,9 +131,15 @@ class HookboxServer(object):
         #       sure we actually have to use urlencode for this.
         # TODO: I rolled back the unicode fix, because its broken...
         #       -mcarter 6/27/10
-#        for key, val in form.items():
-#            del form[key]
-#            form[key.encode('utf8')] = val.encode('utf8')
+        for key, val in form.items():
+            new_key = key
+            if isinstance(key, unicode):
+                del form[key]
+                new_key = key.encode('utf-8')
+            new_val = val
+            if isinstance(val, unicode):
+                new_val = val.encode('utf-8')
+            form[new_key] = new_val
 
         form_body = urllib.urlencode(form)
         # TODO: stash this, and re-use it; maybe it will do keep alive too!
@@ -252,3 +276,26 @@ class HookboxServer(object):
         for destination in options.get('auto_unsubscribe', ()):
             channel = self.get_channel(user, destination)
             channel.unsubscribe(user, conn=conn, needs_auth=False)
+
+
+
+class SockWebSocketWrapper(object):
+    def __init__(self, ws):
+        self._ws = ws
+        
+    def recv(self, num):
+        # not quite right (ignore num)... but close enough for our use.
+        data = self._ws.wait()
+        if data:
+            data = data.encode('utf-8')
+        return data
+
+    def send(self, data):
+        self._ws.send(data)
+        return len(data)
+        
+    def sendall(self, data):
+        self.send(data)
+        
+    def __getattr__(self, key):
+        return getattr(self._ws, key)

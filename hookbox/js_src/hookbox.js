@@ -4,8 +4,16 @@ jsio('from net.protocols.rtjp import RTJPProtocol');
 exports.logging = logging
 
 exports.connect = function(url, cookieString) {
+	if (!url.match('/$')) {
+		url = url + '/';
+	}
 	var p = new HookBoxProtocol(url, cookieString);
-	jsioConnect(p, 'csp', {url: url})
+	if (window.WebSocket) {
+		jsioConnect(p, 'websocket', {url: url.replace('http://', 'ws://') + 'ws' });
+	}
+	else {
+		jsioConnect(p, 'csp', {url: url + 'csp'})
+	}
 	return p;
 }
 

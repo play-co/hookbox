@@ -21,8 +21,8 @@ _install_requires = [
     'eventlet', 
     'paste', 
     'static',
-    'csp_eventlet>=0.3.0', 
-    'rtjp_eventlet>=0.2.0', 
+    'csp_eventlet>=0.4.2', 
+    'rtjp_eventlet>=0.2.1', 
     'pygments',
 #    'nose==0.11.1',
 #    'coverage',
@@ -45,7 +45,7 @@ def find_package_data():
 
 setup(
     name='hookbox',
-    version='0.2.9',
+    version='0.3.0',
     author='Michael Carter',
     author_email='CarterMichael@gmail.com',
     url='http://hookbox.org',
