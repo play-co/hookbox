@@ -93,6 +93,7 @@
 <li><a class="reference external" href="#destroy-channel">destroy_channel</a></li>
 <li><a class="reference external" href="#state-set-key">state_set_key</a></li>
 <li><a class="reference external" href="#state-delete-key">state_delete_key</a></li>
+<li><a class="reference external" href="#set-config">set_config</a></li>
 </ul>
 </li>
 </ul>
@@ -320,6 +321,39 @@
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
 </div>
 <p>The <tt class="docutils literal"><span class="pre">state</span></tt> of the channel no longer contains the key &#8220;score&#8221;. An onState callback will be issued to all subscribers.</p>
+</div>
+<div class="section" id="set-config">
+<h2>set_config<a class="headerlink" href="#set-config" title="Permalink to this headline">¶</a></h2>
+<p>Update certain configuration parameters (mostly webhook related options) immediately without restarting hookbox.</p>
+<p>Required Form variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+</ul>
+<p>Optional Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">cbhost</span></tt>: json string</li>
+<li><tt class="docutils literal"><span class="pre">cbport</span></tt>: json integer</li>
+<li><tt class="docutils literal"><span class="pre">cbpath</span></tt>: json string</li>
+<li><tt class="docutils literal"><span class="pre">cb_connect</span></tt>: json string</li>
+<li><tt class="docutils literal"><span class="pre">cb_disconnect</span></tt>: json string</li>
+<li><tt class="docutils literal"><span class="pre">cb_create_channel</span></tt>: json string</li>
+<li><tt class="docutils literal"><span class="pre">cb_destroy_channel</span></tt>: json string</li>
+<li><tt class="docutils literal"><span class="pre">cb_subscribe</span></tt>: json string</li>
+<li><tt class="docutils literal"><span class="pre">cb_unsubscribe</span></tt>: json string</li>
+<li><tt class="docutils literal"><span class="pre">cb_publish</span></tt>: json string</li>
+<li><tt class="docutils literal"><span class="pre">cb_single_url</span></tt>: json string</li>
+<li><tt class="docutils literal"><span class="pre">admin_password</span></tt>: json string</li>
+<li><tt class="docutils literal"><span class="pre">webhook_secret</span></tt>: json string</li>
+<li><tt class="docutils literal"><span class="pre">rest_secret</span></tt>: json string</li>
+</ul>
+<p>Example:</p>
+<p>Client Requests URL:</p>
+<div class="highlight-none"><div class="highlight"><pre>/rest/state_delete_key?secret=yo&amp;cbhost=&quot;1.2.3.4&amp;cbport=80</pre></div>
+</div>
+<p>Server Replies:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
+</div>
+<p>The callback host is now set to <tt class="docutils literal"><span class="pre">1.2.3.4</span></tt> and the port is now <tt class="docutils literal"><span class="pre">80</span></tt>.</p>
 </div>
 </div>
 

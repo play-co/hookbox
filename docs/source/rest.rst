@@ -1,3 +1,4 @@
+.. _rest_toplevel:
 ==============
 Rest Interface
 ==============

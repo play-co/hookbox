@@ -1,3 +1,4 @@
+.. _rest_toplevel:
 ==============
 Rest Interface
 ==============
@@ -308,3 +309,47 @@ Server Replies:
 
 	
 The ``state`` of the channel no longer contains the key "score". An onState callback will be issued to all subscribers.
+
+set_config
+==========
+
+Update certain configuration parameters (mostly webhook related options) immediately without restarting hookbox.
+
+Required Form variables:
+    
+* ``secret``: The password specified in the config as ``-r`` or ``--rest-secret``.
+
+Optional Form Variables:
+
+* ``cbhost``: json string
+* ``cbport``: json integer
+* ``cbpath``: json string
+* ``cb_connect``: json string
+* ``cb_disconnect``: json string
+* ``cb_create_channel``: json string
+* ``cb_destroy_channel``: json string
+* ``cb_subscribe``: json string
+* ``cb_unsubscribe``: json string
+* ``cb_publish``: json string
+* ``cb_single_url``: json string
+* ``admin_password``: json string
+* ``webhook_secret``: json string
+* ``rest_secret``: json string
+
+Example:
+    
+Client Requests URL:
+    
+.. sourcecode:: none
+
+    /rest/state_delete_key?secret=yo&cbhost="1.2.3.4&cbport=80
+
+  
+Server Replies:
+    
+.. sourcecode:: javascript
+    
+    [ true, {} ]
+
+
+The callback host is now set to ``1.2.3.4`` and the port is now ``80``.

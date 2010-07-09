@@ -93,7 +93,7 @@
 <li><a class="reference external" href="#callback-port-cbport">Callback Port (&#8211;cbport)</a></li>
 <li><a class="reference external" href="#callback-hostname-cbhost">Callback Hostname (&#8211;cbhost)</a></li>
 <li><a class="reference external" href="#callback-path-prefix-cbpath">Callback Path Prefix (&#8211;cbpath)</a></li>
-<li><a class="reference external" href="#callback-secret-token-s-secret">Callback Secret Token (-s, &#8211;secret)</a></li>
+<li><a class="reference external" href="#callback-secret-token-s-webhook-secret">Callback Secret Token (-s, &#8211;webhook-secret)</a></li>
 </ul>
 </li>
 <li><a class="reference external" href="#extended-callback-options">Extended Callback Options</a><ul>
@@ -156,9 +156,9 @@
 <h3>Callback Path Prefix (&#8211;cbpath)<a class="headerlink" href="#callback-path-prefix-cbpath" title="Permalink to this headline">¶</a></h3>
 <p>All callbacks will be prefixed with the value specified by &#8211;cbpath=PATH_PREFIX; the default is &#8220;/hookbox&#8221;.</p>
 </div>
-<div class="section" id="callback-secret-token-s-secret">
-<h3>Callback Secret Token (-s, &#8211;secret)<a class="headerlink" href="#callback-secret-token-s-secret" title="Permalink to this headline">¶</a></h3>
-<p>If a secret token is provided, all callbacks with include that token value as the form variable &#8220;secret&#8221;; this is useful for blocking unauthorized requests to the callback urls. The secret is specified by -s SECRET or &#8211;secret=SECRET; the default is null (no secret.)</p>
+<div class="section" id="callback-secret-token-s-webhook-secret">
+<h3>Callback Secret Token (-s, &#8211;webhook-secret)<a class="headerlink" href="#callback-secret-token-s-webhook-secret" title="Permalink to this headline">¶</a></h3>
+<p>If a secret token is provided, all callbacks with include that token value as the form variable &#8220;secret&#8221;; this is useful for blocking unauthorized requests to the callback urls. The secret is specified by -s SECRET or &#8211;webhook-secret=SECRET; the default is null (no secret.)</p>
 </div>
 </div>
 <div class="section" id="extended-callback-options">

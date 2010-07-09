@@ -1,3 +1,5 @@
+.. _javascript_toplevel:
+
 ==============
 Javascript API
 ==============
@@ -35,7 +37,10 @@ To disconnect from hookbox use the ``conn.disconnect`` method:
 	conn.disconnect();
 
 NOTE: This method will often not result in a successful disconnect if called in the unload handler for the web page, in which case the user won't be disconnected until they timeout (after about 60 seconds)
-	
+
+
+.. _javascript_subscribing:
+    
 Subscribing to Channels
 =======================
 

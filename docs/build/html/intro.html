@@ -85,6 +85,7 @@
                 <ul>
 <li><a class="reference external" href="#">Introduction</a><ul>
 <li><a class="reference external" href="#overview">Overview</a></li>
+<li><a class="reference external" href="#terminology">Terminology</a></li>
 <li><a class="reference external" href="#common-patterns">Common Patterns</a><ul>
 <li><a class="reference external" href="#real-time-graph-time-series">Real-time graph (time series)</a></li>
 <li><a class="reference external" href="#chat-room-with-presence">Chat Room (with presence)</a></li>
@@ -104,7 +105,7 @@
             <div class="body">
                 
 <div class="section" id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<span id="intro-toplevel"></span><h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Hookbox&#8217;s purpose is to ease the development of real-time web applications, with an emphasis on tight integration with existing web technology. Put simply, Hookbox is a web-enabled message queue. Browers may directly connect to Hookbox, subscribe to named channels, and publish and receive messages on those channels in real-time. An external application (typically the web application itself) may also publish messages to channels by means of the Hookbox REST interface. All authentication and authorization is performed by an external web application via designated &#8220;webhook&#8221; callbacks.</p>
@@ -112,8 +113,19 @@
 <p>Any time a user connects or operates on a channel, ( subscribe, publish, unsubscribe) Hookbox makes an http request to the web application for authorization for the action. Once subscribed to a channel, the user&#8217;s browser will receive real-time events that originate either in another browser via the javascript api, or from the web application via the REST api.</p>
 <p>They key insight is that all application development with hookbox Happens either in javascript, or in the native language of the web application itself (e.g. PHP.)</p>
 </div>
+<div class="section" id="terminology">
+<h2>Terminology<a class="headerlink" href="#terminology" title="Permalink to this headline">¶</a></h2>
+<p>Throughout this documentation, we throw various terms around like you should know what we&#8217;re talking about. This is probably not always the case, so this section includes a list of terms that have caused trouble to previous readers.</p>
+<blockquote>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">Application</span></tt>, <tt class="docutils literal"><span class="pre">Web</span> <span class="pre">Application</span></tt>, <tt class="docutils literal"><span class="pre">Web</span> <span class="pre">app</span></tt>: An HTTP based application; commonly written with PHP, Django, Ruby on Rails, ASP.NET, and Java servlets.</li>
+<li><tt class="docutils literal"><span class="pre">Browser</span></tt>, <tt class="docutils literal"><span class="pre">Client</span></tt>: Firefox, IE, Chrome, Safari, Opera, or some variant.</li>
+<li><tt class="docutils literal"><span class="pre">Webhook</span></tt>, <tt class="docutils literal"><span class="pre">HTTP</span> <span class="pre">callback</span></tt>: A HTTP request made from Hookbox to the Web app when various events occur on the Hookbox server.</li>
+</ul>
+</blockquote>
+</div>
 <div class="section" id="common-patterns">
-<h2>Common Patterns<a class="headerlink" href="#common-patterns" title="Permalink to this headline">¶</a></h2>
+<span id="intro-common-patterns"></span><h2>Common Patterns<a class="headerlink" href="#common-patterns" title="Permalink to this headline">¶</a></h2>
 <p>Hookbox is built around the concept of named <a class="reference external" href="channels.html"><em>Channels</em></a> which are extremely flexible. These channels can be configured by the web application to provide many features out of the box. Here are a few typical patterns:</p>
 <div class="section" id="real-time-graph-time-series">
 <h3>Real-time graph (time series)<a class="headerlink" href="#real-time-graph-time-series" title="Permalink to this headline">¶</a></h3>

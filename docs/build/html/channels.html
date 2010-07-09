@@ -82,6 +82,16 @@
  
                 </h2>
             </div>
+                <ul>
+<li><a class="reference external" href="#">Channels</a><ul>
+<li><a class="reference external" href="#overview">Overview</a></li>
+<li><a class="reference external" href="#getting-data-out-of-a-channel">Getting Data out of a Channel</a></li>
+<li><a class="reference external" href="#putting-data-into-channels">Putting Data into Channels</a></li>
+<li><a class="reference external" href="#channel-properties">Channel Properties</a></li>
+</ul>
+</li>
+</ul>
+
             <div class="clearboth"></div>
         </div>
         
@@ -90,7 +100,43 @@
                 
 <div class="section" id="channels">
 <span id="channels-toplevel"></span><h1>Channels<a class="headerlink" href="#channels" title="Permalink to this headline">¶</a></h1>
-<p>Hookbox is built around hte concept of named channels. All actions take place on these channels</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>Hookbox is built around the concept channels which can be used as an abstraction for routing real-time communication between browers and your web application. These channels have many options, making them suitable for a multitude of basic types of applications. You need to consider the features needed by the real-time portion of your application, and adjust the channel options appropriately. You can read about some <a class="reference external" href="intro.html#intro-common-patterns"><em>Common Patterns</em></a> to find a good starting point for your application.</p>
+<p>Ultimately, your web application has complete control over these channels. A user may perform three actions on a channel, subsribing, publishing, or unsubscribing. Whenever a user attempts to perform an action on a channel, Hookbox will make a <a class="reference external" href="webhooks.html"><em>Webhook</em></a> call back to your application to obtain permission for the action by that user, or simply to notify your web application that the action took place.</p>
+<p>The application may itself perform any of these actions on a channel by using the :ref;`REST API &lt;rest_toplevel&gt;`; it may perform any action on behalf of any user, and it can even publish with arbitrary usernames. The application may additionally use the REST API to alter a channel&#8217;s state or options at any time.</p>
+<p>Finally, the web application may sometimes perform actions on channels on behalf of a particular user when that user causes a webhook callback. For instance, a user might subscribe to the channel &#8216;foo&#8217;, which would result in a <tt class="docutils literal"><span class="pre">subscribe</span></tt> webhook to be issued. The web application may respond with the <tt class="docutils literal"><span class="pre">auto_subscribe</span></tt> directive in order to subscribe the user to another channel, such as &#8216;bar&#8217;.</p>
+<p>You can think of channels as three parts:</p>
+<ol class="arabic simple">
+<li>Unique name</li>
+<li>List of actively connected/subscribed users</li>
+<li>History/state</li>
+</ol>
+<p>And you can think of the operations you can perform on a channel in three categories:</p>
+<ol class="arabic simple">
+<li>Putting data into a channel</li>
+<li>Getting data out of a channel</li>
+<li>Altering channel subscriptions</li>
+</ol>
+</div>
+<div class="section" id="getting-data-out-of-a-channel">
+<h2>Getting Data out of a Channel<a class="headerlink" href="#getting-data-out-of-a-channel" title="Permalink to this headline">¶</a></h2>
+<p>The most common way to get data out of a channel is to simply subscribe with the <a class="reference external" href="javascript.html#javascript-subscribing"><em>Javascript API</em></a>. This method allows javascript code to attach a publish callback which will be invoked whenever a new message is published to the channel.</p>
+</div>
+<div class="section" id="putting-data-into-channels">
+<h2>Putting Data into Channels<a class="headerlink" href="#putting-data-into-channels" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="channel-properties">
+<h2>Channel Properties<a class="headerlink" href="#channel-properties" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">history_size</span></tt>: the maximum number of entries in the channel history.</li>
+<li><tt class="docutils literal"><span class="pre">history</span></tt>: A list of events that have previously occurred on this channel. They may be Subscribe, Unsubscribe, or Publish events.</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: The name of the channel.</li>
+<li><tt class="docutils literal"><span class="pre">presenceful</span></tt>: A Boolean indicating whether presence information is shared with channel subscribers.</li>
+<li><tt class="docutils literal"><span class="pre">moderated</span></tt>: If true, any action will cause a Webhook callback.</li>
+<li>TODO: etc.</li>
+</ul>
+</div>
 </div>
 
             </div>

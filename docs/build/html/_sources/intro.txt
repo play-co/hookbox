@@ -1,3 +1,5 @@
+.. _intro_toplevel:
+    
 ============
 Introduction
 ============
@@ -13,6 +15,17 @@ Any time a user connects or operates on a channel, ( subscribe, publish, unsubsc
 
 They key insight is that all application development with hookbox Happens either in javascript, or in the native language of the web application itself (e.g. PHP.)
 
+
+Terminology
+===========
+
+Throughout this documentation, we throw various terms around like you should know what we're talking about. This is probably not always the case, so this section includes a list of terms that have caused trouble to previous readers.
+
+ * ``Application``, ``Web Application``, ``Web app``: An HTTP based application; commonly written with PHP, Django, Ruby on Rails, ASP.NET, and Java servlets.
+ * ``Browser``, ``Client``: Firefox, IE, Chrome, Safari, Opera, or some variant.
+ * ``Webhook``, ``HTTP callback``: A HTTP request made from Hookbox to the Web app when various events occur on the Hookbox server.
+ 
+.. _intro_common_patterns:
 
 Common Patterns
 ===============

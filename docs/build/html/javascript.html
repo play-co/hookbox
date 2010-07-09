@@ -106,7 +106,7 @@
             <div class="body">
                 
 <div class="section" id="javascript-api">
-<h1>Javascript API<a class="headerlink" href="#javascript-api" title="Permalink to this headline">¶</a></h1>
+<span id="javascript-toplevel"></span><h1>Javascript API<a class="headerlink" href="#javascript-api" title="Permalink to this headline">¶</a></h1>
 <p>The Hookbox javascript api is contained completely in the hookbox.js file that comes with the Hookbox daemon. The file is served by hookbox at <a class="reference external" href="http://HOOKBOX_HOST:HOOKBOX_PORT/static/hookbox.js">http://HOOKBOX_HOST:HOOKBOX_PORT/static/hookbox.js</a>, but you may serve the file from any location and it will still work.</p>
 <div class="section" id="connecting">
 <h2>Connecting<a class="headerlink" href="#connecting" title="Permalink to this headline">¶</a></h2>
@@ -128,7 +128,7 @@
 <p>NOTE: This method will often not result in a successful disconnect if called in the unload handler for the web page, in which case the user won&#8217;t be disconnected until they timeout (after about 60 seconds)</p>
 </div>
 <div class="section" id="subscribing-to-channels">
-<h2>Subscribing to Channels<a class="headerlink" href="#subscribing-to-channels" title="Permalink to this headline">¶</a></h2>
+<span id="javascript-subscribing"></span><h2>Subscribing to Channels<a class="headerlink" href="#subscribing-to-channels" title="Permalink to this headline">¶</a></h2>
 <p>As soon as you have a connection object after calling hookbox.connect, you are free to make calls to conn.subscribe, even before the connection is established. These calls will be buffered until after the onOpen event is fired.</p>
 <p>To subscribe to a channel use the conn.subscribe function:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">conn</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="s2">&quot;my_channel_name&quot;</span><span class="p">);</span></pre></div>
