@@ -19,7 +19,7 @@ static_types = [
 #    _install_requires.append("Twisted")
 
 _install_requires = [
-    'eventlet', 
+    'eventlet>=0.9.9', 
     'paste', 
     'static',
     'csp_eventlet>=0.4.2', 
