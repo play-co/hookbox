@@ -1,0 +1,37 @@
+html, body { margin: 0px; padding: 0px; }
+
+body, div, td { font: 11px Helvetica, Arial, sans-serif; }
+
+.inset {
+	border: 1px solid #DDD;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+}
+
+h1 { margin: 0px 0px 10px 0px; }
+
+#wrapper {
+	margin: 20px auto;
+	padding: 10px;
+	background: #F6F5F4;
+	width: 350px;
+}
+
+#history {
+	padding: 5px;
+	background: #FFF;
+	height: 200px;
+	width: 338px;
+	overflow-y: scroll;
+}
+
+#chat_input {
+	width: 260px;
+	margin-top: 10px;
+	margin-right: 10px;
+}
+
+#chat_send {
+	width: 60px;
+}

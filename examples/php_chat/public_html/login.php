@@ -9,6 +9,6 @@ mysql_query("INSERT INTO users VALUES (NULL, '${username}'); ");
 
 $_SESSION['username'] = $_POST['username'];
 
-header('Location: test.html');
+header('Location: test.php');
 
 ?>
