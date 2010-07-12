@@ -196,6 +196,10 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 			case 'ERROR':
 				this.onError(fArgs);
 				break;
+				
+			case 'SET_COOKIE':
+				document.cookie = fArgs.cookie;
+				break;
 		}
 	}
 	this.connectionLost = function() {

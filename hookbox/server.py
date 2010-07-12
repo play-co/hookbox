@@ -104,7 +104,7 @@ class HookboxServer(object):
                 break
         print "HookboxServer Stopped"
 
-    def http_request(self, path_name=None, cookie_string=None, form={}, full_path=None):
+    def http_request(self, path_name=None, cookie_string=None, form={}, full_path=None, conn=None):
         if not full_path and self.config['cb_single_url']:
             full_path = self.config['cb_single_url']
         if full_path:
@@ -168,6 +168,7 @@ class HookboxServer(object):
         if response.status != 200:
             self.admin.webhook_event(path_name, url, response.status, False, body, form_body, cookie_string, "Invalid status")
             raise ExpectedException("Invalid callback response, status=%s (%s), body: %s" % (response.status, path, body))
+
         try:
            output = json.loads(body)
         except:
@@ -185,6 +186,11 @@ class HookboxServer(object):
         if not output[0]:
             err = output[1].get('msg', "(No reason given)")
         self.admin.webhook_event(path_name, url, response.status, output[0], body, form_body, cookie_string, err)
+
+	if conn:	
+		set_cookie = response.getheader('Set-Cookie', '')
+		conn.send_frame('SET_COOKIE', {'cookie': set_cookie})
+	
         return output
 
         # type, url, response status, success/failture, raw_output
@@ -193,7 +199,7 @@ class HookboxServer(object):
 
     def connect(self, conn):
         form = { 'conn_id': conn.id }
-        success, options = self.http_request('connect', conn.get_cookie(), form)
+        success, options = self.http_request('connect', conn.get_cookie(), form, conn=conn)
         if not success:
             raise ExpectedException(options.get('error', 'Unauthorized'))
         if 'name' not in options:

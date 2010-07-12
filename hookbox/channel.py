@@ -161,7 +161,7 @@ class Channel(object):
         payload = encoded_payload
         if needs_auth and (self.moderated or self.moderated_publish):
             form = { 'channel_name': self.name, 'payload': payload }
-            success, options = self.server.http_request('publish', user.get_cookie(conn), form)
+            success, options = self.server.http_request('publish', user.get_cookie(conn), form, conn=conn)
             self.server.maybe_auto_subscribe(user, options, conn=conn)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
@@ -196,7 +196,7 @@ class Channel(object):
         
         if needs_auth and (self.moderated or self.moderated_subscribe):
             form = { 'channel_name': self.name, "user": user.get_name() }
-            success, options = self.server.http_request('subscribe', user.get_cookie(conn), form)
+            success, options = self.server.http_request('subscribe', user.get_cookie(conn), form, conn=conn)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             if 'initial_data' in options:
@@ -298,7 +298,7 @@ class Channel(object):
         if needs_auth and (self.moderated or self.moderated_unsubscribe):
             form = { 'channel_name': self.name, "user": user.get_name() }
             try:
-                success, options = self.server.http_request('unsubscribe', user.get_cookie(conn), form)
+                success, options = self.server.http_request('unsubscribe', user.get_cookie(conn), form, conn=conn)
             except ExpectedException:
                 if not force_auth:
                     raise
