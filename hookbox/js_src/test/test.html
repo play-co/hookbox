@@ -1,0 +1,134 @@
+<!doctype html>
+
+<head>
+<style>
+html { overflow-y: scroll; }
+body, html { margin: 0px; padding: 0px; }
+body, input { font: 11px Helvetica, Arial, sans-serif; }
+body { background: #0C7BA5;}
+input { margin-right: 5px; }
+
+#url { width: 200px; font-weight: bold; }
+
+.tabs { height: 26px; margin-top: 10px; font-weight: bold; font-size: 12px; }
+.views { border: 2px solid #222; background: #FFF; max-width: 700px; }
+.tab { border: 2px solid #222; float: left; padding: 7px 10px 5px 10px; cursor: pointer; margin-right:-2px; height: 12px; }
+.tab { -moz-border-radius: 10px 10px 0px 0px; -webkit-border-top-left-radius: 10px; -webkit-border-top-right-radius: 10px; }
+
+.round { -moz-border-radius: 3px; -webkit-border-radius: 3px; }
+.roundTops { -moz-border-radius: 5px 5px 0px 0px; -webkit-border-top-left-radius: 5px; -webkit-border-top-right-radius: 5px; }
+.roundBottoms { -moz-border-radius: 0px 0px 5px 5px; -webkit-border-bottom-left-radius: 5px; -webkit-border-bottom-right-radius: 5px; }
+.roundTopRight { -moz-border-radius-topright: 5px; -webkit-border-top-right-radius: 5px; }
+.logView { padding: 10px 0px 10px 10px; overflow: auto; }
+
+.connectionLogger { height: 80px; width: 350px; float: right; background: #FFF; border: 2px solid #444; margin: 10px; overflow: auto; }
+.connectionTabs .tab {
+	background: -moz-linear-gradient(90deg, #FFF, #DDD);
+	background: -webkit-gradient(linear, 0% 100%, 0% 0%, from(#FFF), to(#EEE));
+	color: #777;
+}
+
+.tabSelected, .tabSelected:hover {
+	border-bottom-style: none;
+	cursor: default;
+	padding-bottom: 7px;
+}
+
+.connectionTabs .tabSelected:hover,
+.connectionTabs .tabSelected {
+	background: -moz-linear-gradient(90deg, #787876, #998);
+	background: -webkit-gradient(linear, 0% 100%, 0% 0%, from(#787876), to(#998));
+	color: #FFF;
+}
+
+.channelControls { padding: 10px 0px 0px 10px; padding-top: 70px; clear: left; }
+.channelTabs { margin: 10px 10px 0px 10px; clear: both; }
+.channelTabs .tab {
+	background: -moz-linear-gradient(90deg, #99A, #CCE);
+	background: -webkit-gradient(linear, 0% 100%, 0% 0%, from(#99A), to(#CCE));
+	color: #444;
+}
+
+.channelTabs .tabSelected,
+.channelTabs .tabSelected:hover {
+	background: #88a;
+	background: -moz-linear-gradient(90deg, #522B66, #623B76);
+	background: -webkit-gradient(linear, 0% 100%, 0% 0%, from(#522B66), to(#623B76));
+	color: #FFF;
+}
+
+.tab:hover { color: #555;}
+.channelTabs .tabs:hover { color: #EEE };
+
+
+.channelLogger { height: auto; max-height: 400px; }
+
+.channelHeader { padding: 5px 10px; color: #FFF; }
+.channelHeader h3 { font-weight: bold; font-size: 11px; display: inline; margin: 0px; }
+.channelInfo {
+	background: -moz-linear-gradient(90deg, #320B36, #522B66);
+	background: -webkit-gradient(linear, 0% 100%, 0% 0%, from(#320B36), to(#522B66));
+}
+.channelState {
+	background: -moz-linear-gradient(90deg, #4A7C39, #8A9C69);
+	background: -webkit-gradient(linear, 0% 100%, 0% 0%, from(#4A7C39), to(#8A9C69));
+}
+.channelState pre { margin: 0px; }
+.channelPresence {
+	color: #000;
+	background: -moz-linear-gradient(90deg, #FFFFAA, #FFFFCC);
+	background: -webkit-gradient(linear, 0% 100%, 0% 0%, from(#FFFFAA), to(#FFFFCC));
+}
+.channelPublisher { padding-top: 15px;}
+.channelPublish { width: 400px;}
+
+#wrapper {
+	margin: 20px auto; max-width: 700px; padding: 0px; -moz-border-radius: 5px; -webkit-border-radius: 5px; background: #ACACAA; border: 2px solid #222;
+	background: -moz-linear-gradient(90deg, #9C9C9A, #ACACAA);
+	background: -webkit-gradient(linear, 0% 100%, 0% 0%, from(#9C9C9A), to(#ACACAA));
+}
+#content { padding: 10px; }
+.connectionView {
+	background: #787876; color: #FFF; padding-bottom: 10px;
+	background: -moz-linear-gradient(90deg, #686866, #787876);
+	background: -webkit-gradient(linear, 0% 100%, 0% 0%, from(#686866), to(#787876));
+}
+.channelView { background: #392827; color: #FFF; }
+
+h1 {
+	margin: 0px 0px 5px 0px; font-size: 20px; 
+	padding: 8px 10px 4px;
+	color: #FFF;
+	background: -moz-linear-gradient(90deg, #320B36, #522B66);
+	background: -webkit-gradient(linear, 0% 100%, 0% 0%, from(#320B36), to(#522B66));
+	-webkit-border-top-left-radius: 3px; -webkit-border-top-right-radius: 3px;
+}
+
+h2 { margin: 0px 0px 5px; }
+
+.logMsg { }
+.logInfo { color: #888; }
+.logWarn { color: blue; }
+.logError { color: red; font-weight: bold; }
+
+</style>
+</head>
+
+<body>
+<script src="../../static/hookbox.js"></script>
+<script src="../jsio/jsio.js"></script>
+
+<div id="wrapper">
+	<h1>Hookbox Test</h1>
+	<div id="content">
+		<div><b>url: </b><input type="text" id="url"><button id="connect">connect</button></div>
+	</div>
+</div>
+
+<script>
+<!-- cachedScripts -->
+jsio('from base import *');
+jsio('from util.browser import $');
+jsio('import .test');
+</script>
+</body>
