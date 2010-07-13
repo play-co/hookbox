@@ -1,0 +1,26 @@
+<html>
+ <head>
+  <script src="hookbox.js"></script>
+  <script>
+   hookbox.logging.get('hookbox').setLevel(hookbox.logging.DEBUG);
+   hookbox.logging.get('net.protocols.rtjp').setLevel(hookbox.logging.DEBUG);
+   function go() {
+        c = hookbox.connect('http://' + location.host + '/csp');
+        c.onSubscribed = function(name, s) {
+            s.onFrame = function(frame) {
+                console.log('received frame', frame);
+            };
+            s.onFailure = function(err) {
+                console.log('ERR subscribing', err);
+            };
+            c.publish('testing', [1,2,3]);
+        };
+        c.subscribe('testing');
+   }
+
+  </script>
+ </head>
+ <body>
+  <h1>Test eventlet csp</h1>
+ </body>
+</html>
