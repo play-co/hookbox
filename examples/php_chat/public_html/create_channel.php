@@ -18,6 +18,7 @@ else
     $return[0] = true;
     $return[1]['history_size'] = 5;
     $return[1]['reflective'] = true;
+    $return[1]['presenceful'] = true;
 }
 
 print_r(json_encode($return));
