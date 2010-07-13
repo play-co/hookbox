@@ -5,6 +5,11 @@ try:
     import json
 except ImportError:
     import simplejson as json
+import datetime
+
+def get_now():
+  return datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
 
 
 class Channel(object):
@@ -167,7 +172,7 @@ class Channel(object):
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             payload = options.get('override_payload', payload)
 
-        frame = {"channel_name": self.name, "payload":payload}
+        frame = {"channel_name": self.name, "payload":payload, "datetime": get_now()}
 
         if not self.anonymous:
             if 'originator' in kwargs:
@@ -210,8 +215,8 @@ class Channel(object):
 
         self.subscribers.append(user)
         user.channel_subscribed(self)
-        
-        frame = {"channel_name": self.name, "user": user.get_name()}
+        _now = get_now()
+        frame = {"channel_name": self.name, "user": user.get_name(), "datetime": _now}
         self.server.admin.channel_event('subscribe', self.name, frame)
         if self.presenceful:
             for subscriber in self.subscribers:
@@ -223,8 +228,7 @@ class Channel(object):
         user.send_frame('SUBSCRIBE', frame)
             
         if self.history_size:
-            del frame['channel_name']
-            self.history.append(('SUBSCRIBE', {"user": user.get_name() }))
+            self.history.append(('SUBSCRIBE', {"user": user.get_name(), "datetime": _now }))
             self.prune_history()
 
     def state_del(self, key):
@@ -306,7 +310,7 @@ class Channel(object):
             if not (success or force_auth):
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             self.server.maybe_auto_subscribe(user, options, conn=conn)
-        frame = {"channel_name": self.name, "user": user.get_name()}
+        frame = {"channel_name": self.name, "user": user.get_name(), 'datetime': get_now()}
         self.server.admin.channel_event('unsubscribe', self.name, frame)
         if self.presenceful:
             for subscriber in self.subscribers:
@@ -317,7 +321,7 @@ class Channel(object):
         user.channel_unsubscribed(self)
         if self.history_size:
             del frame['channel_name']
-            self.history.append(('UNSUBSCRIBE', {"user": user.get_name() }))
+            self.history.append(('UNSUBSCRIBE', frame))
             self.prune_history()
         
         if not self.subscribers:
