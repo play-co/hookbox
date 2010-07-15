@@ -1,0 +1,1 @@
+hookbox --admin-password=abc --cb-single-url="http://localhost/~martin/dev/hookbox/examples/chat/chat.php"
