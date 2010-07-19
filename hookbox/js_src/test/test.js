@@ -81,7 +81,14 @@ var ConnectionView = Class(View, function() {
 	}
 	
 	this.onOpen = function() { this.logger.info('connected'); }
-	this.onClose = function() { this.logger.info('disconnected'); }
+	this.onClose = function(reason, wasConnected) {
+		if (wasConnected) {
+			this.logger.info('connection closed', reason);
+		} else {
+			this.logger.info('could not connect', reason);
+		}
+	}
+	
 	this.onError = function(args) { this.logger.error(JSON.stringify(args)); }
 	this.onSubscribed = function(name, sub) {
 		var view = new ChannelView(this.conn, sub, this.views);
