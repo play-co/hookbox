@@ -1,7 +1,10 @@
 jsio('from net import connect as jsioConnect');
 jsio('from net.protocols.rtjp import RTJPProtocol');
 
-exports.logging = logging
+exports.__jsio = jsio.__jsio;
+exports.logging = logging;
+
+logger.setLevel(0);
 
 exports.connect = function(url, cookieString) {
 	if (!url.match('/$')) {
@@ -100,10 +103,10 @@ var Subscription = Class(function(supr) {
 HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 	// Public api
 	this.onOpen = function() { }
-	this.onClose = function() { }
-	this.onError = function() { }
-	this.onSubscribed = function() { }
-	this.onUnsubscribed = function() { }
+	this.onClose = function(err, wasConnected) { }
+	this.onError = function(args) { }
+	this.onSubscribed = function(name, subscription) { }
+	this.onUnsubscribed = function(subscription, args) { }
 	this.init = function(url, cookieString) {
 		supr(this, 'init', []);
 		this.url = url;
@@ -124,8 +127,7 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 	this.subscribe = function(channel_name) {
 		if (!this.connected) {
 			this._buffered_subs.push(channel_name);
-		}
-		else {
+		} else {
 			var fId = this.sendFrame('SUBSCRIBE', {channel_name: channel_name});
 		}
 	}
@@ -202,10 +204,11 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 				break;
 		}
 	}
-	this.connectionLost = function() {
-		logger.debug('connectionLost');
+	
+	this.connectionLost = function(err, wasConnected) {
+		logger.debug('connectionLost', err, wasConnected);
 		this.connected = false;
-		this.onClose();
+		this.onClose(err, wasConnected);
 	}
 
 	// TODO: we need another var besides this.connnected, as that becomes true
