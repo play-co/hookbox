@@ -187,10 +187,11 @@ class HookboxServer(object):
             err = output[1].get('msg', "(No reason given)")
         self.admin.webhook_event(path_name, url, response.status, output[0], body, form_body, cookie_string, err)
 
-	if conn:	
-		set_cookie = response.getheader('Set-Cookie', '')
-		conn.send_frame('SET_COOKIE', {'cookie': set_cookie})
-	
+        if conn:
+            set_cookie = response.getheader('Set-Cookie', '')
+            if set_cookie:
+                conn.send_frame('SET_COOKIE', {'cookie': set_cookie})
+
         return output
 
         # type, url, response status, success/failture, raw_output
