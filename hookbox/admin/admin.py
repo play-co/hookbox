@@ -20,6 +20,7 @@ class StopLoop(Exception):
     
         
 class HookboxAdminApp(object):
+    logger = logging.getLogger('HookboxAdminApp')
     
     def __init__(self, server, config, outputter):
         outputter.add_observer(self._output)

@@ -5,7 +5,7 @@ from errors import ExpectedException
 import rtjp_eventlet
 
 class HookboxConn(object):
-    logger = logging.getLogger('RTJPConnection')
+    logger = logging.getLogger('HookboxConn')
     
     def __init__(self, server, rtjp_conn, config):
         self._rtjp_conn = rtjp_conn
@@ -26,7 +26,10 @@ class HookboxConn(object):
         }
         
     def send_frame(self, *args, **kw):
-        return self._rtjp_conn.send_frame(*args, **kw)
+        try:
+            self._rtjp_conn.send_frame(*args, **kw)
+        except Exception, e:
+            self.logger.warn("Unexpected error: %s", e, exc_info=True)
 
     def send_error(self, *args, **kw):
         return self._rtjp_conn.send_error(*args, **kw)
@@ -48,9 +51,11 @@ class HookboxConn(object):
         while True:
             try:
 #                print 'read a frame...'
+                self.logger.debug('%s waiting for a frame', self)
                 fid, fname, fargs= self._rtjp_conn.recv_frame().wait()
 #                print 'got frame', fid, fname, fargs
             except rtjp_eventlet.errors.ConnectionLost, e:
+                self.logger.debug('received connection lost error')
 #                print 'connection lost'
                 break
             except:
@@ -70,7 +75,9 @@ class HookboxConn(object):
                 self._default_frame(fid, fname, fargs)
 #        print 'all DONE!'
         # cleanup
+        self.logger.debug('loop done')
         if self.user:
+            self.logger.debug('cleanup user')
 #            print 'go call remove connection'
             self.user.remove_connection(self)
             self.server.disconnect(self)

@@ -1,13 +1,16 @@
 import collections
+import errno
 import logging
-from eventlet.green import httplib
 import os
+import socket
 import sys
 import urllib
 import urlparse
 import eventlet
 from paste import urlmap
 import static
+
+from eventlet.green import httplib
 
 import eventlet.wsgi
 import eventlet.websocket
@@ -28,11 +31,16 @@ try:
 except:
     import simplejson as json
 
+
 class EmptyLogShim(object):
     def write(self, *args, **kwargs):
         return
 
 logger = logging.getLogger('hookbox')
+
+access_logger = logging.getLogger('access')
+    
+
 
 class HookboxServer(object):
 
@@ -69,15 +77,16 @@ class HookboxServer(object):
         return self._ws_wsgi_app(environ, start_response)
 
     def _ws_wsgi_app(self, ws):
+        access_logger.info("Incoming WebSocket connection\t%s\t%s",
+            ws.environ.get('REMOTE_ADDR', ''), ws.environ.get('HTTP_HOST'))
         sock = SockWebSocketWrapper(ws)
         rtjp_conn = rtjp_eventlet.RTJPConnection(sock=sock)
         self._accept(rtjp_conn)
         
     def run(self):
-        print "Listening to hookbox on http://%s:%s" % (self.interface or "0.0.0.0", self.port)
+        logger.info("Listening to hookbox on http://%s:%s", self.interface or "0.0.0.0", self.port)
         if not self._bound_socket:
             self._bound_socket = eventlet.listen((self.interface, self.port))
-#        el
         eventlet.spawn(eventlet.wsgi.server, self._bound_socket, self.app, log=EmptyLogShim())
         ev = eventlet.event.Event()
         self._rtjp_server.listen(sock=self.csp)
@@ -97,12 +106,15 @@ class HookboxServer(object):
         while True:
             try:
                 rtjp_conn = self._rtjp_server.accept().wait()
+                access_logger.info("Incoming CSP connection\t%s\t%s",
+                    rtjp_conn._sock.environ.get('REMOTE_ADDR', ''), 
+                    rtjp_conn._sock.environ.get('HTTP_HOST'))
                 eventlet.spawn(self._accept, rtjp_conn)
 #                conn = protocol.HookboxConn(self, rtjp_conn, self.config)
             except:
                 ev.send_exception(*sys.exc_info())
                 break
-        print "HookboxServer Stopped"
+        logger.info("Hookbox Daemon Stopped")
 
     def http_request(self, path_name=None, cookie_string=None, form={}, full_path=None, conn=None):
         if not full_path and self.config['cb_single_url']:
@@ -157,14 +169,19 @@ class HookboxServer(object):
             headers['Cookie'] = cookie_string
         body = None
         try:
-            http.request('POST', path, body=form_body, headers=headers)
-            response = http.getresponse()
-            body = response.read()
+            try:
+                http.request('POST', path, body=form_body, headers=headers)
+                response = http.getresponse()
+                body = response.read()
+            except socket.error, e:
+                if e.errno == errno.ECONNREFUSED:
+                    raise Exception("Connection refused for HTTP request to %s" % (url))
+                raise e
         except Exception, e:
-            import traceback
+            print repr(e)
             self.admin.webhook_event(path_name, url, 0, False, body, form_body, cookie_string, e)
-            traceback.print_exc()
-            return False, {}
+            logger.warn('Exception with webhook %s', url, exc_info=True)
+            return False, { 'error': 'failure: %s' % (e,) }
         if response.status != 200:
             self.admin.webhook_event(path_name, url, response.status, False, body, form_body, cookie_string, "Invalid status")
             raise ExpectedException("Invalid callback response, status=%s (%s), body: %s" % (response.status, path, body))
@@ -187,10 +204,11 @@ class HookboxServer(object):
             err = output[1].get('msg', "(No reason given)")
         self.admin.webhook_event(path_name, url, response.status, output[0], body, form_body, cookie_string, err)
 
-	if conn:	
-		set_cookie = response.getheader('Set-Cookie', '')
-		conn.send_frame('SET_COOKIE', {'cookie': set_cookie})
-	
+        if conn:
+            set_cookie = response.getheader('Set-Cookie', '')
+            if set_cookie:
+                conn.send_frame('SET_COOKIE', {'cookie': set_cookie})
+
         return output
 
         # type, url, response status, success/failture, raw_output

@@ -6,6 +6,7 @@ exports.logging = logging;
 
 logger.setLevel(0);
 
+
 exports.connect = function(url, cookieString) {
 	if (!url.match('/$')) {
 		url = url + '/';
@@ -211,13 +212,12 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 		this.onClose(err, wasConnected);
 	}
 
-	// TODO: we need another var besides this.connnected, as that becomes true
-	//       only after we get a CONNECTED frame. Maybe our transport is
-	//       connected, but we haven't gotten the frame yet. For now, no one
-	//       should be calling this anyway until they get an onclose.
-
-	this.reconnect = function() {
-		jsioConnect(this, this.url);
+	this.connectionFailed = function(transportName) {
+		logger.debug('connectionFailed', transportName)
+		if (transportName == 'websocket') {
+			logger.debug('retry with csp');
+			jsioConnect(this, 'csp', {url: this.url + 'csp'})
+		}
 	}
 	
 	this.disconnect = function() {
