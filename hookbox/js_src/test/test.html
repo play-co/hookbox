@@ -115,8 +115,6 @@ h2 { margin: 0px 0px 5px; }
 </head>
 
 <body>
-<script src="../../static/hookbox.js"></script>
-<script src="../jsio/jsio.js"></script>
 
 <div id="wrapper">
 	<h1>Hookbox Test</h1>
@@ -126,9 +124,10 @@ h2 { margin: 0px 0px 5px; }
 </div>
 
 <script>
-<!-- cachedScripts -->
+
 jsio('from base import *');
 jsio('from util.browser import $');
+jsio('import ..hookbox')
 jsio('import .test');
 </script>
 </body>

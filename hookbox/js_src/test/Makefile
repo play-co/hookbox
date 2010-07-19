@@ -1,5 +1,4 @@
 all:
-	jsio_compile test.pkg -j ../jsio -o tmp_test_compiled.js -g --vv
-	node compile.js
-	rm tmp_test_compiled.js
-	rm temp.js
+	jsio_compile -j ../jsio test.html -t websocket -o ../../static/test.html -g --vv
+
+
