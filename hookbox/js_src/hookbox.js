@@ -11,9 +11,11 @@ exports.connect = function(url, cookieString) {
 	var p = new HookBoxProtocol(url, cookieString);
 	if (window.WebSocket) {
 		jsioConnect(p, 'websocket', {url: url.replace('http://', 'ws://') + 'ws' });
+		p.connectionLost = bind(p, '_connectionLost', 'websocket');
 	}
 	else {
 		jsioConnect(p, 'csp', {url: url + 'csp'})
+		p.connectionLost = bind(p, '_connectionLost', 'csp');
 	}
 	return p;
 }
@@ -203,17 +205,19 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 				break;
 		}
 	}
-	this.connectionLost = function() {
-		logger.debug('connectionLost');
-		this.connected = false;
-		this.onClose();
-	}
-
-	this.connectionFailed = function(transportName) {
-		logger.debug('connectionFailed', transportName)
-		if (transportName == 'websocket') {
-			logger.debug('retry with csp');
-			jsioConnect(this, 'csp', {url: this.url + 'csp'})
+	
+	this._connectionLost = function(transportName, reason, wasConnected) {
+		if (!wasConnected) {
+			logger.debug('connectionFailed', transportName)
+			if (transportName == 'websocket') {
+				logger.debug('retry with csp');
+				this.connectionLost = bind(this, '_connectionLost', 'csp');
+				jsioConnect(this, 'csp', {url: this.url + 'csp'})
+			}
+		} else {
+			logger.debug('connectionLost');
+			this.connected = false;
+			this.onClose();
 		}
 	}
 	
