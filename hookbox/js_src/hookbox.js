@@ -209,17 +209,15 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 	this.connectionLost = function(err, wasConnected) {
 		logger.debug('connectionLost', err, wasConnected);
 		this.connected = false;
-		this.onClose(err, wasConnected);
-	}
-
-	this.connectionFailed = function(transportName) {
-		logger.debug('connectionFailed', transportName)
+		
 		if (transportName == 'websocket') {
 			logger.debug('retry with csp');
 			jsioConnect(this, 'csp', {url: this.url + 'csp'})
+		} else {
+			this.onClose(err, wasConnected);
 		}
 	}
-	
+
 	this.disconnect = function() {
 		this.transport.loseConnection();
 	}
