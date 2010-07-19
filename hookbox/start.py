@@ -3,10 +3,10 @@ import output_wrapper
 
 import eventlet
 from server import HookboxServer
-import logging
 import os
 import sys
 from hookbox.config import HookboxConfig
+import hookbox.log as log
 
 def create_server(bound_socket, config, outputter):
     server = HookboxServer(bound_socket, config, outputter)
@@ -23,7 +23,7 @@ def run_objgraph(server, config):
 def main(bound_socket=None):
     config = HookboxConfig()
     config.update_from_commandline_arguments(sys.argv)
-    logging.basicConfig()
+    log.setup_logging(config)
     server = create_server(bound_socket, config, output_wrapper.outputter)
     if config['objgraph']:
         eventlet.spawn(run_objgraph, server, config)

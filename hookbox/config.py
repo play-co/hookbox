@@ -31,10 +31,14 @@ class HookboxOptionParser(object):
             (attr not in ('ensure_value', 'read_file', 'read_module'))
     
     def _add_logging_options(self, parser, defaults):
-        parser.add_option("-l", "--log-file-errors", 
+        parser.add_option("-E", "--log-file-errors", 
                           dest="log_file_err", type="string", 
                           default=defaults._log_file_err, metavar="LOG_FILE",
                           help="Log all warnings/errors to LOG_FILE, (default: %default)")
+        parser.add_option("-A", "--log-file-access", 
+                          dest="log_file_access", type="string", 
+                          default=defaults._log_file_access, metavar="LOG_FILE",
+                          help="Log all access events to LOG_FILE, (default: %default)")
         
     
     def _add_csp_options(self, parser, defaults):
@@ -130,6 +134,7 @@ class HookboxConfig(object):
     # define the defaults here
     defaults = DefaultObject()
     defaults._log_file_err = None
+    defaults._log_file_access = None
     defaults._interface = '0.0.0.0'
     defaults._port = 8001
     defaults._cbport = 80
