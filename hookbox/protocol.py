@@ -27,9 +27,12 @@ class HookboxConn(object):
         
     def send_frame(self, *args, **kw):
         try:
-            self._rtjp_conn.send_frame(*args, **kw)
+            self._rtjp_conn.send_frame(*args, **kw).wait()
         except Exception, e:
-            self.logger.warn("Unexpected error: %s", e, exc_info=True)
+            if 'closed' in str(e).lower():
+                pass
+            else:
+                self.logger.warn("Unexpected error: %s", e, exc_info=True)
 
     def send_error(self, *args, **kw):
         return self._rtjp_conn.send_error(*args, **kw)

@@ -140,9 +140,7 @@ class HookboxServer(object):
         if self.config['webhook_secret']:
             form['secret'] = self.config['webhook_secret']
         # TODO: The following code creates a hideously bloated form_body. I'm
-        #       sure we actually have to use urlencode for this.
-        # TODO: I rolled back the unicode fix, because its broken...
-        #       -mcarter 6/27/10
+        #       not sure we actually have to use urlencode for this.
         for key, val in form.items():
             new_key = key
             if isinstance(key, unicode):
