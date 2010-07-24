@@ -125,9 +125,10 @@ var ChannelView = Class(View, function() {
 		sub.onPublish = bind(this, 'onPublish');
 		sub.onUnsubscribe = bind(this, 'onUnsubscribe');
 		sub.onState = bind(this, 'renderState');
-
+		
+		this.logger.addFixed(sub.historySize, 'stored channel history ends here');
+		
 		this.renderHistory();
-		this.logger.info('-- end of channel history -- ');
 		this.onSubscribe({user: conn.username});
 		this.renderState();
 	}
@@ -135,7 +136,7 @@ var ChannelView = Class(View, function() {
 	this.publish = function() {
 		var value;
 		try {
-			value = eval('(' + this.publishInput.value + ')');
+			value = JSON.parse(this.publishInput.value);
 		} catch(e) {
 			value = this.publishInput.value;
 		}
@@ -197,6 +198,31 @@ var ChannelView = Class(View, function() {
 var LogView = Class(View, function() {
 	this.init = function(el) {
 		this.el = $.create({className: 'logView', parent: el});
+		this._fixed = [];
+	}
+	
+	var sortPadding = '---------------------';
+	this.addFixed = function(where) {
+		var el = $.create({className: 'logRow logFixed', text: Array.prototype.slice.call(arguments, 1).join(' ')});
+		where = where == undefined ? this.el.childNodes.length : where;
+		var sortIndex = where + sortPadding;
+		this._fixed.push({node: el, count: where, toString: function() { return sortIndex; }});
+		this._fixed.sort();
+		this.updateFixed();
+	}
+	
+	this.updateFixed = function() {
+		var children = this.el.childNodes,
+			numFixedAbove = 0;
+		
+		for (var i = 0, fixed; fixed = this._fixed[i]; ++i) {
+			$.remove(fixed.node);
+		}
+		
+		for (var i = 0, fixed; fixed = this._fixed[i]; ++i) {
+			insertBefore(this.el, fixed.node, children[fixed.count + numFixedAbove]);
+			numFixedAbove++;
+		}
 	}
 	
 	this.getText = function(args) {
@@ -211,11 +237,9 @@ var LogView = Class(View, function() {
 	function createLog(cn) {
 		return function() {
 			var el = $.create({className: 'logRow ' + cn, text: this.getText(arguments)});
-			if (this.el.firstChild) {
-				this.el.insertBefore(el, this.el.firstChild);
-			} else {
-				this.el.appendChild(el);
-			}
+			insertFirst(this.el, el);
+			this.updateFixed();
+			return el;
 		 };
 	}
 	
@@ -224,6 +248,19 @@ var LogView = Class(View, function() {
 	this.warn = createLog('logWarn');
 	this.error = createLog('logError');
 });
+
+function insertFirst(parent, el) {
+	if (parent) { insertBefore(parent, el, parent.firstChild); }
+}
+
+function insertBefore(parent, el, node) {
+	if (!parent || !el) { return; }
+	if (node) {
+		parent.insertBefore(el, node);
+	} else {
+		parent.appendChild(el);
+	}
+}
 
 var conns = GLOBAL.conns = [],
 	numConns = 0;
