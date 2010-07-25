@@ -106,14 +106,17 @@ class HookboxServer(object):
         while True:
             try:
                 rtjp_conn = self._rtjp_server.accept().wait()
+                if not rtjp_conn:
+                    continue
                 access_logger.info("Incoming CSP connection\t%s\t%s",
                     rtjp_conn._sock.environ.get('REMOTE_ADDR', ''), 
                     rtjp_conn._sock.environ.get('HTTP_HOST'))
                 eventlet.spawn(self._accept, rtjp_conn)
 #                conn = protocol.HookboxConn(self, rtjp_conn, self.config)
             except:
-                ev.send_exception(*sys.exc_info())
-                break
+                logger.exception("Unknown Exception occurred at top level")
+#                ev.send_exception(*sys.exc_info())
+#                break
         logger.info("Hookbox Daemon Stopped")
 
     def http_request(self, path_name=None, cookie_string=None, form={}, full_path=None, conn=None):
