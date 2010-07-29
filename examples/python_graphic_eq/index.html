@@ -1,0 +1,70 @@
+<html>
+    <head>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/jquery-ui.min.js"></script>
+        <script src="http://127.0.0.1:2974/static/hookbox.js"></script>
+        <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/ui-lightness/jquery-ui.css" type="text/css" />
+    </head> 
+    <body>
+
+    <style type="text/css">
+        #demo-frame > div.demo { padding: 10px !important; }
+        #eq span {
+            height:120px; float:left; margin:15px
+        }
+    </style>
+
+        <script type="text/javascript">
+            // create a connection object and setup the basic event callbacks.
+            // finally, subcribe to "chan1".
+
+            var conn = hookbox.connect('http://127.0.0.1:2974');
+            //conn.onOpen = function() { alert("connection established!"); };
+            conn.onError = function(err) { alert("connection failed: " + err.msg); };
+
+            var subscription = null;
+            conn.onSubscribed = function(channelName, _subscription) {
+                subscription = _subscription;                
+                subscription.onPublish = function(frame) {
+                  // adjust each slider from the data values in the frame's payload.
+                  // the payload is expected to be an array of seven integers (one for
+                  // each slider).
+                  $("#eq > span").each(function (index) {
+                        $(this).slider("value", frame.payload[index]);
+                  });
+                };  
+            };
+            conn.subscribe("chan1");
+    
+        $(function() {
+        // create the audio equalizer widget.
+        $("#eq > span").each(function() {
+            // read initial values from markup and remove that
+            var value = parseInt($(this).text());
+            $(this).empty().slider({
+                value: value,
+                range: "min",
+                animate: true,
+                orientation: "vertical",
+                disabled: true
+            });
+        });
+        });
+
+
+        </script>
+        Equalizer Demo
+        <br>
+        <div id="eq">
+            <span>88</span>
+            <span>77</span>
+            <span>55</span>
+            <span>33</span>
+            <span>40</span>
+            <span>45</span>
+            <span>70</span>
+        </div>
+
+    </body>
+
+</html>
