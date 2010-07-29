@@ -25,3 +25,13 @@ How To Run
  3. In terminal 3: `sudo ./producer.py`
  4. In Firefox: goto http://localhost:8080
 
+
+Author
+------
+Salman Haq 
+salman.haq@asti-usa.com
+http://bitshaq.com
+
+License
+-------
+MIT License
