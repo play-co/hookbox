@@ -93,7 +93,7 @@ function static_page() {
    hookbox.logging.get('net.protocols.rtjp').setLevel(hookbox.logging.DEBUG);
    // This setTimeout avoids some loading bar nonsense
    setTimeout(function() {
-     conn = hookbox.connect("$HOOKBOX_URL/csp");
+     conn = hookbox.connect("$HOOKBOX_URL");
      conn.onClose = function() {
         document.body.innerHTML += "Connection Lost, please refresh";
      }
