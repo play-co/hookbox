@@ -110,6 +110,14 @@ h2 { margin: 0px 0px 5px; }
 .logInfo { color: #888; }
 .logWarn { color: blue; }
 .logError { color: red; font-weight: bold; }
+.logFixed {
+	background: -moz-linear-gradient(90deg, #291817, #493837);
+	background: -webkit-gradient(linear, 0% 100%, 0% 0%, from(#291817), to(#493837));
+	padding: 5px 10px;
+	margin: 5px 0px 5px -10px;
+	color: #AAA;
+	font-weight: bold;
+}
 
 </style>
 </head>
@@ -123,9 +131,8 @@ h2 { margin: 0px 0px 5px; }
 	</div>
 </div>
 
+<script src="../jsio/jsio.js"></script>
 <script>
-
-jsio('from base import *');
 jsio('from util.browser import $');
 jsio('import ..hookbox')
 jsio('import .test');
