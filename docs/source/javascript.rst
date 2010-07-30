@@ -52,16 +52,16 @@ To subscribe to a channel use the conn.subscribe function:
 
     conn.subscribe("my_channel_name");
 
-There is no returned object when calling conn.subscribe; rather, a subscription object is passed to you through the onSubscribe callback once the subscription is successful.
+There is no returned object when calling conn.subscribe; rather, a subscription object is passed to you through the onSubscribed callback once the subscription is successful.
 
 .. sourcecode:: javascript
 
     var subscription = null;
-    conn.onSubscribe = function(channelName, _subscription) {
+    conn.onSubscribed = function(channelName, _subscription) {
       subscription = _subscription;
     }
 
-Its important to understand that the ``onSubscribe`` callback can be called even if you've never made a call to subscribe. This might be because the web application decided to ``auto_subscribe`` you to some channel, or it could be because the user is already logged in and subscribed to multiple channels, though in a different browser window or tab. If the subscribe call is made successfully in another tab, then this tab's Hookbox connection object will also issue an ``onSubscribe`` callback.
+Its important to understand that the ``onSubscribed`` callback can be called even if you've never made a call to subscribe. This might be because the web application decided to ``auto_subscribe`` you to some channel, or it could be because the user is already logged in and subscribed to multiple channels, though in a different browser window or tab. If the subscribe call is made successfully in another tab, then this tab's Hookbox connection object will also issue an ``onSubscribed`` callback.
 
 Interacting with Channels
 =========================
@@ -95,11 +95,11 @@ Note in the above example that one of the frames in the history is ``SUBSCRIBE``
     >>> subscription.presence
     [ "mgh", "mcarter", "desmaj" ]
 
-Whenever a user subscribes or unsubscribes from the channel you will receive an ``onSubscribe`` or ``onUnsubscribe`` callback from the subscription, and the presence attribute will be updated.
+Whenever a user subscribes or unsubscribes from the channel you will receive an ``onSubscribed`` or ``onUnsubscribed`` callback from the subscription, and the presence attribute will be updated.
 
 .. sourcecode:: javascript
 
-    subscription.onSubscribe = function(frame) {
+    subscription.onSubscribed = function(frame) {
       // the user is now in our presence list
       assertTrue(subscription.presence.indexOf(frame.user) != -1);
       alert("user: " + frame.user + " has subscribed!");
