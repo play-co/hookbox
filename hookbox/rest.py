@@ -111,7 +111,7 @@ class HookboxRest(object):
             raise ExpectedException("Channel already exists")
 
         options = dict((str(k), v) for k,v in form.items() if k != 'channel_name')
-        self.server.do_create_channel(channel_name, **form)
+        self.server.do_create_channel(channel_name, **options)
         start_response('200 Ok', [])
         return json.dumps([True, {}])
 
