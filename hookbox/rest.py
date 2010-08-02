@@ -98,7 +98,7 @@ class HookboxRest(object):
         if not channel_name:
             raise ExpectedException("Missing channel_name")
 
-        if channel_name in self.server.channels:
+        if not self.server.exists_channel(channel_name):
             raise ExpectedException("Channel already exists")
 
         options = dict((str(k), v) for k,v in form.items() if k != 'channel_name')
