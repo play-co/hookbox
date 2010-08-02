@@ -96,7 +96,7 @@ class HookboxRest(object):
             raise ExpectedException("Missing channel_name")
 
         if not self.server.exists_channel(channel_name):
-            raise ExpectedException("Channel already exists")
+            raise ExpectedException("Channel doesn't exists")
 
         self.server.do_destroy_channel(channel_name)
         start_response('200 Ok', [])
@@ -107,7 +107,7 @@ class HookboxRest(object):
         if not channel_name:
             raise ExpectedException("Missing channel_name")
 
-        if not self.server.exists_channel(channel_name):
+        if self.server.exists_channel(channel_name):
             raise ExpectedException("Channel already exists")
 
         options = dict((str(k), v) for k,v in form.items() if k != 'channel_name')
