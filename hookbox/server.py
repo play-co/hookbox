@@ -282,8 +282,11 @@ class HookboxServer(object):
             return None
         channel = self.channels[channel_name]
         if channel.destroy(needs_auth):
-            del self.channels[channel_name]
-            self.admin.channel_event('destroy_channel', channel_name, None)
+            self.do_destroy_channel(channel_name)
+
+    def do_destroy_channel(self, channel_name):
+        del self.channels[channel_name]
+        self.admin.channel_event('destroy_channel', channel_name, None)
 
     def exists_channel(self, channel_name):
         return channel_name in self.channels
