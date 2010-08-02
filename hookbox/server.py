@@ -270,11 +270,12 @@ class HookboxServer(object):
         success, options = self.http_request('create_channel', cookie_string, form)
         if not success:
             raise ExpectedException(options.get('error', 'Unauthorized'))
-        self.channels[channel_name] = channel.Channel(self, channel_name, **options)
-        chan = self.channels[channel_name]
-        self.admin.channel_event('create_channel', channel_name, chan.serialize())
-        
 
+        self.do_create_channel(channel_name, **options)
+
+    def do_create_channel(self, channel_name, **options):
+        chan = self.channels[channel_name] = channel.Channel(self, channel_name, **options)
+        self.admin.channel_event('create_channel', channel_name, chan.serialize())
 
     def destroy_channel(self, channel_name, needs_auth=True):
         if channel_name not in self.channels:

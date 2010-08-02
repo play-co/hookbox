@@ -94,8 +94,17 @@ class HookboxRest(object):
         raise ExpectedException("Not Implemented")
 
     def render_create_channel(self, form, start_response):
-        raise ExpectedException("Not Implemented")
+        channel_name = form.get('channel_name', None)
+        if not channel_name:
+            raise ExpectedException("Missing channel_name")
 
+        if channel_name in self.server.channels:
+            raise ExpectedException("Channel already exists")
+
+        options = dict((str(k), v) for k,v in form.items() if k != 'channel_name')
+        self.server.do_create_channel(channel_name, **form)
+        start_response('200 Ok', [])
+        return json.dumps([True, {}])
 
     def render_set_channel_options(self, form, start_response):
         channel_name = form.get('channel_name', None)
