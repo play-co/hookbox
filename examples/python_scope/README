@@ -1,0 +1,37 @@
+README
+------
+
+This demo displays a Graphic EQ that is dynamically updated based
+on data published by the server on channel "chan1".
+
+A producer process (producer.py) generates random data and uses
+Hookbox's REST api to publish the data on the channel mentioned above.
+
+A Quixote based web application (webapp.py) serves the main page and also
+handles call backs from the Hookbox process.
+
+jQuery and jQuery-ui are used on the web page to render the sliders
+which make up our EQ widget.
+
+How To Run
+----------
+
+ 0. Install hookbox and Quixote using some or all of the following steps
+   - easy_install hookbox
+   - easy_install quixote
+   - easy_install pyjsiocompile (hookbox depends on this).
+ 1. In terminal 1: `sudo ./webapp.py`
+ 2. In terminal 2: `sudo hookbox -d -r altoids -p 2974 --cbhost=127.0.0.1 --cbport=8080 --cbpath=`
+ 3. In terminal 3: `sudo ./producer.py`
+ 4. In Firefox: goto http://localhost:8080
+
+
+Author
+------
+Salman Haq 
+salman.haq@asti-usa.com
+http://bitshaq.com
+
+License
+-------
+MIT License
