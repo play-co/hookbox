@@ -8,7 +8,7 @@ A typical hookbox start command looks like this:
 
 .. sourcecode:: none
     
-    # hookbox -a myadminpassword -r myrestsecret -s mycallbacksecret
+    # hookbox -a myadminpassword -r myapitoken -s mycallbacksecret
 
 Basic Options
 =============
@@ -83,12 +83,12 @@ Cookie Identifier (-c, --cookie-identifier)
 -------------------------------------------
 Hookbox will include all user cookies in any user-triggered webhook callback. This option is purely an optimization that will cause hookbox to include only the cookie specified by -c COOKIE_NAME or --cookie-identifier COOKIE_NAME; the default is to include all cookies.
 
-REST Options
+API Options
 ============
 
-REST Secret (-r, --rest-secret)
--------------------------------
-The rest interface is disabled by default and will only be enabled if a REST secret is specified by -r SECRET or --rest-secret SECRET. The value specified must appear in the form as the value for the key "secret" when using the REST Hookbox API.
+API Secret (-r, --api-security-token)
+-------------------------------------
+The external api interfaces are disabled by default and will only be enabled if an API secret is specified by -r SECRET or --api-security-token SECRET. The value specified must appear in the form as the value for the key "secret" when using the Web/HTTP Hookbox API.
 
 Admin Options
 =============

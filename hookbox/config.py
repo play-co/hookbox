@@ -110,10 +110,10 @@ class HookboxOptionParser(object):
                           help='Override to send all callbacks to given absolute url.')
         
     def _add_admin_options(self, parser, defaults):
-        parser.add_option("-r", "--rest-secret", 
-                          dest="rest_secret", type="string", 
+        parser.add_option("-r", "--api-security-token", 
+                          dest="api_security_token", type="string", 
                           default=defaults._rest_secret, metavar="SECRET",
-                          help="The SECRET token that must be in present in all rest api calls as the form variable \"secret\".")
+                          help="The SECRET token that must be in present in all web/rest api calls as the form variable \"secret\".")
         parser.add_option("-a", "--admin-password", 
                           dest="admin_password", type="string", 
                           default=defaults._admin_password,

@@ -1,18 +1,16 @@
 import cgi
 import logging
-from errors import ExpectedException
+from hookbox.errors import ExpectedException
 try:
     import json
 except:
     import simplejson as json
 import urlparse
 
-class HookboxRest(object):
+class HookboxWebAPI(object):
     logger = logging.getLogger('HookboxRest')
-    def __init__(self, server, config):
-        self.secret = config['rest_secret']
-        self.server = server
-        self.user = None # hack to make channel implementation simpler
+    def __init__(self, api):
+        self.api = api
         
     def __call__(self, environ, start_response):
         path = environ['PATH_INFO']
@@ -20,15 +18,14 @@ class HookboxRest(object):
         if not handler:
             start_response('404 Not Found', ())
             return "Not Found"
-        if self.secret is None:
+        if not self.api.is_enabled():
             start_response('200 Ok', ())
             return json.dumps([False, { 'msg': "Rest api is disabled by configuration. (Please supply --rest-secret/-r option at start)" }])
 
         try:
             form = get_form(environ)
-            if self.secret != form.pop('secret', None):
-                start_response('200 Ok', ())
-                return json.dumps([False, { 'msg': "Invalid secret" }])
+            secret = form.pop('security_token', None)
+            self.api.authorize(secret)
             return handler(form, start_response)
         except Exception, e:
             self.logger.warn('REST Error: %s', path, exc_info=True)
@@ -44,8 +41,9 @@ class HookboxRest(object):
             raise ExpectedException("Missing channel_name")
         payload = form.get('payload', 'null')
         originator = form.get('originator', None)
-        channel = self.server.get_channel(None, channel_name)
-        channel.publish(self, payload, needs_auth=False, originator=originator)
+        send_hook = form.get('send_hook', '0') == '1'
+        self.api.publish(channel_name, payload, originator, send_hook)
+        
         start_response('200 Ok', [])
         return json.dumps([True, {}])
 
@@ -57,13 +55,9 @@ class HookboxRest(object):
         name= form.get('name', None)
         if not name:
             raise ExpectedException("Missing name")
-        if not self.server.exists_channel(channel_name):
-            raise ExpectedException("Channel %s doesn't exist" % (channel_name,))
-        if not self.server.exists_user(name):
-            raise ExpectedException("User %s doesn't exist" % (name,))
-        channel = self.server.get_channel(None, channel_name)
-        user = self.server.get_user(name)
-        channel.unsubscribe(user, needs_auth=False)
+        send_hook = form.get('send_hook', '0') == '1'
+
+        self.api.unsubscribe(channel_name, name, send_hook)
         start_response('200 Ok', [])
         return json.dumps([True, {}])
 
@@ -74,62 +68,53 @@ class HookboxRest(object):
         name= form.get('name', None)
         if not name:
             raise ExpectedException("Missing name")
-#        if not self.server.exists_channel(channel_name):
-#            raise ExpectedException("Channel %s doesn't exist" % (channel_name,))
-        if not self.server.exists_user(name):
-            raise ExpectedException("User %s doesn't exist" % (name,))
-        channel = self.server.get_channel(None, channel_name)
-        user = self.server.get_user(name)
-        channel.subscribe(user, needs_auth=False)
+        send_hook = form.get('send_hook', '0') == '1'
+        
+        self.api.subscribe(channel_name, name, send_hook)
         start_response('200 Ok', [])
         return json.dumps([True, {}])
 
-
-
     def render_disconnect(self, form, start_response):
         identifier = form.get('identifier', None)
-        raise ExpectedException("Not Implemented")
+        self.api.disconnect(identifier)
+        start_response('200 Ok', [])
+        return json.dumps([True, {}])
 
     def render_destroy_channel(self, form, start_response):
         channel_name = form.get('channel_name', None)
         if not channel_name:
             raise ExpectedException("Missing channel_name")
+        self.api.destroy_channel(channel_name, send_hook)
 
-        if not self.server.exists_channel(channel_name):
-            raise ExpectedException("Channel doesn't exists")
-
-        self.server.do_destroy_channel(channel_name)
         start_response('200 Ok', [])
         return json.dumps([True, {}])
 
     def render_create_channel(self, form, start_response):
-        channel_name = form.get('channel_name', None)
+        channel_name = form.pop('channel_name', None)
+        
         if not channel_name:
             raise ExpectedException("Missing channel_name")
-
-        if self.server.exists_channel(channel_name):
-            raise ExpectedException("Channel already exists")
-
-        options = dict((str(k), v) for k,v in form.items() if k != 'channel_name')
-        self.server.do_create_channel(channel_name, **options)
-        start_response('200 Ok', [])
-        return json.dumps([True, {}])
-
-    def render_set_channel_options(self, form, start_response):
-        channel_name = form.get('channel_name', None)
-        if not channel_name:
-            raise ExpectedException("Missing channel_name")
-        del form['channel_name']
-        if not self.server.exists_channel(channel_name):
-            start_response('200 Ok', [])
-            return json.dumps([False, {"msg": "Channel %s doesn't exist" % (channel_name,) }])
-        channel = self.server.get_channel(None, channel_name)
+        send_hook = form.pop('send_hook', '0') == '1'
         for key, val in form.items():
             try:
                 form[key] = json.loads(val)
             except:
                 raise ExpectedException("Invalid json value for option %s" % (key,))
-        channel.update_options(**form)
+
+        self.api.create_channel(channel_name, form, send_hook)
+        start_response('200 Ok', [])
+        return json.dumps([True, {}])
+
+    def render_set_channel_options(self, form, start_response):
+        channel_name = form.pop('channel_name', None)
+        if not channel_name:
+            raise ExpectedException("Missing channel_name")
+        for key, val in form.items():
+            try:
+                form[key] = json.loads(val)
+            except:
+                raise ExpectedException("Invalid json value for option %s" % (key,))
+        self.api.set_channel_options(channel_name, form)
         start_response('200 Ok', [])
         return json.dumps([True, {}])
         
@@ -137,21 +122,15 @@ class HookboxRest(object):
         channel_name = form.get('channel_name', None)
         if not channel_name:
             raise ExpectedException("Missing channel_name")
-        if not self.server.exists_channel(channel_name):
-            start_response('200 Ok', [])
-            return json.dumps([False, {"msg": "Channel %s doesn't exist" % (channel_name,) }])
-        channel = self.server.get_channel(None, channel_name)
+        info = self.api.get_channel_info(channel_name)
         start_response('200 Ok', [])
-        return json.dumps([True, channel.serialize()])
+        return json.dumps([True, info])
 
         
     def render_state_set_key(self, form, start_response):
         channel_name = form.pop('channel_name', None)
         if not channel_name:
             raise ExpectedException("Missing channel_name")
-        if not self.server.exists_channel(channel_name):
-            start_response('200 Ok', [])
-            return json.dumps([False, {"msg": "Channel %s doesn't exist" % (channel_name,) }])
         if 'key' not in form:
             raise ExpectedExcpetion("Missing 'key' argument")
         if 'val' not in form:
@@ -160,9 +139,7 @@ class HookboxRest(object):
             val = json.loads(form['val'])
         except:
             raise ExpectedException('Invalid json: "%s"' % (val,))
-            
-        channel = self.server.get_channel(None, channel_name)
-        channel.state_set(form['key'], val)
+        self.api.state_set_key(channel_name, form['key'], val)
         start_response('200 Ok', [])
         return json.dumps([True, {}])
         
@@ -170,42 +147,20 @@ class HookboxRest(object):
         channel_name = form.pop('channel_name', None)
         if not channel_name:
             raise ExpectedException("Missing channel_name")
-        if not self.server.exists_channel(channel_name):
-            start_response('200 Ok', [])
-            return json.dumps([False, {"msg": "Channel %s doesn't exist" % (channel_name,) }])
         if 'key' not in form:
             raise ExpectedExcpetion("Missing 'key' argument")
-        channel = self.server.get_channel(None, channel_name)
-        channel.state_del(form['key'])
+        self.api.state_delete_key(channel_name, key)
         start_response('200 Ok', [])
         return json.dumps([True, {}])
-    
-    _config_vars = [
-        "cbhost",
-        "cbport",
-        "cbpath",
-        "cb_connect",
-        "cb_disconnect",
-        "cb_create_channel",
-        "cb_destroy_channel",
-        "cb_subscribe",
-        "cb_unsubscribe",
-        "cb_publish",
-        "cb_single_url",
-        "admin_password",
-        "webhook_secret",
-        "rest_secret",
-    ]
 
     def render_set_config(self, form, start_response):
+        
         for key in form:
             try:
                 form[key] = json.loads(form[key])
             except:
                 raise ExpectedException("Invalid json value for form key '%s'" % (key,))
-        for key in form:
-            if key in self._config_vars:
-                self.server.config[key] = form.get(key)
+        self.api.set_config(form)
         start_response('200 Ok', [])
         return json.dumps([True, {}])
         

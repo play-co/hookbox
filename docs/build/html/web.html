@@ -6,7 +6,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         
         <title>
-    Rest Interface
+    Web/HTTP Interface
  &mdash; hookbox v0.2.0 documentation</title>
         
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="top" title="hookbox v0.2.0 documentation" href="index.html" />
-        <link rel="next" title="Configuration" href="configuration.html" />
+        <link rel="next" title="JSON Rest Interface" href="json_rest.html" />
         <link rel="prev" title="Webhooks" href="webhooks.html" />
     
 
@@ -59,13 +59,13 @@
                 |
                 <a href="genindex.html">Index</a>
             
-                <div class="sourcelink">(<a href="_sources/rest.txt">view source)</div>
+                <div class="sourcelink">(<a href="_sources/web.txt">view source)</div>
             </div>
             
             <div class="navbanner">
                 <a class="totoc" href="index.html">Table of Contents</a>
                 » 
-    Rest Interface
+    Web/HTTP Interface
  
                 
                 
@@ -73,17 +73,17 @@
         Previous:
         <a href="webhooks.html" title="previous chapter">Webhooks</a>
         Next:
-        <a href="configuration.html" title="next chapter">Configuration</a>
+        <a href="json_rest.html" title="next chapter">JSON Rest Interface</a>
 </div>
 
                 <h2>
                     
-    Rest Interface
+    Web/HTTP Interface
  
                 </h2>
             </div>
                 <ul>
-<li><a class="reference external" href="#">Rest Interface</a><ul>
+<li><a class="reference external" href="#">Web/HTTP Interface</a><ul>
 <li><a class="reference external" href="#publish">publish</a></li>
 <li><a class="reference external" href="#subscribe">subscribe</a></li>
 <li><a class="reference external" href="#unsubscribe">unsubscribe</a></li>
@@ -104,14 +104,14 @@
         <div class="document">
             <div class="body">
                 
-<div class="section" id="rest-interface">
-<h1>Rest Interface<a class="headerlink" href="#rest-interface" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="web-http-interface">
+<h1>Web/HTTP Interface<a class="headerlink" href="#web-http-interface" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="publish">
 <h2>publish<a class="headerlink" href="#publish" title="Permalink to this headline">¶</a></h2>
 <p>Publish a message to a channel.</p>
 <p>Required Form Variables:</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">security_token</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--api-security-token</span></tt>.</li>
 <li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
 <li><tt class="docutils literal"><span class="pre">payload</span></tt>: The json payload to publish</li>
 </ul>
@@ -124,7 +124,7 @@
 </div>
 <p>Example:</p>
 <p>Client Requests URL:</p>
-<div class="highlight-none"><div class="highlight"><pre>/rest/publish?secret=yo&amp;channel_name=testing&amp;payload=[1, 2, &quot;foo&quot;]&amp;originator=dictator</pre></div>
+<div class="highlight-none"><div class="highlight"><pre>/web/publish?security_token=yo&amp;channel_name=testing&amp;payload=[1, 2, &quot;foo&quot;]&amp;originator=dictator</pre></div>
 </div>
 <p>Server Replies:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
@@ -138,7 +138,7 @@
 <p>Add a user to a channel.</p>
 <p>Required Form Variables:</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">security_token</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--api-security-token</span></tt>.</li>
 <li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
 <li><tt class="docutils literal"><span class="pre">name</span></tt>: The name of the target user.</li>
 </ul>
@@ -147,7 +147,7 @@
 </div>
 <p>Example:</p>
 <p>Client Requests URL:</p>
-<div class="highlight-none"><div class="highlight"><pre>/rest/subscribe?secret=yo&amp;channel_name=testing&amp;user=mcarter</pre></div>
+<div class="highlight-none"><div class="highlight"><pre>/web/subscribe?security_token=yo&amp;channel_name=testing&amp;user=mcarter</pre></div>
 </div>
 <p>Server Replies:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
@@ -159,7 +159,7 @@
 <p>Remove a user from a channel.</p>
 <p>Required Form Variables:</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">security_token</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--api-security-token</span></tt>.</li>
 <li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
 <li><tt class="docutils literal"><span class="pre">name</span></tt>: The name of the target user.</li>
 </ul>
@@ -168,7 +168,7 @@
 </div>
 <p>Example:</p>
 <p>Client Requests URL:</p>
-<div class="highlight-none"><div class="highlight"><pre>/rest/unsubscribe?secret=yo&amp;channel_name=testing&amp;user=mcarter</pre></div>
+<div class="highlight-none"><div class="highlight"><pre>/web/unsubscribe?security_token=yo&amp;channel_name=testing&amp;user=mcarter</pre></div>
 </div>
 <p>Server Replies:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
@@ -180,14 +180,14 @@
 <p>Returns all settings and attributes of a channel.</p>
 <p>Required Form Variables:</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">security_token</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--api-security-token</span></tt>.</li>
 <li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
 </ul>
 <p>Returns json:</p>
 <p>[ success (boolean) , details (object) ]</p>
 <p>Example:</p>
 <p>Client Requests URL:</p>
-<div class="highlight-none"><div class="highlight"><pre>/rest/get_channel_info?secret=yo&amp;channel_name=testing</pre></div>
+<div class="highlight-none"><div class="highlight"><pre>/web/get_channel_info?security_token=yo&amp;channel_name=testing</pre></div>
 </div>
 <p>Server Replies:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span>
@@ -245,7 +245,7 @@
 <p>Set the options on a channel.</p>
 <p>Required Form Variables:</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">security_token</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--api-security-token</span></tt>.</li>
 <li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
 </ul>
 <p>Optional Form Variables:</p>
@@ -264,7 +264,7 @@
 </ul>
 <p>Example:</p>
 <p>Client Requests URL:</p>
-<div class="highlight-none"><div class="highlight"><pre>/rest/set_channel_options?secret=yo&amp;channel_name=testing&amp;history_size=2&amp;presenceful=true</pre></div>
+<div class="highlight-none"><div class="highlight"><pre>/web/set_channel_options?security_token=yo&amp;channel_name=testing&amp;history_size=2&amp;presenceful=true</pre></div>
 </div>
 <p>Server Replies:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
@@ -284,7 +284,7 @@
 <p>Sets a key in a channel&#8217;s state object. If the key already exists it is replaced, and if not it is created.</p>
 <p>Required Form Variables:</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">security_token</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--api-security-token</span></tt>.</li>
 <li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
 </ul>
 <p>Optional Form Variables:</p>
@@ -294,7 +294,7 @@
 </ul>
 <p>Example:</p>
 <p>Client Requests URL:</p>
-<div class="highlight-none"><div class="highlight"><pre>/rest/state_set_key?secret=yo&amp;channel_name=testing&amp;key=score&amp;val={ &quot;mcarter&quot;: 5, &quot;desmaj&quot;: 11 }</pre></div>
+<div class="highlight-none"><div class="highlight"><pre>/web/state_set_key?security_token=yo&amp;channel_name=testing&amp;key=score&amp;val={ &quot;mcarter&quot;: 5, &quot;desmaj&quot;: 11 }</pre></div>
 </div>
 <p>Server Replies:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
@@ -306,7 +306,7 @@
 <p>Removes a key from the state of a channel. If the key doesn&#8217;t exist then nothing happens.</p>
 <p>Required Form Variables:</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">security_token</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--api-security-token</span></tt>.</li>
 <li><tt class="docutils literal"><span class="pre">channel_name</span></tt>: The target channel.</li>
 </ul>
 <p>Optional Form Variables:</p>
@@ -315,7 +315,7 @@
 </ul>
 <p>Example:</p>
 <p>Client Requests URL:</p>
-<div class="highlight-none"><div class="highlight"><pre>/rest/state_delete_key?secret=yo&amp;channel_name=testing&amp;key=score</pre></div>
+<div class="highlight-none"><div class="highlight"><pre>/web/state_delete_key?security_token=yo&amp;channel_name=testing&amp;key=score</pre></div>
 </div>
 <p>Server Replies:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
@@ -327,7 +327,7 @@
 <p>Update certain configuration parameters (mostly webhook related options) immediately without restarting hookbox.</p>
 <p>Required Form variables:</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">secret</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--rest-secret</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">security_token</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--api-security-token</span></tt>.</li>
 </ul>
 <p>Optional Form Variables:</p>
 <ul class="simple">
@@ -344,11 +344,11 @@
 <li><tt class="docutils literal"><span class="pre">cb_single_url</span></tt>: json string</li>
 <li><tt class="docutils literal"><span class="pre">admin_password</span></tt>: json string</li>
 <li><tt class="docutils literal"><span class="pre">webhook_secret</span></tt>: json string</li>
-<li><tt class="docutils literal"><span class="pre">rest_secret</span></tt>: json string</li>
+<li><tt class="docutils literal"><span class="pre">api_security_token</span></tt>: json string</li>
 </ul>
 <p>Example:</p>
 <p>Client Requests URL:</p>
-<div class="highlight-none"><div class="highlight"><pre>/rest/state_delete_key?secret=yo&amp;cbhost=&quot;1.2.3.4&amp;cbport=80</pre></div>
+<div class="highlight-none"><div class="highlight"><pre>/web/state_delete_key?security_token=yo&amp;cbhost=&quot;1.2.3.4&amp;cbport=80</pre></div>
 </div>
 <p>Server Replies:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
@@ -368,7 +368,7 @@
         Previous:
         <a href="webhooks.html" title="previous chapter">Webhooks</a>
         Next:
-        <a href="configuration.html" title="next chapter">Configuration</a>
+        <a href="json_rest.html" title="next chapter">JSON Rest Interface</a>
 </div>
 
                 <div class="doc_copyright">

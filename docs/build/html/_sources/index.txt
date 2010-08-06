@@ -16,6 +16,7 @@ Contents:
    channels
    javascript
    webhooks
-   rest
+   web
+   json_rest
    configuration
    deployment

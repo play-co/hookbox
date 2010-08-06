@@ -328,12 +328,17 @@ class Channel(object):
             self.server.destroy_channel(self.name)
     
     def destroy(self, needs_auth=True):
-        form = { 'channel_name': self.name }
-        try:
-            success, options = self.server.http_request('destroy_channel', form=form)
-        except ExpectedException:
-            return False
-        
+        success = True
+        if needs_auth:
+            form = { 'channel_name': self.name }
+            try:
+                success, options = self.server.http_request('destroy_channel', form=form)
+            except ExpectedException:
+                return False
+        if success:
+            self.presenceful=False # Don't send out all unsubscribes to all users
+            for user in self.subscribers:
+                self.unsubscribe(user, needs_auth=needs_auth, force_auth=True)
         return success
         
     def serialize(self):
