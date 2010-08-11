@@ -104,6 +104,11 @@ class HookboxOptionParser(object):
                           dest='cb_publish', type='string', 
                           default=defaults._cb_publish,
                           help='relative path for publish webhook callbacks. (default: %default)')
+        parser.add_option('--cb-message', 
+                          dest='cb_message', type='string', 
+                          default=defaults._cb_message,
+                          help='relative path for message webhook callbacks. (default: %default)')
+                          
         parser.add_option("--cb-single-url",
                           dest='cb_single_url', type='string', 
                           default=defaults._cb_single_url,
@@ -149,6 +154,7 @@ class HookboxConfig(object):
     defaults._cb_subscribe = 'subscribe'
     defaults._cb_unsubscribe = 'unsubscribe'
     defaults._cb_publish = 'publish'
+    defaults._cb_message = 'message'
     defaults._cb_single_url = NoDefault()
     defaults._rest_secret = NoDefault()
     defaults._admin_password = NoDefault()

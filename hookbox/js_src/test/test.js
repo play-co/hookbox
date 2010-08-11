@@ -51,6 +51,7 @@ var ConnectionView = Class(View, function() {
 	this.init = function(conn) {
 		this.conn = conn;
 		conn.onSubscribed = bind(this, 'onSubscribed');
+		conn.onMessaged = bind(this, 'onMessaged');
 		conn.onOpen = bind(this, 'onOpen');
 		conn.onClose = bind(this, 'onClose');
 		conn.onError = bind(this, 'onError');
@@ -95,6 +96,10 @@ var ConnectionView = Class(View, function() {
 		this.tabView.addView(view, name);
 		this.logger.info('subscribed to', name);
 	}
+	this.onMessaged = function(args) {
+		this.logger.info('*private message*:', JSON.stringify(args));
+	}
+	
 });
 
 var ChannelView = Class(View, function() {
