@@ -1,8 +1,7 @@
 #!/usr/bin/python
 """ producer.py
-Produces random data samples for the EQ sliders.
-Uses the Hookbox REST api for publishing the data 
-on channel "chan1".
+Publishes data from a 120 Hz sine wave sampled at 48 KHz
+and published at 750Hz.
 
 --- License: MIT ---
 
@@ -31,6 +30,11 @@ on channel "chan1".
 import time, urllib, urllib2, json, random
 import math
 
+# Publish at 750 Hz 
+PUB_RATE = 750.0
+# Sample rate 48 KHz
+SAMPLE_RATE = 48000.0
+
 def main ():
 
     # assume the hookbox server is on localhost:2974    
@@ -42,23 +46,27 @@ def main ():
              }
 
     pub_count = 0
-    pub_delta = 1/750.0 
-    samp_delta = pub_delta / (48000.0/750.0)
-    num_samples = int(pub_delta / samp_delta)
-    samples = [math.sin(750*(i*samp_delta)) for i in range(0, 48000)] # a second's worth of samples
+    pub_delta = 1/PUB_RATE
+    samp_delta = 1/SAMPLE_RATE
+    num_samples = int(pub_delta / samp_delta) # no. of samples per publication
+    samples = [math.sin(120*(i*samp_delta)) for i in range(0, 48000)] # a second's worth of samples from a 120 Hz sine wave
 
     while True:
-        x = int((pub_count % 750) * num_samples)
+        # offset in the samples array for this iteration
+        x = int((pub_count % PUB_RATE) * num_samples)
+        # time samples for this iteration (for plotting on the x-axis)
         tv = [(pub_count*pub_delta)+(i*samp_delta) for i in range(0,num_samples)]
-
+        # create the payload
         payload = zip(tv, samples[x:x+num_samples])
         payload = map(list, payload)
-    
+        # publish this iterations samples
         values["payload"] = payload
         data = urllib.urlencode(values)
         req = urllib2.Request(url, data)
         resp = urllib2.urlopen(req)
+        # increment publication counter
         pub_count += 1
+        # sleep until it is time to publish the next set of samples
         time.sleep(pub_delta)
                 
 
