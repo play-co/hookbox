@@ -20,12 +20,12 @@ import rtjp_eventlet
 
 from errors import ExpectedException
 import channel
-import rest
 import protocol
 from user import User
 from admin.admin import HookboxAdminApp
 
-
+from api.internal import HookboxAPI
+from api.web import HookboxWebAPI
 try:
     import json
 except:
@@ -63,7 +63,11 @@ class HookboxServer(object):
         
         static_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], 'static')
         self.app['/static'] = static.Cling(static_path)
-        self.app['/rest'] = rest.HookboxRest(self, config)
+        
+        self.api = HookboxAPI(self, config)
+        self.app['/web'] = HookboxWebAPI(self.api)
+        # TODO: Add REST and other APIs
+        
         self.admin = HookboxAdminApp(self, config, outputter)
         self.app['/admin'] = self.admin
         self.channels = {}
@@ -106,14 +110,17 @@ class HookboxServer(object):
         while True:
             try:
                 rtjp_conn = self._rtjp_server.accept().wait()
+                if not rtjp_conn:
+                    continue
                 access_logger.info("Incoming CSP connection\t%s\t%s",
                     rtjp_conn._sock.environ.get('REMOTE_ADDR', ''), 
                     rtjp_conn._sock.environ.get('HTTP_HOST'))
                 eventlet.spawn(self._accept, rtjp_conn)
 #                conn = protocol.HookboxConn(self, rtjp_conn, self.config)
             except:
-                ev.send_exception(*sys.exc_info())
-                break
+                logger.exception("Unknown Exception occurred at top level")
+#                ev.send_exception(*sys.exc_info())
+#                break
         logger.info("Hookbox Daemon Stopped")
 
     def http_request(self, path_name=None, cookie_string=None, form={}, full_path=None, conn=None):
@@ -257,21 +264,21 @@ class HookboxServer(object):
             except Exception, e:
                 self.logger.warn("Unexpected error when removing user: %s", e, exc_info=True)
         
-    def create_channel(self, conn, channel_name, **options):
+    def create_channel(self, conn, channel_name, options={}, needs_auth=False):
         if channel_name in self.channels:
             raise ExpectedException("Channel already exists")
-        cookie_string = conn and conn.get_cookie() or None
-        form = {
-            'channel_name': channel_name,
-        }
-        success, options = self.http_request('create_channel', cookie_string, form)
-        if not success:
-            raise ExpectedException(options.get('error', 'Unauthorized'))
-        self.channels[channel_name] = channel.Channel(self, channel_name, **options)
-        chan = self.channels[channel_name]
+        if needs_auth:
+            cookie_string = conn and conn.get_cookie() or None
+            form = {
+                'channel_name': channel_name,
+            }
+            success, callback_options = self.http_request('create_channel', cookie_string, form)
+            if success:
+                options.update(callback_options)
+            else:
+                raise ExpectedException(options.get('error', 'Unauthorized'))
+        chan = self.channels[channel_name] = channel.Channel(self, channel_name, **options)
         self.admin.channel_event('create_channel', channel_name, chan.serialize())
-        
-
 
     def destroy_channel(self, channel_name, needs_auth=True):
         if channel_name not in self.channels:

@@ -1,7 +1,7 @@
-.. _rest_toplevel:
-==============
-Rest Interface
-==============
+.. _web_toplevel:
+==================
+Web/HTTP Interface
+==================
 
 publish
 =======
@@ -10,7 +10,7 @@ Publish a message to a channel.
 
 Required Form Variables:
 
-* ``secret``: The password specified in the config as ``-r`` or ``--rest-secret``.
+* ``security_token``: The password specified in the config as ``-r`` or ``--api-security-token``.
 * ``channel_name``: The target channel.
 * ``payload``: The json payload to publish
 
@@ -31,7 +31,7 @@ Client Requests URL:
     
 .. sourcecode:: none
 
-    /rest/publish?secret=yo&channel_name=testing&payload=[1, 2, "foo"]&originator=dictator
+    /web/publish?security_token=yo&channel_name=testing&payload=[1, 2, "foo"]&originator=dictator
 
 
 Server Replies:
@@ -55,7 +55,7 @@ Add a user to a channel.
 
 Required Form Variables:
 
-* ``secret``: The password specified in the config as ``-r`` or ``--rest-secret``.
+* ``security_token``: The password specified in the config as ``-r`` or ``--api-security-token``.
 * ``channel_name``: The target channel.
 * ``name``: The name of the target user.
 
@@ -72,7 +72,7 @@ Client Requests URL:
     
 .. sourcecode:: none
 
-    /rest/subscribe?secret=yo&channel_name=testing&user=mcarter
+    /web/subscribe?security_token=yo&channel_name=testing&user=mcarter
 
 
 Server Replies:
@@ -90,7 +90,7 @@ Remove a user from a channel.
 
 Required Form Variables:
 
-* ``secret``: The password specified in the config as ``-r`` or ``--rest-secret``.
+* ``security_token``: The password specified in the config as ``-r`` or ``--api-security-token``.
 * ``channel_name``: The target channel.
 * ``name``: The name of the target user.
 
@@ -107,7 +107,7 @@ Client Requests URL:
     
 .. sourcecode:: none
 
-    /rest/unsubscribe?secret=yo&channel_name=testing&user=mcarter
+    /web/unsubscribe?security_token=yo&channel_name=testing&user=mcarter
 
 
 Server Replies:
@@ -126,7 +126,7 @@ Returns all settings and attributes of a channel.
 
 Required Form Variables:
 
-* ``secret``: The password specified in the config as ``-r`` or ``--rest-secret``.
+* ``security_token``: The password specified in the config as ``-r`` or ``--api-security-token``.
 * ``channel_name``: The target channel.
 
 Returns json:
@@ -139,7 +139,7 @@ Client Requests URL:
     
 .. sourcecode:: none
 
-    /rest/get_channel_info?secret=yo&channel_name=testing
+    /web/get_channel_info?security_token=yo&channel_name=testing
 
 
 Server Replies:
@@ -202,7 +202,7 @@ Set the options on a channel.
 
 Required Form Variables:
 
-* ``secret``: The password specified in the config as ``-r`` or ``--rest-secret``.
+* ``security_token``: The password specified in the config as ``-r`` or ``--api-security-token``.
 * ``channel_name``: The target channel.
 
 Optional Form Variables:
@@ -225,7 +225,7 @@ Client Requests URL:
     
 .. sourcecode:: none
 
-    /rest/set_channel_options?secret=yo&channel_name=testing&history_size=2&presenceful=true
+    /web/set_channel_options?security_token=yo&channel_name=testing&history_size=2&presenceful=true
 
 
 Server Replies:
@@ -253,7 +253,7 @@ Sets a key in a channel's state object. If the key already exists it is replaced
 
 Required Form Variables:
 
-* ``secret``: The password specified in the config as ``-r`` or ``--rest-secret``.
+* ``security_token``: The password specified in the config as ``-r`` or ``--api-security-token``.
 * ``channel_name``: The target channel.
 
 Optional Form Variables:
@@ -267,7 +267,7 @@ Client Requests URL:
     
 .. sourcecode:: none
 
-    /rest/state_set_key?secret=yo&channel_name=testing&key=score&val={ "mcarter": 5, "desmaj": 11 }
+    /web/state_set_key?security_token=yo&channel_name=testing&key=score&val={ "mcarter": 5, "desmaj": 11 }
 
 
 Server Replies:
@@ -285,7 +285,7 @@ Removes a key from the state of a channel. If the key doesn't exist then nothing
 
 Required Form Variables:
 
-* ``secret``: The password specified in the config as ``-r`` or ``--rest-secret``.
+* ``security_token``: The password specified in the config as ``-r`` or ``--api-security-token``.
 * ``channel_name``: The target channel.
 
 Optional Form Variables:
@@ -298,7 +298,7 @@ Client Requests URL:
     
 .. sourcecode:: none
 
-    /rest/state_delete_key?secret=yo&channel_name=testing&key=score
+    /web/state_delete_key?security_token=yo&channel_name=testing&key=score
 
 	
 Server Replies:
@@ -317,7 +317,7 @@ Update certain configuration parameters (mostly webhook related options) immedia
 
 Required Form variables:
     
-* ``secret``: The password specified in the config as ``-r`` or ``--rest-secret``.
+* ``security_token``: The password specified in the config as ``-r`` or ``--api-security-token``.
 
 Optional Form Variables:
 
@@ -334,7 +334,7 @@ Optional Form Variables:
 * ``cb_single_url``: json string
 * ``admin_password``: json string
 * ``webhook_secret``: json string
-* ``rest_secret``: json string
+* ``api_security_token``: json string
 
 Example:
     
@@ -342,7 +342,7 @@ Client Requests URL:
     
 .. sourcecode:: none
 
-    /rest/state_delete_key?secret=yo&cbhost="1.2.3.4&cbport=80
+    /web/state_delete_key?security_token=yo&cbhost="1.2.3.4&cbport=80
 
   
 Server Replies:

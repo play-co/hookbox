@@ -27,7 +27,7 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="top" title="hookbox v0.2.0 documentation" href="index.html" />
         <link rel="next" title="Deployment" href="deployment.html" />
-        <link rel="prev" title="Rest Interface" href="rest.html" />
+        <link rel="prev" title="JSON Rest Interface" href="json_rest.html" />
     
 
     </head>
@@ -71,7 +71,7 @@
                 
 <div class="prevnext">
         Previous:
-        <a href="rest.html" title="previous chapter">Rest Interface</a>
+        <a href="json_rest.html" title="previous chapter">JSON Rest Interface</a>
         Next:
         <a href="deployment.html" title="next chapter">Deployment</a>
 </div>
@@ -107,8 +107,8 @@
 <li><a class="reference external" href="#cookie-identifier-c-cookie-identifier">Cookie Identifier (-c, &#8211;cookie-identifier)</a></li>
 </ul>
 </li>
-<li><a class="reference external" href="#rest-options">REST Options</a><ul>
-<li><a class="reference external" href="#rest-secret-r-rest-secret">REST Secret (-r, &#8211;rest-secret)</a></li>
+<li><a class="reference external" href="#api-options">API Options</a><ul>
+<li><a class="reference external" href="#api-secret-r-api-security-token">API Secret (-r, &#8211;api-security-token)</a></li>
 </ul>
 </li>
 <li><a class="reference external" href="#admin-options">Admin Options</a><ul>
@@ -129,7 +129,7 @@
 <h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
 <p>As of version 0.2, hookbox is completely configurable via command line options. While developing your application, you will want to create a startup script that contains all of the appropriate settings.</p>
 <p>A typical hookbox start command looks like this:</p>
-<div class="highlight-none"><div class="highlight"><pre># hookbox -a myadminpassword -r myrestsecret -s mycallbacksecret</pre></div>
+<div class="highlight-none"><div class="highlight"><pre># hookbox -a myadminpassword -r myapitoken -s mycallbacksecret</pre></div>
 </div>
 <div class="section" id="basic-options">
 <h2>Basic Options<a class="headerlink" href="#basic-options" title="Permalink to this headline">¶</a></h2>
@@ -197,11 +197,11 @@
 <p>Hookbox will include all user cookies in any user-triggered webhook callback. This option is purely an optimization that will cause hookbox to include only the cookie specified by -c COOKIE_NAME or &#8211;cookie-identifier COOKIE_NAME; the default is to include all cookies.</p>
 </div>
 </div>
-<div class="section" id="rest-options">
-<h2>REST Options<a class="headerlink" href="#rest-options" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="rest-secret-r-rest-secret">
-<h3>REST Secret (-r, &#8211;rest-secret)<a class="headerlink" href="#rest-secret-r-rest-secret" title="Permalink to this headline">¶</a></h3>
-<p>The rest interface is disabled by default and will only be enabled if a REST secret is specified by -r SECRET or &#8211;rest-secret SECRET. The value specified must appear in the form as the value for the key &#8220;secret&#8221; when using the REST Hookbox API.</p>
+<div class="section" id="api-options">
+<h2>API Options<a class="headerlink" href="#api-options" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="api-secret-r-api-security-token">
+<h3>API Secret (-r, &#8211;api-security-token)<a class="headerlink" href="#api-secret-r-api-security-token" title="Permalink to this headline">¶</a></h3>
+<p>The external api interfaces are disabled by default and will only be enabled if an API secret is specified by -r SECRET or &#8211;api-security-token SECRET. The value specified must appear in the form as the value for the key &#8220;secret&#8221; when using the Web/HTTP Hookbox API.</p>
 </div>
 </div>
 <div class="section" id="admin-options">
@@ -222,7 +222,7 @@
                 
 <div class="prevnext">
         Previous:
-        <a href="rest.html" title="previous chapter">Rest Interface</a>
+        <a href="json_rest.html" title="previous chapter">JSON Rest Interface</a>
         Next:
         <a href="deployment.html" title="next chapter">Deployment</a>
 </div>

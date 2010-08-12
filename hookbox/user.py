@@ -1,4 +1,14 @@
 import eventlet
+from errors import ExpectedException
+try:
+    import json
+except ImportError:
+    import simplejson as json
+import datetime
+
+def get_now():
+  return datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
 class User(object):
     def __init__(self, server, name):
         self.server = server
@@ -57,5 +67,30 @@ class User(object):
             return conn.get_cookie()
         
         return self._temp_cookie or ""
+        
+    def send_message(self, sender_name, payload, conn=None, needs_auth=False):
+        try:
+            decoded_payload = json.loads(payload)
+        except:
+            raise ExpectedException("Invalid json for payload")
+#        payload = encoded_payload
+        cookie_string = conn and conn.get_cookie() or ""
+        if needs_auth and (self.moderated or self.moderated_publish):
+            form = { 'sender': sender_name, 'payload': payload }
+            success, options = self.server.http_request('message', cookie_string, form, conn=conn)
+            self.server.maybe_auto_subscribe(user, options, conn=conn)
+            if not success:
+                raise ExpectedException(options.get('error', 'Unauthorized'))
+            payload = options.get('override_payload', payload)
+            try:
+                decoded_payload = json.loads(payload)
+            except:
+                raise ExcpectedException("Server returned invalid payload for message webhook")
+        
+        frame = {"sender": sender_name, "recipient": self.get_name(), "payload": decoded_payload, "datetime": get_now()}
+        self.send_frame('MESSAGE', frame)
+        if sender_name != self.name and self.server.exists_user(sender_name):
+            user = self.server.get_user(sender_name)
+            user.send_frame('MESSAGE', frame, omit=conn)
         
     

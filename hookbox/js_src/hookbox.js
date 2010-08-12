@@ -110,6 +110,7 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 	this.onError = function(args) { }
 	this.onSubscribed = function(name, subscription) { }
 	this.onUnsubscribed = function(subscription, args) { }
+	this.onMessaged = function(args) {}
 	this.init = function(url, cookieString) {
 		supr(this, 'init', []);
 		this.url = url;
@@ -120,10 +121,11 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 		}
 		this.connected = false;
 
-		this._subscriptions = {}
-		this._buffered_subs = []
-		this._publishes = []
-		this._errors = {}
+		this._subscriptions = {};
+		this._buffered_subs = [];
+		this._publishes = [];
+		this._messages = [];
+		this._errors = {};
 		this.username = null;
 	}
 
@@ -143,7 +145,15 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 		}
 
 	}
-
+	
+	this.message = function(name, payload) {
+		if (this.connected) {
+			this.sendFrame('MESSAGE', { 'name': name, 'payload': JSON.stringify(payload) });
+		} else {
+			this._messages.push([name, payload]);
+		}
+	}
+	
 	this.connectionMade = function() {
 		logger.debug('connectionMade');
 		this.transport.setEncoding('utf8');
@@ -152,6 +162,9 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 
 	this.frameReceived = function(fId, fName, fArgs) {
 		switch(fName) {
+			case 'MESSAGE':
+				this.onMessaged(fArgs);
+				break;
 			case 'CONNECTED':
 				this.connected = true;
 				this.username = fArgs.name;
@@ -163,6 +176,11 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 					var pub = this._publishes.splice(0, 1)[0];
 					this.publish.apply(this, pub);
 				}
+				while (this._messages.length) {
+					var msg = this._messages.splice(0, 1)[0];
+					this.message.apply(this, msg);
+				}
+				
 				this.onOpen();
 				break;
 			case 'SUBSCRIBE':
