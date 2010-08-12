@@ -52,11 +52,21 @@
             };
             conn.subscribe("chan1");
 
+            var clock = new Date();
+            var start_time = clock.getTime();
+            var draw_count = 0;
+            var fps_el = $("#fps");    
+
             // Periodically re-draw the plot.
             setInterval( function () {
                 p.setData([data]);
                 p.setupGrid();
                 p.draw();
+
+                draw_count++;
+
+                var clock = new Date();
+                fps_el.text( (draw_count / (clock.getTime() - start_time)) * 1000 );
                }, 1); 
            
     
@@ -68,6 +78,9 @@
         Scope Demo
         <br>
         <div id="scope">
+        </div>
+
+        <div>Frames Per Second: <span id="fps"></span>
         </div>
 
     </body>
