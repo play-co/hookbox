@@ -27,8 +27,7 @@ and published at 750Hz.
 
 """
 
-import time, urllib, urllib2, json, random
-import math
+import time, math, urllib, urllib2
 
 # Publish at 750 Hz 
 PUB_RATE = 750.0
