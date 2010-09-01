@@ -16,6 +16,8 @@ class HookboxAPI(object):
             raise ExpectedException("Invalid Security Token")
 
     def publish(self, channel_name, payload='null', originator=None, send_hook=False):
+        if not self.server.exists_channel(channel_name):
+            raise ExpectedException("Channel %s doesn't exist" % (channel_name,))        
         channel = self.server.get_channel(None, channel_name)
         channel.publish(self, payload, needs_auth=send_hook, originator=originator)
 
