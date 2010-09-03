@@ -1,0 +1,88 @@
+<html>
+    <head>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/jquery-ui.min.js"></script>
+        <script src="http://10.2.103.1:2974/static/hookbox.js"></script>
+        <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/ui-lightness/jquery-ui.css" type="text/css" />
+        <script src="http://10.2.103.1:8080/static/jquery.flot.min.js"></script>       
+    </head> 
+    <body>
+
+    <style type="text/css">
+        #scope {
+            height:240px; width:480px;
+        }
+    </style>
+
+
+        <script type="text/javascript">
+
+        $(function() {
+            
+            // create the scope options
+            var options = {
+                series: {
+                    lines: { show: true, lineWidth: 4 },
+                    points: { show: false }
+                },
+                xaxis: { ticks: 0, tickDecimals: 2, tickSize: 1 },
+                yaxis: { min: -1.0 , max : 1.0 },
+            };
+            // the plot data
+            var data = [];
+            var placeholder = $("#scope");
+
+            // create the scope as a flot object
+            var p = $.plot(placeholder, [data], options);
+
+            // create a connection object and setup the basic event callbacks.
+            // finally, subcribe to "chan1".            
+            var conn = hookbox.connect('http://10.2.103.1:2974');
+            //conn.onOpen = function() { alert("connection established!"); };
+            conn.onError = function(err) { alert("connection failed: " + err.msg); };
+
+            var subscription = null;
+            conn.onSubscribed = function(channelName, _subscription) {
+                subscription = _subscription;                
+                subscription.onPublish = function(frame) {
+                    data = data.concat(frame.payload);
+                    if (data.length >= 8192)
+                        data.splice(0, 64);
+                };  
+            };
+            conn.subscribe("chan1");
+
+            var clock = new Date();
+            var start_time = clock.getTime();
+            var draw_count = 0;
+            var fps_el = $("#fps");    
+
+            // Periodically re-draw the plot.
+            setInterval( function () {
+                p.setData([data]);
+                p.setupGrid();
+                p.draw();
+
+                draw_count++;
+
+                var clock = new Date();
+                fps_el.text( (draw_count / (clock.getTime() - start_time)) * 1000 );
+               }, 1); 
+           
+    
+
+        });
+
+
+        </script>
+        Scope Demo
+        <br>
+        <div id="scope">
+        </div>
+
+        <div>Frames Per Second: <span id="fps"></span>
+        </div>
+
+    </body>
+
+</html>
