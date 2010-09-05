@@ -47,6 +47,17 @@ class HookboxWebAPI(object):
         start_response('200 Ok', [])
         return json.dumps([True, {}])
 
+    def render_publish_multi(self, form, start_response):
+        channel_names = form.get('channel_names', None)
+        if not channel_names:
+            raise ExpectedException("Missing channel_names")
+        channel_name_list = channel_names.split(',')
+        payload = form.get('payload', 'null')
+        originator = form.get('originator', None)
+        send_hook = form.get('send_hook', '0') == '1'
+        self.api.publish_multi(channel_name_list, payload, originator, send_hook)
+        start_response('200 Ok', [])
+        return json.dumps([True, {}])
 
     def render_unsubscribe(self, form, start_response):
         channel_name = form.get('channel_name', None)
