@@ -26,13 +26,14 @@ exports.connect = function(url, cookieString) {
 var Subscription = Class(function(supr) {
 	// Public API
 
-	this.init = function(args) {
+	this.init = function(conn, args) {
 		this.channelName = args.channel_name;
 		this.history = args.history;
 		this.historySize = args.history_size;
 		this.state = args.state;
 		this.presence = args.presence;
 		this.canceled = false;
+		this.publish = bind(conn, 'publish', this.channelName);
 	}
 
 	this.onPublish = function(frame) { }
@@ -185,7 +186,7 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 				break;
 			case 'SUBSCRIBE':
 				if (fArgs.user == this.username) {
-					var s = new Subscription(fArgs);
+					var s = new Subscription(this, fArgs);
 					this._subscriptions[fArgs.channel_name] = s;
 					s._onCancel = bind(this, function() {
 						this.sendFrame('UNSUBSCRIBE', {
