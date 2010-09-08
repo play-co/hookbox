@@ -4,3 +4,4 @@ recursive-include hookbox *.css
 recursive-include hookbox *.jpg
 recursive-include hookbox *.png
 recursive-include hookbox *.giff
+recursive-include hookbox/js_src *

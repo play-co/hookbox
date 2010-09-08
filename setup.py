@@ -12,7 +12,8 @@ static_types = [
     '*.png', 
     '*.txt*',
     '*.py',
-    '*.template'
+    '*.template',
+    '*.pkg'
 ]
 
 #if sys.platform != "win32":
@@ -37,7 +38,8 @@ if sys.version_info[1] <= 5:
 def find_package_data():
     targets = [ 
         os.path.join('hookbox', 'static'),
-        os.path.join('hookbox', 'admin', 'static')
+        os.path.join('hookbox', 'admin', 'static'),
+        os.path.join('hookbox', 'js_src')
     ]
     package_data = {'': reduce(list.__add__, [ '.git' not in d and [ os.path.join(d[len('hookbox/'):], e) for e in
             static_types ] or [] for (d, s, f) in reduce(list.__add__, [ [ i for i in os.walk(target) ] for target in targets ])
