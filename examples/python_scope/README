@@ -1,7 +1,7 @@
 README
 ------
 
-This demo displays a Graphic EQ that is dynamically updated based
+This demo displays a scope that is dynamically updated based
 on data published by the server on channel "chan1".
 
 A producer process (producer.py) generates random data and uses
