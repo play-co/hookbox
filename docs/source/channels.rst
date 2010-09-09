@@ -11,7 +11,7 @@ Hookbox is built around the concept channels which can be used as an abstraction
 
 Ultimately, your web application has complete control over these channels. A user may perform three actions on a channel, subsribing, publishing, or unsubscribing. Whenever a user attempts to perform an action on a channel, Hookbox will make a :ref:`Webhook <webhooks_toplevel>` call back to your application to obtain permission for the action by that user, or simply to notify your web application that the action took place.
 
-The application may itself perform any of these actions on a channel by using the :ref;`REST API <rest_toplevel>`; it may perform any action on behalf of any user, and it can even publish with arbitrary usernames. The application may additionally use the REST API to alter a channel's state or options at any time.
+The application may itself perform any of these actions on a channel by using the :ref:`REST API <rest_toplevel>`; it may perform any action on behalf of any user, and it can even publish with arbitrary usernames. The application may additionally use the REST API to alter a channel's state or options at any time.
 
 Finally, the web application may sometimes perform actions on channels on behalf of a particular user when that user causes a webhook callback. For instance, a user might subscribe to the channel 'foo', which would result in a ``subscribe`` webhook to be issued. The web application may respond with the ``auto_subscribe`` directive in order to subscribe the user to another channel, such as 'bar'. 
 

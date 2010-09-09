@@ -21,6 +21,12 @@ class HookboxAPI(object):
         channel = self.server.get_channel(None, channel_name)
         channel.publish(self, payload, needs_auth=send_hook, originator=originator)
 
+    def publish_multi(self, channel_name_list, payload='null', originator=None, send_hook=False):
+        for channel_name in channel_name_list:
+            if self.server.exists_channel(channel_name):
+                channel = self.server.get_channel(None, channel_name)
+                channel.publish(self, payload, needs_auth=send_hook, originator=originator)
+
     def unsubscribe(self, channel_name, name, send_hook=False):
         if not self.server.exists_channel(channel_name):
             raise ExpectedException("Channel %s doesn't exist" % (channel_name,))
