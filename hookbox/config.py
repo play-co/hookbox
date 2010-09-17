@@ -74,6 +74,10 @@ class HookboxOptionParser(object):
                           dest="webhook_secret", type="string",
                           metavar="WEBHOOK_SECRET",
                           help="The WEBHOOK_SECRET token to pass to all webhook callbacks as form variable \"secret\".")
+        parser.add_option("--cbhttps",
+                          dest="cbhttps", action="store_true",
+                          default=defaults._cbhttps, metavar="HTTPS",
+                          help="Use https (instead of http) to make callbacks.")
     
     def _add_callback_path_options(self, parser, defaults):
         parser.add_option('--cb-connect', 
@@ -147,6 +151,7 @@ class HookboxConfig(object):
     defaults._cbpath = '/hookbox'
     defaults._cookie_identifier = NoDefault()
     defaults._webhook_secret = NoDefault()
+    defaults._cbhttps = False
     defaults._cb_connect = 'connect'
     defaults._cb_disconnect = 'disconnect'
     defaults._cb_create_channel = 'create_channel'

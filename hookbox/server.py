@@ -161,7 +161,10 @@ class HookboxServer(object):
         form_body = urllib.urlencode(form)
         # TODO: stash this, and re-use it; maybe it will do keep alive too!
         #       -mcarter 5/28/10
-        http = httplib.HTTPConnection(host, port)
+        if self.config["cbhttps"]:
+            http = httplib.HTTPSConnection(host, port)
+        else:
+            http = httplib.HTTPConnection(host, port)
         
         # for logging
         url = "http://" + host
