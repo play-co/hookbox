@@ -7,7 +7,7 @@ import rtjp_eventlet
 class HookboxConn(object):
     logger = logging.getLogger('HookboxConn')
     
-    def __init__(self, server, rtjp_conn, config):
+    def __init__(self, server, rtjp_conn, config, remote_addr):
         self._rtjp_conn = rtjp_conn
         self.server = server
         self.state = 'initial'
@@ -17,6 +17,7 @@ class HookboxConn(object):
         self.cookie_identifier = config['cookie_identifier']
         self.id = str(uuid.uuid4()).replace('-', '')
         self.user = None
+        self.remote_addr = remote_addr
         
     def serialize(self):
         return {
@@ -46,6 +47,9 @@ class HookboxConn(object):
     def get_cookie_id(self):
         return self.cookie_id
     
+    def get_remote_addr(self):
+        return self.remote_addr
+
     def _close(self):
         if self.state == 'connected':
             self.server.closed(self)
