@@ -169,7 +169,7 @@ class HookboxServer(object):
         # for logging
         url = "http://" + host
         if port != 80:
-            url += ":" + str(self.base_port)
+            url += ":" + str(port or self.base_port)
         url += path
         
         headers = {'content-type': 'application/x-www-form-urlencoded'}
