@@ -175,7 +175,8 @@ class HookboxServer(object):
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         if cookie_string:
             headers['Cookie'] = cookie_string
-        headers['X-Real-IP'] = conn.get_remote_addr()
+        if conn:
+            headers['X-Real-IP'] = conn.get_remote_addr()
         body = None
         try:
             try:
