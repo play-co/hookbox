@@ -2,7 +2,12 @@
     <head>
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/jquery-ui.min.js"></script>
-        <script src="http://127.0.0.1:2974/static/hookbox.js"></script>
+        <script type="text/javascript"> 
+            // Load the hookbox.js from the current host but changing the port to 2974.
+            server = location.protocol + '//' + location.hostname + ':2974';
+            // Dynamically inserts the code to load the script into the page.
+            document.write('<scr'+'ipt src="' + server + '/static/hookbox.js"></scr'+'ipt>');
+        </script>
         <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/ui-lightness/jquery-ui.css" type="text/css" />
     </head> 
     <body>
