@@ -98,7 +98,7 @@ class HookboxAdminApp(object):
             "form": form_body and cgi.escape(str(form_body)),
             "cookie": cookie_string and cgi.escape(str(cookie_string)),
             "err": err and cgi.escape(str(err)),
-            "date": datetime.datetime.now().strftime("%A %d-%b-%y %T %Z")
+            "date": datetime.datetime.now().strftime("%A %d-%b-%y %H:%M:%S %Z")
         }
         self.webhooks_history.append(frame)
         while len(self.webhooks_history) > WEBHOOK_HISTORY_SIZE:

@@ -101,7 +101,7 @@ class HookboxServer(object):
         return self.app(environ, start_response)
 
     def _accept(self, rtjp_conn):
-        conn = protocol.HookboxConn(self, rtjp_conn, self.config)
+        conn = protocol.HookboxConn(self, rtjp_conn, self.config, rtjp_conn._sock.environ.get('HTTP_X_FORWARDED_FOR', ''))
         conn.run()
 
     def _run(self, ev):
@@ -113,7 +113,7 @@ class HookboxServer(object):
                 if not rtjp_conn:
                     continue
                 access_logger.info("Incoming CSP connection\t%s\t%s",
-                    rtjp_conn._sock.environ.get('REMOTE_ADDR', ''), 
+                    rtjp_conn._sock.environ.get('HTTP_X_FORWARDED_FOR', rtjp_conn._sock.environ.get('REMOTE_ADDR', '')), 
                     rtjp_conn._sock.environ.get('HTTP_HOST'))
                 eventlet.spawn(self._accept, rtjp_conn)
 #                conn = protocol.HookboxConn(self, rtjp_conn, self.config)
@@ -175,6 +175,7 @@ class HookboxServer(object):
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         if cookie_string:
             headers['Cookie'] = cookie_string
+        headers['X-Real-IP'] = conn.get_remote_addr()
         body = None
         try:
             try:
