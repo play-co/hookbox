@@ -51,6 +51,10 @@ class HookboxOptionParser(object):
                           dest="port", type="int",
                           default=defaults._port, metavar="PORT",
                           help="bind listening socket to PORT, (default: %default)")
+        parser.add_option("-w", "--web-api-port",
+                          dest="web_api_port", type="int",
+                          default=defaults._web_api_port, metavar="WEBAPIPORT",
+                          help="bind web api listening socket to WEBAPIPORT, (default: %default)")
     
     def _add_callback_interface_options(self, parser, defaults):
         """ add options related to the hookbox callbacks """
@@ -146,6 +150,7 @@ class HookboxConfig(object):
     defaults._log_file_access = None
     defaults._interface = '0.0.0.0'
     defaults._port = 8001
+    defaults._web_api_port = None
     defaults._cbport = 80
     defaults._cbhost = '127.0.0.1'
     defaults._cbpath = '/hookbox'
