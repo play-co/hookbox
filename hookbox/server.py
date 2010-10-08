@@ -169,13 +169,14 @@ class HookboxServer(object):
         # for logging
         url = "http://" + host
         if port != 80:
-            url += ":" + str(self.base_port)
+            url += ":" + str(port or self.base_port)
         url += path
         
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         if cookie_string:
             headers['Cookie'] = cookie_string
-        headers['X-Real-IP'] = conn.get_remote_addr()
+        if conn:
+            headers['X-Real-IP'] = conn.get_remote_addr()
         body = None
         try:
             try:
