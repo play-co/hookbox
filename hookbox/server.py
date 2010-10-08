@@ -7,8 +7,7 @@ import sys
 import urllib
 import urlparse
 import eventlet
-from paste import urlmap
-import static
+from paste import urlmap, urlparser
 
 from eventlet.green import httplib
 
@@ -64,7 +63,7 @@ class HookboxServer(object):
         self._ws_wsgi_app = eventlet.websocket.WebSocketWSGI(self._ws_wsgi_app)
         
         static_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], 'static')
-        self.app['/static'] = static.Cling(static_path)
+        self.app['/static'] = urlparser.StaticURLParser(static_path)
         
         self.api = HookboxAPI(self, config)
         web_api_app = HookboxWebAPI(self.api)

@@ -1,6 +1,5 @@
 import os
-from paste import urlmap
-import static
+from paste import urlmap, urlparser
 import csp_eventlet as csp
 import rtjp_eventlet
 import eventlet
@@ -30,7 +29,7 @@ class HookboxAdminApp(object):
         self._csp = csp.Listener()
         self._wsgi_app['/csp'] = self._csp
         static_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], 'static')        
-        self._wsgi_app['/'] = static.Cling(static_path)
+        self._wsgi_app['/'] = urlparser.StaticURLParser(static_path)
         self._rtjp_server = rtjp_eventlet.RTJPServer()
         
         self.console_buffer = ""
