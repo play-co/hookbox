@@ -44,11 +44,13 @@ access_logger = logging.getLogger('access')
 
 class HookboxServer(object):
 
-    def __init__(self, bound_socket, config, outputter):
+    def __init__(self, bound_socket, bound_api_socket, config, outputter):
         self.config = config
         self.interface = config['interface']
         self.port = config['port']
+        self.web_api_port = config['web_api_port']
         self._bound_socket = bound_socket
+        self._bound_api_socket = bound_api_socket
         self._rtjp_server = rtjp_eventlet.RTJPServer()
 #        self.identifer_key = 'abc';
         self.base_host = config['cbhost']
@@ -65,7 +67,17 @@ class HookboxServer(object):
         self.app['/static'] = static.Cling(static_path)
         
         self.api = HookboxAPI(self, config)
-        self.app['/web'] = HookboxWebAPI(self.api)
+        web_api_app = HookboxWebAPI(self.api)
+
+        # if the main port and web_api_port are the same,
+        # the web api should be part of the main app. otherwise
+        # it should be a seperate app.
+        if not self.config['web_api_port']:
+            self.app['/web'] = web_api_app
+        else:
+            self.web_api_app = urlmap.URLMap()
+            self.web_api_app['/web'] = web_api_app
+
         # TODO: Add REST and other APIs
         
         self.admin = HookboxAdminApp(self, config, outputter)
@@ -92,6 +104,13 @@ class HookboxServer(object):
         if not self._bound_socket:
             self._bound_socket = eventlet.listen((self.interface, self.port))
         eventlet.spawn(eventlet.wsgi.server, self._bound_socket, self.app, log=EmptyLogShim())
+
+        # listen on a secondary local interface if the web_api_port is specified differently.
+        if self.web_api_port and not self._bound_api_socket and self.port != self.web_api_port:
+            logger.info("Listening to hookbox web api on http://127.0.0.1:%s", self.web_api_port)
+            self._bound_api_socket = eventlet.listen(('127.0.0.1', self.web_api_port))
+            eventlet.spawn(eventlet.wsgi.server, self._bound_api_socket, self.web_api_app, log=EmptyLogShim())
+        
         ev = eventlet.event.Event()
         self._rtjp_server.listen(sock=self.csp)
         eventlet.spawn(self._run, ev)
