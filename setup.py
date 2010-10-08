@@ -22,7 +22,6 @@ static_types = [
 _install_requires = [
     'eventlet>=0.9.10', 
     'paste', 
-    'static',
     'csp_eventlet>=0.5.1', 
     'rtjp_eventlet>=0.3.2', 
     'pygments',
