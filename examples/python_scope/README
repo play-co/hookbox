@@ -17,7 +17,7 @@ How To Run
    - easy_install quixote
    - easy_install pyjsiocompile (hookbox depends on this).
  1. In terminal 1: `sudo ./webapp.py`
- 2. In terminal 2: `sudo hookbox -d -r altoids -p 2974 --cbhost=127.0.0.1 --cbport=8080 --cbpath=`
+ 2. In terminal 2: `sudo hookbox -d -r altoids -p 2974 -w 2975 --cbhost=127.0.0.1 --cbport=8080 --cbpath=`
  3. In terminal 3: `sudo ./producer.py`
  4. In Firefox: goto http://localhost:8080
 

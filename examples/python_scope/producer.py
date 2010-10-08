@@ -36,10 +36,10 @@ SAMPLE_RATE = 48000.0
 
 def main ():
 
-    # assume the hookbox server is on localhost:2974    
-    url = "http://127.0.0.1:2974/rest/publish"
+    # assume the hookbox server is on localhost:2975
+    url = "http://127.0.0.1:2975/web/publish"
 
-    values = { "secret" : "altoids",
+    values = { "security_token" : "altoids",
                "channel_name" : "chan1",
                "payload" : []
              }
