@@ -287,7 +287,7 @@ class HookboxServer(object):
             except Exception, e:
                 self.logger.warn("Unexpected error when removing user: %s", e, exc_info=True)
         
-    def create_channel(self, conn, channel_name, options={}, needs_auth=False):
+    def create_channel(self, conn, channel_name, options={}, needs_auth=True):
         if channel_name in self.channels:
             raise ExpectedException("Channel already exists")
         if needs_auth:
