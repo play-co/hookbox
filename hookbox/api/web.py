@@ -95,6 +95,7 @@ class HookboxWebAPI(object):
         channel_name = form.get('channel_name', None)
         if not channel_name:
             raise ExpectedException("Missing channel_name")
+        send_hook = form.get('send_hook', '0') == '1'
         self.api.destroy_channel(channel_name, send_hook)
 
         start_response('200 Ok', [])

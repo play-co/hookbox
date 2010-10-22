@@ -57,11 +57,13 @@ class HookboxAPI(object):
         
     def destroy_channel(self, channel_name, send_hook=False):
         # NOTE: "already exists" errors will be raised as necessary by this method call
+        if not self.server.exists_channel(channel_name):
+            raise ExpectedException("Channel %s doesn't exist" % (channel_name,))
         self.server.destroy_channel(channel_name, needs_auth=send_hook)
         
     def create_channel(self, channel_name, options, send_hook=False):
         if self.server.exists_channel(channel_name):
-            raise ExpectedException("Channel %s alread exists" % (channel_name,))
+            raise ExpectedException("Channel %s already exists" % (channel_name,))
         self.server.create_channel(None, channel_name, options, needs_auth=send_hook)
 
 
