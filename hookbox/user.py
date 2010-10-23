@@ -68,23 +68,23 @@ class User(object):
         
         return self._temp_cookie or ""
         
-    def send_message(self, sender, payload, conn=None, needs_auth=True):
+    def send_message(self, recipient, payload, conn=None, needs_auth=True):
         try:
-            decoded_payload = json.loads(payload)
+            encoded_payload = json.loads(payload)
         except:
             raise ExpectedException("Invalid json for payload")
-        payload = decoded_payload
+        payload = encoded_payload
         if needs_auth:
-            form = { 'sender': sender.get_name(), 'payload': json.dumps(payload) }
-            success, options = self.server.http_request('message', sender.get_cookie(), form, conn=conn)
-            self.server.maybe_auto_subscribe(sender, options, conn=conn)
+            form = { 'sender': self.get_name(), 'recipient': recipient.get_name(), 'payload': json.dumps(payload) }
+            success, options = self.server.http_request('message', self.get_cookie(conn), form, conn=conn)
+            self.server.maybe_auto_subscribe(self, options, conn=conn)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             payload = options.get('override_payload', payload)
         
-        frame = {"sender": sender.get_name(), "recipient": self.get_name(), "payload": payload, "datetime": get_now()}
-        self.send_frame('MESSAGE', frame)
-        if sender.name != self.name:
-            sender.send_frame('MESSAGE', frame)
+        frame = {"sender": self.get_name(), "recipient": recipient.get_name(), "payload": payload, "datetime": get_now()}
+        recipient.send_frame('MESSAGE', frame)
+        if recipient.name != self.name:
+            self.send_frame('MESSAGE', frame)
         
     
