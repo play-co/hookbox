@@ -68,29 +68,23 @@ class User(object):
         
         return self._temp_cookie or ""
         
-    def send_message(self, sender_name, payload, conn=None, needs_auth=False):
+    def send_message(self, sender, payload, conn=None, needs_auth=True):
         try:
             decoded_payload = json.loads(payload)
         except:
             raise ExpectedException("Invalid json for payload")
-#        payload = encoded_payload
-        cookie_string = conn and conn.get_cookie() or ""
-        if needs_auth and (self.moderated or self.moderated_publish):
-            form = { 'sender': sender_name, 'payload': payload }
-            success, options = self.server.http_request('message', cookie_string, form, conn=conn)
-            self.server.maybe_auto_subscribe(user, options, conn=conn)
+        payload = decoded_payload
+        if needs_auth:
+            form = { 'sender': sender.get_name(), 'payload': json.dumps(payload) }
+            success, options = self.server.http_request('message', sender.get_cookie(), form, conn=conn)
+            self.server.maybe_auto_subscribe(sender, options, conn=conn)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             payload = options.get('override_payload', payload)
-            try:
-                decoded_payload = json.loads(payload)
-            except:
-                raise ExcpectedException("Server returned invalid payload for message webhook")
         
-        frame = {"sender": sender_name, "recipient": self.get_name(), "payload": decoded_payload, "datetime": get_now()}
+        frame = {"sender": sender.get_name(), "recipient": self.get_name(), "payload": payload, "datetime": get_now()}
         self.send_frame('MESSAGE', frame)
-        if sender_name != self.name and self.server.exists_user(sender_name):
-            user = self.server.get_user(sender_name)
-            user.send_frame('MESSAGE', frame, omit=conn)
+        if sender.name != self.name:
+            sender.send_frame('MESSAGE', frame)
         
     

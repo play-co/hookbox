@@ -139,7 +139,7 @@ class HookboxConn(object):
             # TODO: Maybe this is too much info to expose, that the user isn't signed on...
             return self.send_error(fid, "invalid user name")
         user = self.server.get_user(user_name)
-        user.send_message(self.user.get_name(), fargs.get('payload', 'null'))
+        user.send_message(self.user, fargs.get('payload', 'null'), conn=self)
         
         
 def parse_cookies(cookieString):
