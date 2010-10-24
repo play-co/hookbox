@@ -260,6 +260,8 @@ class HookboxServer(object):
             raise ExpectedException('Unauthorized (missing name parameter in server response)')
         self.conns[conn.id] = conn
         user = self.get_user(options['name'])
+        del options['name']
+        user.update_options(**options)
         user.add_connection(conn)
         self.admin.user_event('connect', user.get_name(), conn.serialize())
         self.admin.connection_event('connect', conn.id, conn.serialize())
@@ -276,6 +278,7 @@ class HookboxServer(object):
         
     def exists_user(self, name):
         return name in self.users
+
     def get_user(self, name):
         if name not in self.users:
             self.users[name] = User(self, name)
@@ -307,7 +310,7 @@ class HookboxServer(object):
             if success:
                 options.update(callback_options)
             else:
-                raise ExpectedException(options.get('error', 'Unauthorized'))
+                raise ExpectedException(callback_options.get('error', 'Unauthorized'))
         chan = self.channels[channel_name] = channel.Channel(self, channel_name, **options)
         self.admin.channel_event('create_channel', channel_name, chan.serialize())
 
