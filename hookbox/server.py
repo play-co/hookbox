@@ -45,9 +45,6 @@ class HookboxServer(object):
 
     def __init__(self, bound_socket, bound_api_socket, config, outputter):
         self.config = config
-        self.interface = config['interface']
-        self.port = config['port']
-        self.web_api_port = config['web_api_port']
         self._bound_socket = bound_socket
         self._bound_api_socket = bound_api_socket
         self._rtjp_server = rtjp_eventlet.RTJPServer()
@@ -56,31 +53,21 @@ class HookboxServer(object):
         self.base_port = config['cbport']
         self.base_path = config['cbpath']
             
-        self.app = urlmap.URLMap()
+        self._root_wsgi_app = urlmap.URLMap()
         self.csp = Listener()
-        self.app['/csp'] = self.csp
-        self.app['/ws'] = self._ws_wrapper
+        self._root_wsgi_app['/csp'] = self.csp
+        self._root_wsgi_app['/ws'] = self._ws_wrapper
         self._ws_wsgi_app = eventlet.websocket.WebSocketWSGI(self._ws_wsgi_app)
         
         static_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], 'static')
-        self.app['/static'] = urlparser.StaticURLParser(static_path)
+        self._root_wsgi_app['/static'] = urlparser.StaticURLParser(static_path)
         
         self.api = HookboxAPI(self, config)
-        web_api_app = HookboxWebAPI(self.api)
+        self._web_api_app = HookboxWebAPI(self.api)
 
-        # if the main port and web_api_port are the same,
-        # the web api should be part of the main app. otherwise
-        # it should be a seperate app.
-        if not self.config['web_api_port']:
-            self.app['/web'] = web_api_app
-        else:
-            self.web_api_app = urlmap.URLMap()
-            self.web_api_app['/web'] = web_api_app
-
-        # TODO: Add REST and other APIs
         
         self.admin = HookboxAdminApp(self, config, outputter)
-        self.app['/admin'] = self.admin
+        self._root_wsgi_app['/admin'] = self.admin
         self.channels = {}
         self.conns_by_cookie = {}
         self.conns = {}
@@ -99,16 +86,37 @@ class HookboxServer(object):
         self._accept(rtjp_conn)
         
     def run(self):
-        logger.info("Listening to hookbox on http://%s:%s", self.interface or "0.0.0.0", self.port)
         if not self._bound_socket:
-            self._bound_socket = eventlet.listen((self.interface, self.port))
-        eventlet.spawn(eventlet.wsgi.server, self._bound_socket, self.app, log=EmptyLogShim())
+            self._bound_socket = eventlet.listen((self.config.interface, self.config.port))
+        eventlet.spawn(eventlet.wsgi.server, self._bound_socket, self._root_wsgi_app, log=EmptyLogShim())
+        
+        # We can't get the main interface host, port from config, in case it
+        # was passed in directly to the constructor as a bound sock.
+        main_host, main_port = self._bound_socket.getsockname()
+        logger.info("Listening to hookbox on http://%s:%s", main_host, main_port)
 
-        # listen on a secondary local interface if the web_api_port is specified differently.
-        if self.web_api_port and not self._bound_api_socket and self.port != self.web_api_port:
-            logger.info("Listening to hookbox web api on http://127.0.0.1:%s", self.web_api_port)
-            self._bound_api_socket = eventlet.listen(('127.0.0.1', self.web_api_port))
-            eventlet.spawn(eventlet.wsgi.server, self._bound_api_socket, self.web_api_app, log=EmptyLogShim())
+        # Possibly create bound_api_socket
+        if not self._bound_api_socket:
+            api_host, api_port = self.config.web_api_interface, self.config.web_api_port
+            if api_host is None: api_host = main_host
+            if api_port is None: api_port = main_port
+            if (api_port, main_port) != (api_host,  api_port):
+                self._bound_api_socket = eventlet.listen((api_host, api_port))
+                
+        # If we have a _bound_api_socket at this point, (either from constructor, 
+        # or previous block) we should turn it into a wsgi server.
+        if self._bound_api_socket:
+              logger.info("Listening to hookbox/webapi on http://%s:%s", *self._bound_api_socket.getsockname())
+              api_url_map = urlmap.URLMap()
+              # Maintain /web path
+              api_url_map['/web'] = self._web_api_app
+              # Might as well expose it over / as well
+              api_url_map['/'] = self._web_api_app
+              eventlet.spawn(eventlet.wsgi.server, self._bound_api_socket, api_url_map, log=EmptyLogShim())
+              
+        # otherwise, expose the web api over the main interface/wsgi app
+        else:
+            self._root_wsgi_app['/web'] = self._web_api_app
         
         ev = eventlet.event.Event()
         self._rtjp_server.listen(sock=self.csp)
@@ -116,7 +124,7 @@ class HookboxServer(object):
         return ev
 
     def __call__(self, environ, start_response):
-        return self.app(environ, start_response)
+        return self._root_wsgi_app(environ, start_response)
 
     def _accept(self, rtjp_conn):
         conn = protocol.HookboxConn(self, rtjp_conn, self.config, rtjp_conn._sock.environ.get('HTTP_X_FORWARDED_FOR', ''))
