@@ -10,18 +10,68 @@ def get_now():
   return datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
 class User(object):
-    def __init__(self, server, name):
+    _options = {
+        'reflective': True,
+        'moderated_message': True,
+    }
+
+    def __init__(self, server, name, **options):
         self.server = server
         self.name = name
         self.connections = []
         self.channels = []
         self._temp_cookie = ""
+        self.update_options(**self._options)
+        self.update_options(**options)
+
     def serialize(self):
         return {
             'channels': [ chan.name for chan in self.channels ],
             'connections': [ conn.id for conn in self.connections ],
-            'name': self.name
+            'name': self.name,
+            'options': dict([ (key, getattr(self, key)) for key in self._options])
         }
+
+    def update_options(self, **options):
+        # TODO: this can't remain so generic forever. At some point we need
+        #       better checks on values, such as the list of dictionaries
+        #       for history, or the polling options.
+        # TODO: add support for lists (we only have dicts now)
+        # TODO: Probably should make this whole function recursive... though
+        #       we only really have one level of nesting now.
+        # TODO: most of this function is duplicated from Channel#update_options
+        #       (including the TODOs above), could be a lot DRYer
+        for key, val in options.items():
+            if key not in self._options:
+                raise ValueError("Invalid keyword argument %s" % (key))
+            default = self._options[key]
+            cls = default.__class__
+            if cls in (unicode, str):
+                cls = basestring
+            if not isinstance(val, cls):
+                raise ValueError("Invalid type for %s (should be %s)" % (key, default.__class__))
+            if key == 'state':
+                self.state_replace(val)
+                continue
+            if isinstance(val, dict):
+                for _key, _val in val.items():
+                    if _key not in self._options[key]:
+                        raise ValueError("Invalid keyword argument %s" % (_key))
+                    default = self._options[key][_key]
+                    cls = default.__class__
+                    if isinstance(default, float) and isinstance(_val, int):
+                        _val = float(_val)
+                    if cls in (unicode, str):
+                        cls = basestring
+                    if not isinstance(_val, cls):
+                        raise ValueError("%s is Invalid type for %s (should be %s)" % (_val, _key, default.__class__))
+        # two loops forces exception *before* any of the options are set.
+        for key, val in options.items():
+            # this should create copies of any dicts or lists that are options
+            if isinstance(val, dict) and hasattr(self, key):
+                getattr(self, key).update(val)
+            else:
+                setattr(self, key, val.__class__(val))
         
     def add_connection(self, conn):
         self.connections.append(conn)
@@ -74,7 +124,7 @@ class User(object):
         except:
             raise ExpectedException("Invalid json for payload")
         payload = encoded_payload
-        if needs_auth:
+        if needs_auth and self.moderated_message:
             form = { 'sender': self.get_name(), 'recipient': recipient.get_name(), 'payload': json.dumps(payload) }
             success, options = self.server.http_request('message', self.get_cookie(conn), form, conn=conn)
             self.server.maybe_auto_subscribe(self, options, conn=conn)
@@ -84,7 +134,7 @@ class User(object):
         
         frame = {"sender": self.get_name(), "recipient": recipient.get_name(), "payload": payload, "datetime": get_now()}
         recipient.send_frame('MESSAGE', frame)
-        if recipient.name != self.name:
+        if recipient.name != self.name and self.reflective:
             self.send_frame('MESSAGE', frame)
         
     
