@@ -50,6 +50,18 @@ class HookboxAPI(object):
             raise ExpectedException("User %s doesn't exist" % (name,))
         user = self.server.get_user(name)
         # TODO: disconnect the user
+
+    def set_user_options(self, user_name, options):
+        if not self.server.exists_user(user_name):
+            raise ExpectedException("User %s doesn't exists" % (user_name,))
+        user = self.server.get_user(user_name)
+        user.update_options(**options)
+
+    def get_user_info(self, user_name):
+        if not self.server.exists_user(user_name):
+            raise ExpectedException("User %s doesn't exists" % (user_name,))
+        user = self.server.get_user(user_name)
+        return user.serialize()
         
     def disconnect(self, identifier):
         raise ExpectedException("Not Implemented")
