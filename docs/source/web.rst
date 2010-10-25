@@ -354,3 +354,82 @@ Server Replies:
 
 
 The callback host is now set to ``1.2.3.4`` and the port is now ``80``.
+
+
+get_user_info
+================
+
+Returns all settings and attributes of a user.
+
+Required Form Variables:
+
+* ``security_token``: The password specified in the config as ``-r`` or ``--api-security-token``.
+* ``user_name``: The target user.
+
+Returns json:
+
+[ success (boolean) , details (object) ]
+
+Example:
+
+Client Requests URL:
+
+.. sourcecode:: none
+
+    /web/get_user_info?security_token=yo&user_name=mcarter
+
+
+Server Replies:
+
+
+.. sourcecode:: javascript
+
+    [
+        true,
+        {
+            "channels": [
+                "testing"
+            ],
+            "connections": [
+                "467412414c294f1a9d1759ace01455d9"
+            ],
+            "name": "mcarter",
+            "options": {
+                "reflective": true,
+                "moderated_message": true
+            }
+        }
+    ]
+
+
+set_user_options
+===================
+
+Set the options on a user.
+
+Required Form Variables:
+
+* ``security_token``: The password specified in the config as ``-r`` or ``--api-security-token``.
+* ``user_name``: The target user.
+
+Optional Form Variables:
+
+* ``reflective``: json boolean
+* ``moderated_message``: json boolean
+
+Example:
+
+Client Requests URL:
+
+.. sourcecode:: none
+
+    /web/set_user_options?security_token=yo&user_name=mcarter&reflective=false
+
+
+Server Replies:
+
+.. sourcecode:: javascript
+
+    [ true, {} ]
+
+The ``reflective`` of the user is now `false`.
