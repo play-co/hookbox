@@ -85,6 +85,27 @@ class HookboxWebAPI(object):
         start_response('200 Ok', [])
         return json.dumps([True, {}])
 
+    def render_set_user_options(self, form, start_response):
+        user_name = form.pop('user_name', None)
+        if not user_name:
+            raise ExpectedException("Missing user_name")
+        for key, val in form.items():
+            try:
+                form[key] = json.loads(val)
+            except:
+                raise ExpectedException("Invalid json value for option %s" % (key,))
+        self.api.set_user_options(user_name, form)
+        start_response('200 Ok', [])
+        return json.dumps([True, {}])
+
+    def render_get_user_info(self, form, start_response):
+        user_name = form.get('user_name', None)
+        if not user_name:
+            raise ExpectedException("Missing user_name")
+        info = self.api.get_user_info(user_name)
+        start_response('200 Ok', [])
+        return json.dumps([True, info])
+
     def render_disconnect(self, form, start_response):
         identifier = form.get('identifier', None)
         self.api.disconnect(identifier)
