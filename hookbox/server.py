@@ -100,7 +100,7 @@ class HookboxServer(object):
             api_host, api_port = self.config.web_api_interface, self.config.web_api_port
             if api_host is None: api_host = main_host
             if api_port is None: api_port = main_port
-            if (api_port, main_port) != (api_host,  api_port):
+            if (main_host, main_port) != (api_host,  api_port):
                 self._bound_api_socket = eventlet.listen((api_host, api_port))
                 
         # If we have a _bound_api_socket at this point, (either from constructor, 
