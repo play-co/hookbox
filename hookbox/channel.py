@@ -45,15 +45,7 @@ class Channel(object):
         #print 'self._options is', self._options
         self.state = {}
         self.update_options(**self._options)
-        self.update_options(**options)
-
-    def user_disconnected(self, user):
-        # TODO: remove this pointless check, it should never happen, right?
-        if user not in self.subscribers:
-            return
-        self.unsubscribe(user, needs_auth=True, force_auth=True)
-
-        
+        self.update_options(**options)       
 
     def set_history(self, history):
         self.history = history
@@ -192,8 +184,8 @@ class Channel(object):
             self.prune_history()
 
     def subscribe(self, user, conn=None, needs_auth=True):
-
         if user in self.subscribers:
+            user.channel_subscribed(self, conn=conn)
             return
 
         has_initial_data = False
@@ -214,7 +206,7 @@ class Channel(object):
             user.send_frame('CHANNEL_INIT', frame)
 
         self.subscribers.append(user)
-        user.channel_subscribed(self)
+        user.channel_subscribed(self, conn=conn)
         _now = get_now()
         frame = {"channel_name": self.name, "user": user.get_name(), "datetime": _now}
         self.server.admin.channel_event('subscribe', self.name, frame)

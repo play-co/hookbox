@@ -14,7 +14,7 @@ class User(object):
         self.server = server
         self.name = name
         self.connections = []
-        self.channels = []
+        self.channels = {}
         self._temp_cookie = ""
     def serialize(self):
         return {
@@ -36,23 +36,33 @@ class User(object):
             
     def remove_connection(self, conn):
         self.connections.remove(conn)
+
+        # Remove the connection from the channels it was subscribed to,
+        # unsubscribing the user from any channels which they no longer
+        # have open connections to
+        for (channel, channel_connections) in self.channels.items():
+            if conn not in channel_connections:
+                continue
+            self.channels[channel].remove(conn)
+            if not self.channels[channel]:
+                channel.unsubscribe(self, needs_auth=True, force_auth=True)
+
         if not self.connections:
-            # each call to user_disconnected might result in an immediate call
-            # to self.channel_unsubscribed, thus modifying self.channels and
-            # messing up our loop. So we loop over a copy of self.channels...
-            
-            for channel in self.channels[:]:
-                channel.user_disconnected(self)
-#            print 'tell server to remove user...'
+            for (channel, connections) in self.channels.items():
+                channel.unsubscribe(self, needs_auth=True, force_auth=True)
             # so the disconnect callback has a cookie
             self._temp_cookie = conn.get_cookie()
             self.server.remove_user(self.name)
             
-    def channel_subscribed(self, channel):
-        self.channels.append(channel)
+    def channel_subscribed(self, channel, conn=None):
+        if channel not in self.channels:
+            self.channels[channel] = [ conn ]
+        elif conn not in self.channels[channel]:
+            self.channels[channel].append(conn)
         
     def channel_unsubscribed(self, channel):
-        self.channels.remove(channel)
+        if channel in self.channels:
+            del self.channels[channel]
         
     def get_name(self):
         return self.name
@@ -87,4 +97,4 @@ class User(object):
         if recipient.name != self.name:
             self.send_frame('MESSAGE', frame)
         
-    
+
