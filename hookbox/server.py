@@ -193,9 +193,9 @@ class HookboxServer(object):
         # for logging
         url = "http://" + host
         if port != 80:
-            url = urlparse.urlunparse((scheme,host + ":" + str(port), '','',''))
+            url = urlparse.urlunparse((scheme,host + ":" + str(port), '', '','',''))
         else:
-            url = urlparse.urlunparse((scheme,host, '','',''))
+            url = urlparse.urlunparse((scheme,host, '', '','',''))
        
         
         headers = {'content-type': 'application/x-www-form-urlencoded'}
