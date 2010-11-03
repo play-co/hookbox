@@ -9,7 +9,10 @@ import urlparse
 import eventlet
 from paste import urlmap, urlparser
 
-from restkit import Resource, SimplePool
+eventlet.monkey_patch(all=False, socket=True, select=True)
+
+from restkit import Resource
+from restkit.pool.reventlet import EventletPool
 
 import eventlet.wsgi
 import eventlet.websocket
@@ -72,7 +75,7 @@ class HookboxServer(object):
         self.conns_by_cookie = {}
         self.conns = {}
         self.users = {}
-        self.pool = SimplePool()
+        self.pool = EventletPool()
 
     def _ws_wrapper(self, environ, start_response):
         environ['PATH_INFO'] = environ['SCRIPT_NAME'] + environ['PATH_INFO']
