@@ -156,6 +156,7 @@ class HookboxServer(object):
             full_path = self.config['cb_single_url']
         if full_path:
             u = urlparse.urlparse(full_path)
+            scheme = u.scheme
             host = u.hostname
             port = u.port or 80
             path = u.path
@@ -167,6 +168,7 @@ class HookboxServer(object):
 #                host = self.base_host
 #            else:
             path = self.base_path + '/' + self.config.get('cb_' + path_name)
+            scheme = self.config["cbhttps"] and "https" or "http"
             host = self.config["cbhost"]
             port = self.config["cbport"]
         
@@ -191,8 +193,10 @@ class HookboxServer(object):
         # for logging
         url = "http://" + host
         if port != 80:
-            url += ":" + str(port or self.base_port)
-        url += path
+            url = urlparse.urlunparse((scheme,host + ":" + str(port), '','',''))
+        else:
+            url = urlparse.urlunparse((scheme,host, '','',''))
+       
         
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         if cookie_string:
@@ -204,7 +208,7 @@ class HookboxServer(object):
             try:
                 if self.http == None:
                     self.http = Resource(url, pool_instance=self.pool)
-                response = self.http.request(method='POST', path=None, payload=form_body, headers=headers)
+                response = self.http.request(method='POST', path=path, payload=form_body, headers=headers)
                 body = response.body_string()
             except socket.error, e:
                 if e.errno == errno.ECONNREFUSED:
