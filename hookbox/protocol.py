@@ -133,13 +133,8 @@ class HookboxConn(object):
         if self.state != 'connected':
             return self.send_error(fid, "Not connected")
         if 'name' not in fargs:
-            return self.send_error(fid, "name")
-        recipient_user_name = fargs['name']
-        if not self.server.exists_user(recipient_user_name):
-            # TODO: Maybe this is too much info to expose, that the user isn't signed on...
-            return self.send_error(fid, "invalid user name")
-        recipient = self.server.get_user(recipient_user_name)
-        self.user.send_message(recipient, fargs.get('payload', 'null'), conn=self)
+            return self.send_error(fid, "name required")
+        self.user.send_message(fargs['name'], fargs.get('payload', 'null'), conn=self)
         
         
 def parse_cookies(cookieString):

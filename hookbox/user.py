@@ -118,23 +118,29 @@ class User(object):
         
         return self._temp_cookie or ""
         
-    def send_message(self, recipient, payload, conn=None, needs_auth=True):
+    def send_message(self, recipient_name, payload, conn=None, needs_auth=True):
         try:
             encoded_payload = json.loads(payload)
         except:
             raise ExpectedException("Invalid json for payload")
         payload = encoded_payload
         if needs_auth and self.moderated_message:
-            form = { 'sender': self.get_name(), 'recipient': recipient.get_name(), 'payload': json.dumps(payload) }
+            form = { 'sender': self.get_name(), 'recipient': recipient_name, 'recipient_exists': self.server.exists_user(recipient_name), 'payload': json.dumps(payload) }
             success, options = self.server.http_request('message', self.get_cookie(conn), form, conn=conn)
             self.server.maybe_auto_subscribe(self, options, conn=conn)
             if not success:
                 raise ExpectedException(options.get('error', 'Unauthorized'))
             payload = options.get('override_payload', payload)
+            recipient_name = options.get('override_recipient_name', recipient_name)
+        elif not self.server.exists_user(recipient_name):
+            raise ExpectedException('Invalid user name')
+
+        recipient = self.server.get_user(recipient_name) if self.server.exists_user(recipient_name) else None
         
-        frame = {"sender": self.get_name(), "recipient": recipient.get_name(), "payload": payload, "datetime": get_now()}
-        recipient.send_frame('MESSAGE', frame)
-        if recipient.name != self.name and self.reflective:
+        frame = {"sender": self.get_name(), "recipient": recipient.get_name() if recipient else "null", "payload": payload, "datetime": get_now()}
+        if recipient:
+            recipient.send_frame('MESSAGE', frame)
+        if self.reflective and (not recipient or recipient.name != self.name):
             self.send_frame('MESSAGE', frame)
         
-    
+
