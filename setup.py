@@ -25,6 +25,7 @@ _install_requires = [
     'csp_eventlet>=0.5.1', 
     'rtjp_eventlet>=0.3.2', 
     'pygments',
+    'restkit>=2.2.3',
 #    'nose==0.11.1',
 #    'coverage',
 ]

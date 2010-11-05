@@ -9,7 +9,10 @@ import urlparse
 import eventlet
 from paste import urlmap, urlparser
 
-from eventlet.green import httplib
+eventlet.monkey_patch(all=False, socket=True, select=True)
+
+from restkit import Resource
+from restkit.pool.reventlet import EventletPool
 
 import eventlet.wsgi
 import eventlet.websocket
@@ -72,6 +75,7 @@ class HookboxServer(object):
         self.conns_by_cookie = {}
         self.conns = {}
         self.users = {}
+        self.pool = EventletPool()
 
     def _ws_wrapper(self, environ, start_response):
         environ['PATH_INFO'] = environ['SCRIPT_NAME'] + environ['PATH_INFO']
@@ -154,6 +158,7 @@ class HookboxServer(object):
             full_path = self.config['cb_single_url']
         if full_path:
             u = urlparse.urlparse(full_path)
+            scheme = u.scheme
             host = u.hostname
             port = u.port or 80
             path = u.path
@@ -165,6 +170,7 @@ class HookboxServer(object):
 #                host = self.base_host
 #            else:
             path = self.base_path + '/' + self.config.get('cb_' + path_name)
+            scheme = self.config["cbhttps"] and "https" or "http"
             host = self.config["cbhost"]
             port = self.config["cbport"]
         
@@ -185,18 +191,13 @@ class HookboxServer(object):
             form[new_key] = new_val
 
         form_body = urllib.urlencode(form)
-        # TODO: stash this, and re-use it; maybe it will do keep alive too!
-        #       -mcarter 5/28/10
-        if self.config["cbhttps"]:
-            http = httplib.HTTPSConnection(host, port)
-        else:
-            http = httplib.HTTPConnection(host, port)
-        
+
         # for logging
-        url = "http://" + host
         if port != 80:
-            url += ":" + str(port or self.base_port)
-        url += path
+            url = urlparse.urlunparse((scheme,host + ":" + str(port), '', '','',''))
+        else:
+            url = urlparse.urlunparse((scheme,host, '', '','',''))
+       
         
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         if cookie_string:
@@ -206,9 +207,9 @@ class HookboxServer(object):
         body = None
         try:
             try:
-                http.request('POST', path, body=form_body, headers=headers)
-                response = http.getresponse()
-                body = response.read()
+                http = Resource(url, pool_instance=self.pool)
+                response = http.request(method='POST', path=path, payload=form_body, headers=headers)
+                body = response.body_string()
             except socket.error, e:
                 if e.errno == errno.ECONNREFUSED:
                     raise Exception("Connection refused for HTTP request to %s" % (url))
@@ -218,30 +219,30 @@ class HookboxServer(object):
             self.admin.webhook_event(path_name, url, 0, False, body, form_body, cookie_string, e)
             logger.warn('Exception with webhook %s', url, exc_info=True)
             return False, { 'error': 'failure: %s' % (e,) }
-        if response.status != 200:
-            self.admin.webhook_event(path_name, url, response.status, False, body, form_body, cookie_string, "Invalid status")
-            raise ExpectedException("Invalid callback response, status=%s (%s), body: %s" % (response.status, path, body))
+        if response.status_int != 200:
+            self.admin.webhook_event(path_name, url, response.status_int, False, body, form_body, cookie_string, "Invalid status")
+            raise ExpectedException("Invalid callback response, status=%s (%s), body: %s" % (response.status_int, path, body))
 
         try:
            output = json.loads(body)
         except:
-            self.admin.webhook_event(path_name, url, response.status, False, body, form_body, cookie_string, "Invalid json response")
+            self.admin.webhook_event(path_name, url, response.status_int, False, body, form_body, cookie_string, "Invalid json response")
             raise ExpectedException("Invalid json: " + body)
         #print 'response to', path, 'is:', output
         if not isinstance(output, list) or len(output) != 2:
-            self.admin.webhook_event(path_name, url, response.status, False, body, form_body, cookie_string, "len(response) != 2 (list)")
+            self.admin.webhook_event(path_name, url, response.status_int, False, body, form_body, cookie_string, "len(response) != 2 (list)")
             raise ExpectedException("Invalid response (expected json list of length 2)")
         if not isinstance(output[1], dict):
-            self.admin.webhook_event(path_name, url, response.status, False, body, form_body, cookie_string, "response[1] != json object")
+            self.admin.webhook_event(path_name, url, response.status_int, False, body, form_body, cookie_string, "response[1] != json object")
             raise ExpectedException("Invalid response (expected json object in response index 1)")
         output[1] = dict([(str(k), v) for (k,v) in output[1].items()])
         err = ""
         if not output[0]:
             err = output[1].get('msg', "(No reason given)")
-        self.admin.webhook_event(path_name, url, response.status, output[0], body, form_body, cookie_string, err)
+        self.admin.webhook_event(path_name, url, response.status_int, output[0], body, form_body, cookie_string, err)
 
         if conn:
-            set_cookie = response.getheader('Set-Cookie', '')
+            set_cookie = dict(response.headerslist).get('Set-Cookie', '')
             if set_cookie:
                 conn.send_frame('SET_COOKIE', {'cookie': set_cookie})
 
