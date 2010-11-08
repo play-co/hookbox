@@ -43,6 +43,11 @@ class HookboxAPI(object):
         user = self.server.get_user(name)
         channel.subscribe(user, needs_auth=send_hook)
 
+    def message(self, sender_name, recipient_name, payload='null', send_hook=False):
+        if not self.server.exists_user(sender_name):
+            raise ExpectedException("User %s doesn't exist" % (sender_name,))
+        sender = self.server.get_user(sender_name)
+        sender.send_message(recipient_name, payload, needs_auth=send_hook)
 
     def disconnect_user(self, name):
         raise ExpectedException("Not Implemented")
