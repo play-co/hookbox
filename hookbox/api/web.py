@@ -85,6 +85,20 @@ class HookboxWebAPI(object):
         start_response('200 Ok', [])
         return json.dumps([True, {}])
 
+    def render_message(self, form, start_response):
+        sender_name = form.get('sender_name', None)
+        if not sender_name:
+            raise ExpectedException("Missing sender_name")
+        recipient_name = form.get('recipient_name', None)
+        if not recipient_name:
+            raise ExpectedException("Missing recipient_name")
+        payload = form.get('payload', 'null')
+        send_hook = form.get('send_hook', '0') == '1'
+        
+        self.api.message(sender_name, recipient_name, payload, send_hook)
+        start_response('200 Ok', [])
+        return json.dumps([True, {}])
+
     def render_set_user_options(self, form, start_response):
         user_name = form.pop('user_name', None)
         if not user_name:
