@@ -101,9 +101,8 @@ class HookboxConn(object):
         self.cookie_string = fargs['cookie_string']
         self.cookies = parse_cookies(fargs['cookie_string'])
         self.cookie_id = self.cookies.get(self.cookie_identifier, None)
-        self.server.connect(self)
+        self.server.connect(self, fargs.get('payload', 'null'))
         self.state = 'connected'
-        self.send_frame('CONNECTED', { 'name': self.user.get_name() })
     
     def frame_SUBSCRIBE(self, fid, fargs):
         if self.state != 'connected':
