@@ -158,10 +158,7 @@ class HookboxServer(object):
             full_path = self.config['cb_single_url']
         if full_path:
             u = urlparse.urlparse(full_path)
-            scheme = u.scheme
-            host = u.hostname
-            port = u.port or 80
-            path = u.path
+            scheme, host, port, path = u.scheme, u.hostname, u.port or 80, u.path
             if self.config['cbtrailingslash'] and not path.endswith('/'):
                 path += '/'
             if u.query:
@@ -198,11 +195,9 @@ class HookboxServer(object):
 
         # for logging
         if port != 80:
-            url = urlparse.urlunparse((scheme,host + ":" + str(port), '', '','',''))
-        else:
-            url = urlparse.urlunparse((scheme,host, '', '','',''))
-       
-        
+            host = "%s:%s" % (host, port)
+        url = urlparse.urlunparse((scheme, host, '', '', '', ''))
+
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         if cookie_string:
             headers['Cookie'] = cookie_string
