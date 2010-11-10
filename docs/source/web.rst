@@ -120,6 +120,47 @@ Server Replies:
 And the user "mcarter" is unsubscribed from the channel "testing".
 
 
+message
+=======
+
+Publish a message to a user.
+
+Required Form Variables:
+
+* ``security_token``: The password specified in the config as ``-r`` or ``--api-security-token``.
+* ``sender_name``: The user name of the message sender.
+* ``recipient_name``: The user name of the message recipient.
+* ``payload``: The json payload to send
+
+Returns json:
+
+.. sourcecode:: javascript
+
+    [ success (boolean) , details (object) ]
+
+
+Example:
+
+Client Requests URL:
+
+.. sourcecode:: none
+
+    /web/message?security_token=yo&sender_name=bob&recipient_name=joe&payload=[1, 2, "foo"]
+
+
+Server Replies:
+
+.. sourcecode:: javascript
+
+    [ true, {} ]
+
+And the following message frame is sent to user 'joe':
+
+.. sourcecode:: javascript
+
+    { "sender": "bob", "recipient": "joe", "payload": [1, 2, "foo"] }
+
+
 get_channel_info
 ================
 
