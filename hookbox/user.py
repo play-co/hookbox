@@ -13,6 +13,7 @@ class User(object):
     _options = {
         'reflective': True,
         'moderated_message': True,
+        'auto_subscribe':[]
     }
 
     def __init__(self, server, name, **options):
