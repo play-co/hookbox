@@ -333,12 +333,13 @@ class HookboxServer(object):
 
     def maybe_auto_subscribe(self, user, options, conn=None):
         #print 'maybe autosubscribe....'
+        use_conn = conn if conn else user
         for destination in options.get('auto_subscribe', ()):
             #print 'subscribing to', destination
-            channel = self.get_channel(user, destination)
+            channel = self.get_channel(use_conn, destination)
             channel.subscribe(user, conn=conn, needs_auth=False)
         for destination in options.get('auto_unsubscribe', ()):
-            channel = self.get_channel(user, destination)
+            channel = self.get_channel(use_conn, destination)
             channel.unsubscribe(user, conn=conn, needs_auth=False)
 
 
