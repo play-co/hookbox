@@ -135,24 +135,7 @@ class HookboxConn(object):
         if 'name' not in fargs:
             return self.send_error(fid, "name required")
         self.user.send_message(fargs['name'], fargs.get('payload', 'null'), conn=self)
-
-    def frame_EXISTS_USERS(self, fid, fargs):
-        if self.state != 'connected':
-            return self.send_error(fid, "Not connected")
-        if 'name' not in fargs:
-            return self.send_error(fid, "name required")
-        if 'response_channel' not in fargs:
-            return self.send_error(fid, "response_channel required")
-        if 'users' not in fargs:
-            return self.send_error(fid, "users required")
-
-        exists_users = []
-        for user in fargs['users']:
-            exists_users.append({'name':user, 'status':user in self.server.users})
-
-        payload = {'frame_type':'exists_users', 'data':exists_users}
-
-        self.send_frame('PUBLISH', {'channel_name':fargs['response_channel'], 'payload':payload})
+        
         
 def parse_cookies(cookieString):
     output = {}
