@@ -22,6 +22,8 @@ class Channel(object):
         'moderated_subscribe': False,
         'moderated_unsubscribe': False,
         'presenceful': False,
+        'server_presenceful': False,
+        'server_user_presence': [],
         'anonymous': False,
         'polling': {
             'mode': "",
