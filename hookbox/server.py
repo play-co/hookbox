@@ -300,6 +300,7 @@ class HookboxServer(object):
                 self.logger.warn("Unexpected error when removing user: %s", e, exc_info=True)
         
     def create_channel(self, conn, channel_name, options={}, needs_auth=True):
+        local_options = options.copy()
         if channel_name in self.channels:
             raise ExpectedException("Channel already exists")
         if needs_auth:
@@ -309,10 +310,11 @@ class HookboxServer(object):
             }
             success, callback_options = self.http_request('create_channel', cookie_string, form)
             if success:
-                options.update(callback_options)
+                local_options.update(callback_options)
             else:
                 raise ExpectedException(callback_options.get('error', 'Unauthorized'))
-        chan = self.channels[channel_name] = channel.Channel(self, channel_name, **options)
+
+        chan = self.channels[channel_name] = channel.Channel(self, channel_name, **local_options)
         self.admin.channel_event('create_channel', channel_name, chan.serialize())
 
     def destroy_channel(self, channel_name, needs_auth=True):
