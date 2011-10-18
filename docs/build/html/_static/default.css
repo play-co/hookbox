@@ -67,11 +67,10 @@ div.related a {
 div.sphinxsidebar {
     {%- if theme_stickysidebar|tobool %}
     top: 30px;
-    bottom: 0;
     margin: 0;
     position: fixed;
     overflow: auto;
-    height: auto;
+    height: 100%;
     {%- endif %}
     {%- if theme_rightsidebar|tobool %}
     float: right;
@@ -198,18 +197,6 @@ div.body p, div.body dd, div.body li {
 
 div.admonition p.admonition-title + p {
     display: inline;
-}
-
-div.admonition p {
-    margin-bottom: 5px;
-}
-
-div.admonition pre {
-    margin-bottom: 5px;
-}
-
-div.admonition ul, div.admonition ol {
-    margin-bottom: 5px;
 }
 
 div.note {

@@ -87,6 +87,7 @@
 <li><a class="reference external" href="#publish">publish</a></li>
 <li><a class="reference external" href="#subscribe">subscribe</a></li>
 <li><a class="reference external" href="#unsubscribe">unsubscribe</a></li>
+<li><a class="reference external" href="#message">message</a></li>
 <li><a class="reference external" href="#get-channel-info">get_channel_info</a></li>
 <li><a class="reference external" href="#set-channel-options">set_channel_options</a></li>
 <li><a class="reference external" href="#create-channel">create_channel</a></li>
@@ -94,6 +95,8 @@
 <li><a class="reference external" href="#state-set-key">state_set_key</a></li>
 <li><a class="reference external" href="#state-delete-key">state_delete_key</a></li>
 <li><a class="reference external" href="#set-config">set_config</a></li>
+<li><a class="reference external" href="#get-user-info">get_user_info</a></li>
+<li><a class="reference external" href="#set-user-options">set_user_options</a></li>
 </ul>
 </li>
 </ul>
@@ -105,7 +108,7 @@
             <div class="body">
                 
 <div class="section" id="web-http-interface">
-<h1>Web/HTTP Interface<a class="headerlink" href="#web-http-interface" title="Permalink to this headline">¶</a></h1>
+<span id="web-toplevel"></span><h1>Web/HTTP Interface<a class="headerlink" href="#web-http-interface" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="publish">
 <h2>publish<a class="headerlink" href="#publish" title="Permalink to this headline">¶</a></h2>
 <p>Publish a message to a channel.</p>
@@ -174,6 +177,30 @@
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
 </div>
 <p>And the user &#8220;mcarter&#8221; is unsubscribed from the channel &#8220;testing&#8221;.</p>
+</div>
+<div class="section" id="message">
+<h2>message<a class="headerlink" href="#message" title="Permalink to this headline">¶</a></h2>
+<p>Publish a message to a user.</p>
+<p>Required Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">security_token</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--api-security-token</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">sender_name</span></tt>: The user name of the message sender.</li>
+<li><tt class="docutils literal"><span class="pre">recipient_name</span></tt>: The user name of the message recipient.</li>
+<li><tt class="docutils literal"><span class="pre">payload</span></tt>: The json payload to send</li>
+</ul>
+<p>Returns json:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="nx">success</span> <span class="p">(</span><span class="kr">boolean</span><span class="p">)</span> <span class="p">,</span> <span class="nx">details</span> <span class="p">(</span><span class="nx">object</span><span class="p">)</span> <span class="p">]</span></pre></div>
+</div>
+<p>Example:</p>
+<p>Client Requests URL:</p>
+<div class="highlight-none"><div class="highlight"><pre>/web/message?security_token=yo&amp;sender_name=bob&amp;recipient_name=joe&amp;payload=[1, 2, &quot;foo&quot;]</pre></div>
+</div>
+<p>Server Replies:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
+</div>
+<p>And the following message frame is sent to user &#8216;joe&#8217;:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span> <span class="s2">&quot;sender&quot;</span><span class="o">:</span> <span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;recipient&quot;</span><span class="o">:</span> <span class="s2">&quot;joe&quot;</span><span class="p">,</span> <span class="s2">&quot;payload&quot;</span><span class="o">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;foo&quot;</span><span class="p">]</span> <span class="p">}</span></pre></div>
+</div>
 </div>
 <div class="section" id="get-channel-info">
 <h2>get_channel_info<a class="headerlink" href="#get-channel-info" title="Permalink to this headline">¶</a></h2>
@@ -355,6 +382,61 @@
 </div>
 <p>The callback host is now set to <tt class="docutils literal"><span class="pre">1.2.3.4</span></tt> and the port is now <tt class="docutils literal"><span class="pre">80</span></tt>.</p>
 </div>
+<div class="section" id="get-user-info">
+<h2>get_user_info<a class="headerlink" href="#get-user-info" title="Permalink to this headline">¶</a></h2>
+<p>Returns all settings and attributes of a user.</p>
+<p>Required Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">security_token</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--api-security-token</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">user_name</span></tt>: The target user.</li>
+</ul>
+<p>Returns json:</p>
+<p>[ success (boolean) , details (object) ]</p>
+<p>Example:</p>
+<p>Client Requests URL:</p>
+<div class="highlight-none"><div class="highlight"><pre>/web/get_user_info?security_token=yo&amp;user_name=mcarter</pre></div>
+</div>
+<p>Server Replies:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span>
+    <span class="kc">true</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;channels&quot;</span><span class="o">:</span> <span class="p">[</span>
+            <span class="s2">&quot;testing&quot;</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;connections&quot;</span><span class="o">:</span> <span class="p">[</span>
+            <span class="s2">&quot;467412414c294f1a9d1759ace01455d9&quot;</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;mcarter&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;options&quot;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;reflective&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+            <span class="s2">&quot;moderated_message&quot;</span><span class="o">:</span> <span class="kc">true</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">]</span></pre></div>
+</div>
+</div>
+<div class="section" id="set-user-options">
+<h2>set_user_options<a class="headerlink" href="#set-user-options" title="Permalink to this headline">¶</a></h2>
+<p>Set the options on a user.</p>
+<p>Required Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">security_token</span></tt>: The password specified in the config as <tt class="docutils literal"><span class="pre">-r</span></tt> or <tt class="docutils literal"><span class="pre">--api-security-token</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">user_name</span></tt>: The target user.</li>
+</ul>
+<p>Optional Form Variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">reflective</span></tt>: json boolean</li>
+<li><tt class="docutils literal"><span class="pre">moderated_message</span></tt>: json boolean</li>
+</ul>
+<p>Example:</p>
+<p>Client Requests URL:</p>
+<div class="highlight-none"><div class="highlight"><pre>/web/set_user_options?security_token=yo&amp;user_name=mcarter&amp;reflective=false</pre></div>
+</div>
+<p>Server Replies:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="kc">true</span><span class="p">,</span> <span class="p">{}</span> <span class="p">]</span></pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">reflective</span></tt> of the user is now <cite>false</cite>.</p>
+</div>
 </div>
 
             </div>
@@ -373,7 +455,7 @@
 
                 <div class="doc_copyright">
                     &copy; Copyright 2010, Michael Carter.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
                 </div>
             </div>
         

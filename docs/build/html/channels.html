@@ -104,7 +104,7 @@
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Hookbox is built around the concept channels which can be used as an abstraction for routing real-time communication between browers and your web application. These channels have many options, making them suitable for a multitude of basic types of applications. You need to consider the features needed by the real-time portion of your application, and adjust the channel options appropriately. You can read about some <a class="reference external" href="intro.html#intro-common-patterns"><em>Common Patterns</em></a> to find a good starting point for your application.</p>
 <p>Ultimately, your web application has complete control over these channels. A user may perform three actions on a channel, subsribing, publishing, or unsubscribing. Whenever a user attempts to perform an action on a channel, Hookbox will make a <a class="reference external" href="webhooks.html"><em>Webhook</em></a> call back to your application to obtain permission for the action by that user, or simply to notify your web application that the action took place.</p>
-<p>The application may itself perform any of these actions on a channel by using the :ref;`REST API &lt;rest_toplevel&gt;`; it may perform any action on behalf of any user, and it can even publish with arbitrary usernames. The application may additionally use the REST API to alter a channel&#8217;s state or options at any time.</p>
+<p>The application may itself perform any of these actions on a channel by using the <a class="reference external" href="json_rest.html"><em>REST API</em></a>; it may perform any action on behalf of any user, and it can even publish with arbitrary usernames. The application may additionally use the REST API to alter a channel&#8217;s state or options at any time.</p>
 <p>Finally, the web application may sometimes perform actions on channels on behalf of a particular user when that user causes a webhook callback. For instance, a user might subscribe to the channel &#8216;foo&#8217;, which would result in a <tt class="docutils literal"><span class="pre">subscribe</span></tt> webhook to be issued. The web application may respond with the <tt class="docutils literal"><span class="pre">auto_subscribe</span></tt> directive in order to subscribe the user to another channel, such as &#8216;bar&#8217;.</p>
 <p>You can think of channels as three parts:</p>
 <ol class="arabic simple">
@@ -155,7 +155,7 @@
 
                 <div class="doc_copyright">
                     &copy; Copyright 2010, Michael Carter.
-                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+                    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
                 </div>
             </div>
         
