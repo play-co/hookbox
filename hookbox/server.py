@@ -252,21 +252,26 @@ class HookboxServer(object):
 
 #    def _webhook_error
 
-    def connect(self, conn):
-        form = { 'conn_id': conn.id }
+    def connect(self, conn, payload):
+        try:
+            decoded_payload = json.loads(payload)
+        except:
+            raise ExpectedException("Invalid json for payload")
+        form = { 'conn_id': conn.id, 'payload': json.dumps(decoded_payload) }
         success, options = self.http_request('connect', conn.get_cookie(), form, conn=conn)
         if not success:
             raise ExpectedException(options.get('error', 'Unauthorized'))
-        if 'name' not in options:
+        user_name = options.pop('name', None)
+        if not user_name:
             raise ExpectedException('Unauthorized (missing name parameter in server response)')
+        payload = options.pop('override_payload', payload)
         self.conns[conn.id] = conn
-        user = self.get_user(options['name'])
-        del options['name']
-        user.update_options(**options)
+        user = self.get_user(user_name)
+        user.update_options(**user.extract_valid_options(options))
         user.add_connection(conn)
         self.admin.user_event('connect', user.get_name(), conn.serialize())
         self.admin.connection_event('connect', conn.id, conn.serialize())
-        #print 'successfully connected', user.name
+        conn.send_frame('CONNECTED', { 'name': user.get_name(), 'payload': payload })
         eventlet.spawn(self.maybe_auto_subscribe, user, options, conn=conn)
 
     def disconnect(self, conn):

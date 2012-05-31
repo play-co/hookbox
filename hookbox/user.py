@@ -32,6 +32,9 @@ class User(object):
             'options': dict([ (key, getattr(self, key)) for key in self._options])
         }
 
+    def extract_valid_options(self, options):
+        return dict([ (key, options.pop(key, self._options[key])) for key in self._options ])
+
     def update_options(self, **options):
         # TODO: this can't remain so generic forever. At some point we need
         #       better checks on values, such as the list of dictionaries

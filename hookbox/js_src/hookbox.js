@@ -7,11 +7,11 @@ exports.logging = logging;
 logger.setLevel(0);
 
 
-exports.connect = function(url, cookieString) {
+exports.connect = function(url, connectPayload, cookieString) {
 	if (!url.match('/$')) {
 		url = url + '/';
 	}
-	var p = new HookBoxProtocol(url, cookieString);
+	var p = new HookBoxProtocol(url, connectPayload, cookieString);
 	if (window.WebSocket) {
 		jsioConnect(p, 'websocket', {url: url.replace('http://', 'ws://') + 'ws' });
 		p.connectionLost = bind(p, '_connectionLost', 'websocket');
@@ -42,7 +42,6 @@ var Subscription = Class(function(supr) {
 	this.onState = function(frame) {}
 
 	this.frame = function(name, args) {
-		logger.debug('received frame', name, args);
 		switch(name) {
 			case 'PUBLISH':
 				if (this.historySize) { 
@@ -106,13 +105,13 @@ var Subscription = Class(function(supr) {
 
 HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 	// Public api
-	this.onOpen = function() { }
+	this.onOpen = function(args) { }
 	this.onClose = function(err, wasConnected) { }
 	this.onError = function(args) { }
 	this.onSubscribed = function(name, subscription) { }
 	this.onUnsubscribed = function(subscription, args) { }
 	this.onMessaged = function(args) {}
-	this.init = function(url, cookieString) {
+	this.init = function(url, connectPayload, cookieString) {
 		supr(this, 'init', []);
 		this.url = url;
 		try {
@@ -127,6 +126,7 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 		this._publishes = [];
 		this._messages = [];
 		this._errors = {};
+        this._connectPayload = connectPayload;
 		this.username = null;
 	}
 
@@ -158,10 +158,11 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 	this.connectionMade = function() {
 		logger.debug('connectionMade');
 		this.transport.setEncoding('utf8');
-		this.sendFrame('CONNECT', { cookie_string: this.cookieString });
+		this.sendFrame('CONNECT', { cookie_string: this.cookieString, payload: JSON.stringify(this._connectPayload) });
 	}
 
 	this.frameReceived = function(fId, fName, fArgs) {
+        logger.debug('received frame', fName, fArgs);
 		switch(fName) {
 			case 'MESSAGE':
 				this.onMessaged(fArgs);
@@ -182,7 +183,7 @@ HookBoxProtocol = Class([RTJPProtocol], function(supr) {
 					this.message.apply(this, msg);
 				}
 				
-				this.onOpen();
+				this.onOpen(fArgs);
 				break;
 			case 'SUBSCRIBE':
 				if (fArgs.user == this.username) {
