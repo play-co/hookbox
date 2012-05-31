@@ -1,17 +1,13 @@
 README
 ------
 
-This demo displays a scope that is dynamically updated based
-on data published by the server on channel "chan1".
+This demo displays a 120 Hz sine wave playing in a scope.
 
-A producer process (producer.py) generates random data and uses
-Hookbox's REST api to publish the data on the channel mentioned above.
+The scope is a drawn using the flot.js library and the data is
+published using Hookbox's REST api on channel 'chan1' by producer.py
 
 A Quixote based web application (webapp.py) serves the main page and also
 handles call backs from the Hookbox process.
-
-jQuery and jQuery-ui are used on the web page to render the sliders
-which make up our EQ widget.
 
 How To Run
 ----------
