@@ -23,6 +23,8 @@ class Channel(object):
         'moderated_subscribe': False,
         'moderated_unsubscribe': False,
         'presenceful': False,
+        'server_presenceful': False,
+        'server_user_presence': [],
         'anonymous': False,
         'polling': {
             'mode': "",
@@ -243,7 +245,18 @@ class Channel(object):
             return
         self.state[key] = val
         self.state_broadcast(updates={ key: val })
-    
+
+    def state_multi_set(self, state):
+        #Set multiple state values at once
+        updates = {}
+        for k,v in state.iteritems():
+            if k in self.state and self.state[k]==v:
+                pass
+            else:
+                self.state[k] = v
+                updates[k] = v
+        self.state_broadcast(updates=updates)
+
     def state_broadcast(self, updates={}, deletes=[]):
         frame = { 
             "channel_name": self.name, 
