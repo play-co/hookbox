@@ -17,7 +17,6 @@ class Channel(object):
         'reflective': True,
         'history': [],
         'history_size': 0,
-        'history_publish_only': False,
         'moderated': True,
         'moderated_publish': False,
         'moderated_subscribe': False,
@@ -228,7 +227,7 @@ class Channel(object):
         
         user.send_frame('SUBSCRIBE', frame)
             
-        if self.history_size and not self.history_publish_only:
+        if self.history_size:
             self.history.append(('SUBSCRIBE', {"user": user.get_name(), "datetime": _now }))
             self.prune_history()
 
@@ -320,7 +319,7 @@ class Channel(object):
         user.send_frame('UNSUBSCRIBE', frame)
         self.subscribers.remove(user)
         user.channel_unsubscribed(self)
-        if self.history_size and not self.history_publish_only:
+        if self.history_size:
             del frame['channel_name']
             self.history.append(('UNSUBSCRIBE', frame))
             self.prune_history()
